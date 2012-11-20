@@ -8,22 +8,7 @@ To embed the lemur app into the SuperCollider code written program's
 I am not trying to remake the Lemur Editor but I am writing it as a extension
 If you have suggestion contact me via GitHub.
 
-a = MLemurGui.new;
-a.connect("192.10.1.2");
-a.resetAll;
-a.addPage;
-a.addPage("test page 2");
-a.disconnect;
-a.removePage;
-a.removePage("test page 2")
-a.addFader("thing");
-a.removeFader;
-
-a.buildDemo(
-	[\Fader, \Fader, \Range, \Range, \Fader, \Fader],
-	["tempo", "distortion", "frequency", "mask", "reverb", "distortion"],
-	"synth setup 1", 2);
-
+SCDoc.indexAllDocuments
 */
 
 MLemurGui {
@@ -82,7 +67,7 @@ MLemurGui {
 	removePageCode { |pagename = "default name"|
 		// this xml code removes a page of "name"
 		var string =
-		'<DELETE> <WINDOW class="JAZZINTERFACE" text="%" id="1" state="1" group="0"> </WINDOW> </DELETE>'.asString.format(pagename);
+		'<DELETE> <WINDOW class="JAZZINTERFACE" text="%" group="0"> </WINDOW> </DELETE>'.asString.format(pagename);
 		^string;
 	}
 
@@ -103,7 +88,7 @@ MLemurGui {
 	}
 
 	removeFaderCode { |idname = "Fader1"|
-		var string = '<DELETE> <WINDOW class="Fader" text="%" id="1" <DELETE>'.asString.format(idname);
+		var string = '<DELETE> <WINDOW class="Fader" text="%" </WINDOW> <DELETE>'.asString.format(idname);
 		^string;
 	}
 
@@ -122,7 +107,7 @@ MLemurGui {
 	}
 
 	removeRangeCode { |idname = "Range1"|
-		^'<DELETE> <WINDOW class="Range" text="%" id="1" <DELETE>'.asString.format(idname);
+		^'<DELETE> <WINDOW class="Range" text="%" </WINDOW> <DELETE>'.asString.format(idname);
 	}
 
 	addRange { | idname = "Range1", x = 6, y = 15, width = 100, height = 678 |

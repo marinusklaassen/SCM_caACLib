@@ -1,0 +1,223 @@
+TITLE:: MLemurGui
+summary:: This class can be used to build a basic UI on the Lemur app using sc-lang.
+categories:: External Control>Lemur
+related:: Classes/EnvirGui, Classes/NetAddr, Classes/OSCFunc
+
+DESCRIPTION::
+A new instance of MLemurGui will build via a TCP connection with the Lemur applications on a remote device and sclang, a basic control user interface, wich can be used as an OSC controller for SuperCollider programs. Multiple devices can be connected at the same time by evaluating more instances of the MLemurGui.
+
+image::lpict.png#The interface builded realtime with using the example code.::
+
+The best way to setup a network is to create a adhoc privata LAN wich is broadcasted via an onboard modem. This will increase the reaction speed of working with an external osc controller via wifi.
+
+This is how it is done in Mac OS X:
+numberedlist::
+## Open network preferences
+## Edit locations and add a new location.
+## Go to Advanced settings.
+## Go to tab TCP/IP.
+## Configure IPv4: Manually there.
+::
+
+The manual configuration could look like this:
+numberedlist::
+## IPv4 Addres: 192.10.1.16
+## Subnet Mask: 255.255.255.0
+## Router: empty
+## onfigure IPv6: Automatically
+::
+
+SOFT::
+In a working setting I am using always a fixed Device name for broadcasting an ad-hoc network. This because then on all the devices that I connect to the LAN with static adresses, will make it the next time easier to sync up again.
+::
+
+SOFT::
+In example: When using an IThingy just configure the IP-adress in wifi-network as a static addres like: IP-addres "192.10.1.1" Subnetmasker: 255.255.255.0.
+::
+
+
+CLASSMETHODS::
+private:: initClass
+
+METHOD:: new
+Make a new dispatcher.
+
+returns:: A new instance.
+
+INSTANCEMETHODS::
+
+METHOD:: connect
+To establish a TCP and UDP connection to communicate with the Lemur app.
+WARNING:: Make sure the ip address is correct and the Lemur applications is on. ::
+
+argument:: ip
+This is the ip-address of the device where the Lemur app is located.
+
+METHOD:: disconnect
+Disconnect the connections of all instances of this class.
+
+METHOD:: sendPacket
+Converts a message string into an 8 bit integer array and send's it via TCP to the targetted Lemur app.
+argument:: message
+A XML message as Symbol or String.
+
+private:: resetCode
+
+METHOD:: resetAll
+Reset Lemur canvas so you can build an control GUI from scratch.
+
+private:: addPageCode
+private:: removePageCode
+
+METHOD:: addPage
+Add's a page.
+
+argument:: pagename
+Is also the id name.
+argument:: x
+argument:: y
+argument:: width
+argument:: height
+
+METHOD:: removePage
+Remove a page.
+
+
+private:: addFaderCode
+private:: removeFAderCode
+
+METHOD:: addFader
+Add a Fader
+
+argument:: idname
+The pagename is also the id name.
+argument:: x
+argument:: y
+argument:: width
+argument:: height
+
+METHOD:: removeFader
+Remove a Fader
+
+argument:: idname
+Is also the id name.
+
+private:: addRangeCode
+private:: removeRangeCode
+
+METHOD:: addRange
+Add a Range Slider
+
+argument:: idname
+Is also the id name.
+argument:: x
+argument:: y
+argument:: width
+argument:: height
+
+METHOD:: removeRange
+Remove a Ranger
+
+private:: addTextCode
+
+METHOD:: addText
+Add a Text object.
+
+argument:: idname
+Is also the id name.
+argument:: content
+argument:: x
+argument:: y
+argument:: width
+argument:: height
+
+METHOD:: removeText
+Remove a Text object.
+
+METHOD:: set_osctarget
+An osc target is where the lemur application is sending osc messages to.
+argument:: target_number
+set the target number of the to setup target.
+argument:: ip_host
+Set the receiver ip address. (for instance the ip-address of this computer)
+argument:: port
+Set the receiver port. (for instance the sclang port: 57120)
+
+
+METHOD:: buildBind
+Build auto interfaces together with MBindGui class.
+
+argument:: bindGui
+A nested MBindGui class.
+
+argument:: pageName
+visible page name.
+
+argument:: id
+The id name to is concatenate to the osc tag. Example tags: (p1Range1, p1Fader2 etc.)
+
+
+METHOD:: buildDemo
+Build auto interfaces on an controllable but yet an automatical way.
+
+argument:: typeArray
+An array of types of object's. Possible options: Fader or Range. Look at the examples.
+argument:: parNames
+An array of parameter names.
+argument:: pageName
+argument:: id
+The id name to is concatenate to the osc tag. Example tags: (p1Range1, p1Fader2 etc.)
+
+
+private:: buildInfo
+private:: current_ip
+private:: removeFaderCode
+
+
+
+
+
+EXAMPLES::
+CODE::
+a = MLemurGui.new;
+
+a.connect("192.10.1.2");
+
+// Clear Lemur canvas if nescessary.
+a.resetAll;
+
+// The argument of an add element is also the osc tagname.
+OSCFunc.trace(true);
+
+// a little demo:
+a.buildDemo(\Fader ! 10, { |i| "par " ++ (i+1) } ! 10, "Sliders", 1);
+
+a.buildDemo({ [\Fader,\Range].choose } ! 10,{ |i| "par " ++ (i+1) } ! 10,"Range and Sliders", 2);
+
+// What buildDemo basically is doing.
+(
+z = a.addPageCode("collection", 2);
+
+// adds gui elements to it.
+b = a.addFaderCode("p1Fader1");
+c = a.addFaderCode("p1Fader2", 106);
+d = a.addFaderCode("p1Fader3", 206);
+e = a.addFaderCode("p1Fader4", 306);
+f = a.addRangeCode("p1Range5", 406);
+g = a.addRangeCode("p1Range6", 506);
+
+a.sendPacket("<JZML>" ++ z ++ b ++ c ++ d ++ e ++ f ++ g ++ "<JZML>");
+)
+
+(
+a.addPageCode("custom build", 2);
+a.addFader("Fader1", 100,100, 400, 500);
+a.addFader("Fader2", 600,100, 200, 500);
+)
+
+a.resetAll;
+
+a.disconnect;
+
+OSCFunc.trace(false);
+::
