@@ -13,7 +13,7 @@ SCDoc.indexAllDocuments
 
 MLemurGui {
 	classvar connections, buildPort = 8002, oscPort = 8000;
-	var <current_ip, <buildInfo;
+	var <current_ip, <buildInfo, <oscaddr;
 
 	*initClass {
 		connections = IdentityDictionary.new;
@@ -29,6 +29,7 @@ MLemurGui {
 			];
 		});
 
+		oscaddr = connections[ip].last;
 		current_ip = ip; // current ip is stored in an instance variable to
 		current_ip.postln;
 		connections.postln;

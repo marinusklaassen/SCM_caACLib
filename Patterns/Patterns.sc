@@ -2,26 +2,50 @@
 
 
 PpdefArray : Pattern {
-� � � �  �var <>patternClass, <>envir, <>key, <>numArgs, <>additional;
-� � � � *new { �arg patternClass, envir, key, numArgs = 1, additional = nil;
-� � � � � � � � ^super.newCopyArgs(patternClass,envir,key,numArgs, additional)
-� � � � }
-� � � �
- 		embedInStream { arg inval;
-� � � � 	var argStream = Pfunc({ Pdef(envir).get(key) ++ additional }).asStream, latestArgs,
-� � � �
-proxies = Array.fill(numArgs, { |i| Pfunc({ latestArgs[i] }).asStream }),
-� � � � stream = patternClass.new(*proxies).asStream;
-� � � � � � � � while {
-� � � � � � � � � � � � latestArgs = argStream.next(inval);
-� � � � � � � � � � � � latestArgs.notNil
-� � � � � � � � } {
-� � � � � � � � � � � � inval = stream.next(inval).yield;
-� � � � � � � � };
-� � � � � �^inval
-� � � � }
-� � � � storeArgs { ^[patternClass,envir,key,numArgs] }
+	var <>patternClass, <>envir, <>key, <>numArgs, <>additional;
+	*new { arg patternClass, envir, key, numArgs = 1, additional = nil;
+		^super.newCopyArgs(patternClass,envir,key,numArgs, additional)
+	}
+
+	embedInStream { arg inval;
+		var argStream = Pfunc({ Pdef(envir).get(key) ++ additional }).asStream, latestArgs,
+
+		proxies = Array.fill(numArgs, { |i| Pfunc({ latestArgs[i] }).asStream }),
+		stream = patternClass.new(*proxies).asStream;
+		while {
+			latestArgs = argStream.next(inval);
+			latestArgs.notNil
+		} {
+			inval = stream.next(inval).yield;
+		};
+		^inval
+	}
+	storeArgs { ^[patternClass,envir,key,numArgs] }
 }
+
+
+PbGuiArray : Pattern {
+	var <>patternClass, <>dict, <>key, <>numArgs, <>additional;
+	*new { arg patternClass, dict, key, numArgs = 1, additional = nil;
+		^super.newCopyArgs(patternClass,dict,key,numArgs, additional)
+	}
+	embedInStream { arg inval;
+		var argStream = Pfunc({ dict.envir[key] ++ additional }).asStream, latestArgs,
+		proxies = Array.fill(numArgs, { |i| Pfunc({ latestArgs[i] }).asStream }),
+
+		stream = patternClass.new(*proxies).asStream;
+		while {
+			latestArgs = argStream.next(inval);
+			latestArgs.notNil
+		} {
+			inval = stream.next(inval).yield;
+		};
+		^inval
+	}
+	storeArgs { ^[patternClass,dict,key,numArgs] }
+}
+
+
 
 /*
 Pdef(\a).set(\amp,[0,0.125]);
@@ -33,48 +57,48 @@ Pdef(\a).set(\amp, [0,1.0])
 q.nextN(1000).histo.plot;
 */
 
-PbGuiArray : Pattern {
-� � � � var <>patternClass, <>dict, <>key, <>numArgs, <>additional;
-� � � � *new { �arg patternClass, dict, key, numArgs = 1, additional = nil;
-� � � � � � � � ^super.newCopyArgs(patternClass,dict,key,numArgs, additional)
-� � � � }
-� � � � embedInStream { arg inval;
-�	   var argStream = Pfunc({ dict.envir[key] ++ additional }).asStream, latestArgs,
-� 	   proxies = Array.fill(numArgs, { |i| Pfunc({ latestArgs[i] }).asStream }),
-� � � �
-   stream = patternClass.new(*proxies).asStream;
-� � � � while {
-� � � � � � � �� latestArgs = argStream.next(inval);
-� � � � � � � �� latestArgs.notNil
-� � � � � � � � } {
-� � � � � � � � � inval = stream.next(inval).yield;
-� � � � � � � };
-� � � � � �^inval
-� � � � }
-� � � � storeArgs { ^[patternClass,dict,key,numArgs] }
-}
+// PguiArray : Pattern {
+// 	var <>patternClass, <>dict, <>key, <>numArgs, <>additional;
+// 	*new { arg patternClass, dict, key, numArgs = 1, additional = nil;
+// 		^super.newCopyArgs(patternClass,dict,key,numArgs, additional)
+// 	}
+// 	embedInStream { arg inval;
+// 		var argStream = Pfunc({ dict.envir[key] ++ additional }).asStream, latestArgs,
+// 		proxies = Array.fill(numArgs, { |i| Pfunc({ latestArgs[i] }).asStream }),
+//
+// 		stream = patternClass.new(*proxies).asStream;
+// 		while {
+// 			latestArgs = argStream.next(inval);
+// 			latestArgs.notNil
+// 		} {
+// 			inval = stream.next(inval).yield;
+// 		};
+// 		^inval
+// 	}
+// 	storeArgs { ^[patternClass,dict,key,numArgs] }
+// }
 
 
 
 PenvirArray : Pattern {
-� � � � var <>patternClass, <>envir, <>key, <>numArgs, <>additional;
-� � � � *new { �arg patternClass, envir, key, numArgs = 1, additional = nil;
-� � � � � � � � ^super.newCopyArgs(patternClass,envir,key,numArgs, additional)
-� � � � }
-� � � � embedInStream { arg inval;
-�	   var argStream = Pfunc({ envir.object[key] ++ additional }).asStream, latestArgs,
-� 	   proxies = Array.fill(numArgs, { |i| Pfunc({ latestArgs[i] }).asStream }),
-� � � �
-   stream = patternClass.new(*proxies).asStream;
-� � � � while {
-� � � � � � � �� latestArgs = argStream.next(inval);
-� � � � � � � �� latestArgs.notNil
-� � � � � � � � } {
-� � � � � � � � � inval = stream.next(inval).yield;
-� � � � � � � };
-� � � � � �^inval
-� � � � }
-� � � � storeArgs { ^[patternClass,envir,key,numArgs] }
+	var <>patternClass, <>envir, <>key, <>numArgs, <>additional;
+	*new { arg patternClass, envir, key, numArgs = 1, additional = nil;
+		^super.newCopyArgs(patternClass,envir,key,numArgs, additional)
+	}
+	embedInStream { arg inval;
+		var argStream = Pfunc({ envir.object[key] ++ additional }).asStream, latestArgs,
+		proxies = Array.fill(numArgs, { |i| Pfunc({ latestArgs[i] }).asStream }),
+
+		stream = patternClass.new(*proxies).asStream;
+		while {
+			latestArgs = argStream.next(inval);
+			latestArgs.notNil
+		} {
+			inval = stream.next(inval).yield;
+		};
+		^inval
+	}
+	storeArgs { ^[patternClass,envir,key,numArgs] }
 }
 
 /*
@@ -106,9 +130,9 @@ Pbinc1 : Pattern {
 
 	embedInStream { arg inval;
 		var	offsetStr	= offset.asStream,
-		 	mulStr	= mul.asStream,
-		 	offsetVal	= offsetStr.next(inval),
-			mulVal 	= mulStr.next(inval);
+		mulStr	= mul.asStream,
+		offsetVal	= offsetStr.next(inval),
+		mulVal 	= mulStr.next(inval);
 
 		if (offsetVal.isNil or: { mulVal.isNil }) { ^inval };
 
@@ -148,8 +172,8 @@ Pbinom : Pattern {
 	storeArgs { ^[n, weight,length] }
 	embedInStream { arg inval;
 		var 	nStr = n.asStream,
-			weightStr = weight.asStream,
-			nVal,weightVal,return;
+		weightStr = weight.asStream,
+		nVal,weightVal,return;
 		length.value(inval).do({
 			nVal = nStr.next(inval);
 			weightVal = weightStr.next(inval);
@@ -186,7 +210,7 @@ Pbinom2 : Pattern {
 			weightVal = weightStr.next(inval);
 			if(nVal.isNil or: { weightVal.isNil }) { ^inval };
 			return = Mix.fill(nVal, { if (weightVal.coin) { 1 } { 0 } }) / nVal * [-1,1].choose;
-						inval = return.yield;
+			inval = return.yield;
 		});
 		^inval;
 	}
@@ -208,18 +232,18 @@ a.next
 
 
 PESscale : Pattern {
-� � � � var <>envir, <>key, <>shape;
-� � � � *new { �arg patternClass, envir, key, numArgs = 1, additional = nil;
-� � � � � � � � ^super.newCopyArgs(patternClass,envir,key,numArgs, additional)
-� � � � }
-� � � � embedInStream { arg inval;
-�	   var 	argStream 	= Pfunc({ envir.envir[key] }).asStream, latestArgs,
-				shapeStream 	= Pfunc({ shape.next }).asStream;
+	var <>envir, <>key, <>shape;
+	*new { arg patternClass, envir, key, numArgs = 1, additional = nil;
+		^super.newCopyArgs(patternClass,envir,key,numArgs, additional)
+	}
+	embedInStream { arg inval;
+		var 	argStream 	= Pfunc({ envir.envir[key] }).asStream, latestArgs,
+		shapeStream 	= Pfunc({ shape.next }).asStream;
 
-� � � � while	{ argStream.next(inval).notNil && shapeStream.next(inval).notNil }
-					{ inval = (shapeStream.next(inval).linlin(0,1.0,argStream.next(inval).at(0),argStream.next(inval).at(1))).yield;
-� � � � � � � };
-� � � � � �^inval
-� � � � }
+		while	{ argStream.next(inval).notNil && shapeStream.next(inval).notNil }
+		{ inval = (shapeStream.next(inval).linlin(0,1.0,argStream.next(inval).at(0),argStream.next(inval).at(1))).yield;
+		};
+		^inval
+	}
 }
 
