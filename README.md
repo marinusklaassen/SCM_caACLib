@@ -6,6 +6,8 @@ allows for easier interaction and organisation with Patterns and tactile interfa
 like the PadKontrol in native mode and the Lemur app. Also I will add Pattern classes 
 and UGens that I implemented to use with Algorithmic Composition. 
 
+lpict.png
+
 What I have added until now:
 - Stochastic number generators as Demand UGens.
 - Lemur class to build elementary elements realtime on the Ipad app.
