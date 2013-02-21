@@ -1,7 +1,6 @@
 /* Help Pattern subclasses.  Marinus Klaassen 2012	*/
 
-
-PpdefArray : Pattern {
+PdefArray : Pattern {
 	var <>patternClass, <>envir, <>key, <>numArgs, <>additional;
 	*new { arg patternClass, envir, key, numArgs = 1, additional = nil;
 		^super.newCopyArgs(patternClass,envir,key,numArgs, additional)
@@ -24,7 +23,7 @@ PpdefArray : Pattern {
 }
 
 
-PbGuiArray : Pattern {
+PguiArray : Pattern {
 	var <>patternClass, <>dict, <>key, <>numArgs, <>additional;
 	*new { arg patternClass, dict, key, numArgs = 1, additional = nil;
 		^super.newCopyArgs(patternClass,dict,key,numArgs, additional)
@@ -77,8 +76,6 @@ q.nextN(1000).histo.plot;
 // 	}
 // 	storeArgs { ^[patternClass,dict,key,numArgs] }
 // }
-
-
 
 PenvirArray : Pattern {
 	var <>patternClass, <>envir, <>key, <>numArgs, <>additional;
@@ -158,13 +155,14 @@ Pbinc1 : Pattern {
 		^inval;
 	}
 }
+
 /*
 a = Pbinc1(0,1,inf).asStream
 a.nextN(20)
 */
 
 // to discrete chance generators.
-Pbinom : Pattern {
+Pbernoulli : Pattern {
 	var <>n, <>weight, <>length;
 	*new { arg n=3, weight=0.5, length=inf;
 		^super.newCopyArgs(n, weight, length)
@@ -179,6 +177,7 @@ Pbinom : Pattern {
 			weightVal = weightStr.next(inval);
 			if(nVal.isNil or: { weightVal.isNil }) { ^inval };
 			return = Mix.fill(nVal, { if (weightVal.coin) { 1 } { 0 } }) / nVal;
+
 			inval = return.yield;
 		});
 		^inval;
@@ -194,8 +193,7 @@ b.histo(100,0,1.0).plot;
 )
 */
 
-
-Pbinom2 : Pattern {
+Pbernoulli2 : Pattern {
 	var <>n, <>weight, <>length;
 	*new { arg n=3, weight=0.5, length=inf;
 		^super.newCopyArgs(n, weight, length)
@@ -230,7 +228,6 @@ a = PESscale(b, \a, Pseg(Pwhite(0,1.0),0.1).asStream).asStream;
 a.next
 */
 
-
 PESscale : Pattern {
 	var <>envir, <>key, <>shape;
 	*new { arg patternClass, envir, key, numArgs = 1, additional = nil;
@@ -245,5 +242,57 @@ PESscale : Pattern {
 		};
 		^inval
 	}
+}
+
+Pdev : Pattern {
+	var <>patternClass, <>avg, <>dev, <>additional;
+	*new { arg patternClass, avg, dev, additional = nil;
+		^super.newCopyArgs(patternClass,avg, dev, additional)
+	}
+	embedInStream { arg inval;
+		var argStream = Pfunc({
+			var lo = avg + (dev * avg * 0.5);
+			var hi = avg - (dev * avg * 0.5);
+			[lo, hi] ++ additional }).asStream,
+		latestArgs,
+		proxies = Array.fill(2 + additional.size, { |i| Pfunc({ latestArgs[i] }).asStream }),
+
+		stream = patternClass.new(*proxies).asStream;
+
+		while {
+			latestArgs = argStream.next(inval);
+			latestArgs.notNil
+		} {
+			inval = stream.next(inval).yield;
+		};
+		^inval
+	}
+	storeArgs { ^[patternClass,avg,dev,additional] }
+}
+
+PdevExp : Pattern {
+	var <>patternClass, <>avg, <>dev, <>additional;
+	*new { arg patternClass, avg, dev, additional = nil;
+		^super.newCopyArgs(patternClass,avg, dev, additional)
+	}
+	embedInStream { arg inval;
+		var argStream = Pfunc({
+			var lo = 2 ** dev * avg;
+			var hi = 2 ** dev.neg * avg;
+			[lo, hi] ++ additional }).asStream,
+		latestArgs,
+		proxies = Array.fill(2 + additional.size, { |i| Pfunc({ latestArgs[i] }).asStream }),
+
+		stream = patternClass.new(*proxies).asStream;
+
+		while {
+			latestArgs = argStream.next(inval);
+			latestArgs.notNil
+		} {
+			inval = stream.next(inval).yield;
+		};
+		^inval
+	}
+	storeArgs { ^[patternClass,avg,dev,additional] }
 }
 
