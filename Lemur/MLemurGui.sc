@@ -1,19 +1,27 @@
 /*
 Marinus Klaassen 2012
-Version 0.1 of the MLemurGui Class.
-This version in the current simple form allows
-It is has a similar usage to the Ndef and SynthDef's auto gui functionallity.
-Together with the auto gui classes I am writing now it has a two way Model View Control
-To embed the lemur app into the SuperCollider code written program's
-I am not trying to remake the Lemur Editor but I am writing it as a extension
-If you have suggestion contact me via GitHub.
 
-SCDoc.indexAllDocuments
+Version 0.4 of the MLemurGui Class.
+
+Simple Lemur interface building with SuperCollider.
+
+Color option. Lemur manual page 129 gives the formular to
+convert rgb values with with values between 0.00 - 1.00
+to a color range of 0 8355711. Color argument is set with
+a Color object.
+
+Font sizes are clipped between 8 and 24
+
+- simple step sequencer
+- search for nice examples.
+- add button
+- add toggle
+- add knop
 */
 
 MLemurGui {
 	classvar connections, buildPort = 8002, oscPort = 8000;
-	var <current_ip, <buildInfo, <oscaddr;
+	var <current_ip, <buildInfo, <oscaddr, <>standardColor;
 
 	*initClass {
 		connections = IdentityDictionary.new;
@@ -34,6 +42,7 @@ MLemurGui {
 		current_ip.postln;
 		connections.postln;
 		buildInfo = IdentityDictionary.new;
+		standardColor = Color.blue;
 	}
 
 	disconnect {
@@ -49,87 +58,115 @@ MLemurGui {
 		});
 	}
 
+	setColor { |colorClass|
+		if (colorClass.isNil) { colorClass = standardColor };
+		colorClass = colorClass.asArray.copyRange(0,2).round(0.01).clip(0,1.0);
+		colorClass = this.convertColor(*colorClass);
+		^colorClass
+	}
+
+	convertColor { |r, g, b|
+		var return = (r * 127 * 65536) + (g * 127 * 256) + (b * 127);
+		^return
+	}
+
 	resetCode { ^"<RESET/>" }
 
 	resetAll {
 		// reset lemur and set the scheme name inside lemur-app
 		var string = '<RESET/><OSC request="1"/><SYNCHRO mode="0"/><PROJECT title="more beer" version="3030" width="1024" height="724" osc_target="-2" midi_target="-2" kbmouse_target="-2"/>'.asString;
-
 		this.sendPacket(string);
 	}
 
-	addPageCode { |pagename = "default name", x = 0, y = 0, width = 1024, height = 724|
+
+	// Code snippets to add and remove a page.
+	addPageCode { |pagename = "Default", x = 0, y = 0, width = 1024, height = 724|
 		// name is also used when selecting a page name here and it is also the id name
 		var string =
-		'<WINDOW class="JAZZINTERFACE" text="%" x="%" y="%" width="%" height="%" state="1" group="0" font="tahoma,11,0" >'.asString.format(pagename, x, y, width, height);
+		'<WINDOW class="JAZZINTERFACE" text="%" x="%" y="%" width="%" height="%" state="1" group="0" font="tahoma,11,0" >'
+		.asString.format(pagename, x, y, width, height);
 		^string;
 	}
 
-	removePageCode { |pagename = "default name"|
+	removePageCode { |pagename = "Default"|
 		// this xml code removes a page of "name"
 		var string =
-		'<DELETE> <WINDOW class="JAZZINTERFACE" text="%" group="0"> </WINDOW> </DELETE>'.asString.format(pagename);
+		'<DELETE> <WINDOW class="JAZZINTERFACE" text="%" group="0"> </WINDOW> </DELETE>'
+		.asString.format(pagename);
 		^string;
 	}
 
-	addPage { |pagename = "default name", x = 0, y = 0, width = 1024, height = 724|
-		this.sendPacket("<JZML>" ++ this.addPageCode(pagename,x,y,width,height) ++ "<JZML>");
+	addPage { |pagename = "Default", x = 0, y = 0, width = 1024, height = 724|
+		this.sendPacket(this.addPageCode(pagename,x,y,width,height));
 	}
 
 	// remove page doen't work..
-	removePage { |pagename = "default name"|
-		this.sendPacket(postln("<JZML>" ++ this.removePageCode(pagename) ++ "<JZML>"));
+	removePage { |pagename = "Default"|
+		this.sendPacket(postln(this.removePageCode(pagename)));
 	}
 
-	addFaderCode { | idname = "Fader1", x = 6, y = 15, width = 100, height = 678 |
+
+	// Fader control add color control
+	faderCode { | pagename = "Default", idname = "Fader1", x = 6, y = 15, width = 100, height = 678, color|
 		// this will add a green slider.
 		var string =
-		'<WINDOW class="Fader" text="%" x="%" y="%" width="%" height="%" id="1" state="1" group="0" font="tahoma,10,0" send="1" osc_target="-2" midi_target="-2" kbmouse_target="-2" capture="1" color="32768" cursor="0" grid="0" grid_steps="1" label="0" physic="1" precision="3" unit="" value="0" zoom="0.000000"> <PARAM name="x=" value="0.000000" send="17" osc_target="0" osc_trigger="1" osc_message="/%/x" midi_target="-1" midi_trigger="1" midi_message="0x90,0x90,0,0" midi_scale="0,16383" osc_scale="0.000000,1.000000" kbmouse_target="-1" kbmouse_trigger="1" kbmouse_message="0,0,0" kbmouse_scale="0,1,0,1"/> <PARAM name="z=" value="0.000000" send="17" osc_target="0" osc_trigger="1" osc_message="/%/z" midi_target="-1" midi_trigger="1" midi_message="0x90,0x90,0,0" midi_scale="0,16383" osc_scale="0.000000,1.000000" kbmouse_target="-1" kbmouse_trigger="1" kbmouse_message="0,0,0" kbmouse_scale="0,1,0,1"/> </WINDOW>'.asString.format(idname, x, y, width, height, idname, idname);
+		'<WINDOW class="JAZZINTERFACE" text="%"> <WINDOW class="Fader" text="%" x="%" y="%" width="%" height="%" id="1" state="1" group="0" font="tahoma,10,0" send="1" osc_target="-2" midi_target="-2" kbmouse_target="-2" capture="1" color="%" cursor="0" grid="0" grid_steps="1" label="0" physic="1" precision="3" unit="" value="0" zoom="0.000000"> <PARAM name="x=" value="0.000000" send="17" osc_target="0" osc_trigger="1" osc_message="/%/x" midi_target="-1" midi_trigger="1" midi_message="0x90,0x90,0,0" midi_scale="0,16383" osc_scale="0.000000,1.000000" kbmouse_target="-1" kbmouse_trigger="1" kbmouse_message="0,0,0" kbmouse_scale="0,1,0,1"/> <PARAM name="z=" value="0.000000" send="17" osc_target="0" osc_trigger="1" osc_message="/%/z"/> </WINDOW>'
+		.asString.format(pagename, idname, x, y, width, height, this.setColor(color),idname, idname);
 		^string;
 	}
 
-	removeFaderCode { |idname = "Fader1"|
-		var string = '<DELETE> <WINDOW class="Fader" text="%" </WINDOW> <DELETE>'.asString.format(idname);
+	removeFaderCode { |pagename = "Default", idname = "Fader1"|
+		var string = '<WINDOW class="JAZZINTERFACE" text="%"> <DELETE> <WINDOW class="Fader" text="%" group="0" id="1"/></WINDOW> <DELETE>'
+		.asString.format(pagename,idname);
 		^string;
 	}
 
-	addFader { | idname = "Fader1", x = 6, y = 15, width = 100, height = 678 |
-		this.sendPacket("<JZML>" ++ this.addFaderCode(idname,x,y,width,height) ++ "<JZML>");
+	fader { | pagename = "Default", idname = "Fader1", x = 6, y = 15, width = 100, height = 678, color |
+		this.sendPacket(this.faderCode(pagename,idname,x,y,width,height,color));
 	}
 
-	removeFader { |idname = "Fader1"|
-		this.sendPacket("<JZML>" ++ this.removeFaderCode(idname) ++ "<JZML>");
+	removeFader { |pagename = "Default", idname = "Fader1"|
+		this.sendPacket(this.removeFaderCode(pagename,idname));
 	}
 
-	addRangeCode { |idname = "Range1", x = 6, y = 15, width = 100, height = 678|
+	rangeCode { |pagename = "Default", idname = "Range1", x = 6, y = 15, width = 100, height = 678, color|
 		// this will add a range slider
-		^'<WINDOW class="Range" text="%" x="%" y="%" width="%" height="%" id="1" state="1" group="0" font="tahoma,10,0" send="1" osc_target="-2" midi_target="-2" kbmouse_target="-2" capture="1" color="32768" grid="0" grid_steps="1" horizontal="0" label="0" physic="0"> <PARAM name="x=" value="0.250000,0.750000" send="17" osc_target="0" osc_trigger="1" osc_message="/%/x" midi_target="-1" midi_trigger="1" midi_message="0x90,0x90,0,0" midi_scale="0,16383" osc_scale="0.000000,1.000000" kbmouse_target="-1" kbmouse_trigger="1" kbmouse_message="0,0,0" kbmouse_scale="0,1,0,1"/>'.asString.format(idname, x, y, width, height, idname);
+		^'<WINDOW class="JAZZINTERFACE" text="%"> <WINDOW class="Range" text="%" x="%" y="%" width="%" height="%" id="1" state="1" group="0" font="tahoma,10,0" send="1" osc_target="-2" midi_target="-2" kbmouse_target="-2" capture="1" color="%" grid="0" grid_steps="1" horizontal="0" label="0" physic="0"> <PARAM name="x=" value="0.250000,0.750000" send="17" osc_target="0" osc_trigger="1" osc_message="/%/x" midi_target="-1" midi_trigger="1" midi_message="0x90,0x90,0,0" midi_scale="0,16383" osc_scale="0.000000,1.000000" kbmouse_target="-1" kbmouse_trigger="1" kbmouse_message="0,0,0" kbmouse_scale="0,1,0,1"/>'
+		.asString.format(pagename, idname, x, y, width, height, this.setColor(color), idname);
 
 	}
 
-	removeRangeCode { |idname = "Range1"|
-		^'<DELETE> <WINDOW class="Range" text="%" </WINDOW> <DELETE>'.asString.format(idname);
+	removeRangeCode { |pagename = "Default", idname = "Range1"|
+		^'<WINDOW class="JAZZINTERFACE" text="%"> <DELETE> <WINDOW class="Range" text="%" group="0" id="1"/></WINDOW> <DELETE>'
+		.asString.format(pagename, idname);
 	}
 
-	addRange { | idname = "Range1", x = 6, y = 15, width = 100, height = 678 |
-	this.sendPacket("<JZML>" ++ this.addRangeCode(idname,x,y,width,height) ++ "<JZML>");
+	range { |pagename = "Default", idname = "Range1", x = 6, y = 15, width = 100, height = 678, color |
+		this.sendPacket(this.rangeCode(pagename,idname,x,y,width,height, color));
 	}
 
-	removeRange { |idname = "Range1"|
-		this.sendPacket("<JZML>" ++ this.removeRangeCode(idname) ++ "<JZML>");
+	removeRange { |pagename = "Default", idname = "Range1"|
+		this.sendPacket(this.removeRangeCode(pagename, idname));
 	}
 
-	addTextCode { |idname = "Text1", content = "parname", x = 6, y = 129, width = 100, height = 48|
+	textCode { |pagename = "Default", idname = "Text1", content = "parname", x = 6, y = 129, width = 100, height = 48, color, fontSize = 24|
 	// this will add a text gui
-		^'<WINDOW class="Text" text="%" x="%" y="%" width="%" height="%" id="1" state="245" group="0" font="tahoma,11,0" send="1" osc_target="-2" midi_target="-2" kbmouse_target="-2" color="32768" content="%"> <VARIABLE name="light=0" send="0" osc_target="0" osc_trigger="1" osc_message="/Text1/light" midi_target="-1" midi_trigger="1" midi_message="0x90,0x90,0,0" midi_scale="0,16383" kbmouse_target="-1" kbmouse_trigger="1" kbmouse_message="0,0,0" kbmouse_scale="0,1,0,1"/> </WINDOW>'.asString.format(idname, x,y,width,height,content);
+		^'<WINDOW class="JAZZINTERFACE" text="%"> <WINDOW class="Text" text="%" x="%" y="%" width="%" height="%" id="1" state="245" group="0" font="tahoma,%,0" send="1" osc_target="-2" midi_target="-2" kbmouse_target="-2" color="%" content="%"> <VARIABLE name="light=0" send="0" osc_target="0" osc_trigger="1" osc_message="/Text1/light" midi_target="-1" midi_trigger="1" midi_message="0x90,0x90,0,0" midi_scale="0,16383" kbmouse_target="-1" kbmouse_trigger="1" kbmouse_message="0,0,0" kbmouse_scale="0,1,0,1"/> </WINDOW>'
+		.asString.format(pagename,idname,x,y,width,height,fontSize.asInt,this.setColor(color),content);
 	}
 
-	addText { | idname = "Text1", content = "parname", x = 6, y = 129, width = 100, height = 48|
-	this.sendPacket("<JZML>" ++ this.addTextCode(idname,content,x,y,width,height) ++ "<JZML>");
+	removeTextCode { |pagename = "Default", idname = "Text1", content = "parname", x = 6, y = 129, width = 100, height = 48|
+	// this will add a text gui
+		^'<WINDOW class="JAZZINTERFACE" text="%"> <DELETE> <WINDOW class="Text" text="%" group="0" id="1"/></WINDOW> <DELETE>'
+		.asString.format(pagename, idname);
 	}
 
-	removeText { |idname = "Range1"|
-		this.sendPacket("<JZML>" ++ this.removeTextCode(idname) ++ "<JZML>");
+	text { |pagename = "Default", idname = "Text1", content = "parname", x = 6, y = 129, width = 100, height = 48, color, fontSize = 24|
+		this.sendPacket(this.textCode(pagename,idname,content,x,y,width,height,color,fontSize.clip(8,24)));
+	}
+
+	removeText { |pagename = "Default", idname = "Text1"|
+		this.sendPacket(this.removeTextCode(pagename,idname));
 	}
 
 	set_osctarget { |target_number=0,ip_host="192.10.1.16",port=57120|
@@ -149,14 +186,14 @@ MLemurGui {
 			case
 			{ type == \Fader }
 			{       idNames = idNames ++ ["p" ++ id ++ "Fader" ++ i];
-				snippets = snippets ++ this.addFaderCode(idNames.last,i * 100 + 6,15,100, 678);
+				snippets = snippets ++ this.faderCode(pageName,idNames.last,i * 100 + 6,15,100, 678);
 			}
 			{ type == \Range }
 			{       idNames = idNames ++ ["p" ++ id ++ "Range" ++ i];
-				snippets = snippets ++ this.addRangeCode(idNames.last,i * 100 + 6,15,100, 678);
+				snippets = snippets ++ this.rangeCode(pageName,idNames.last,i * 100 + 6,15,100, 678);
 			};
 
-			snippets = snippets ++ this.addTextCode("p" ++ id ++ "Text" ++ i,name,i * 100 + 6,129,100,48);
+			snippets = snippets ++ this.textCode(pageName,"p" ++ id ++ "Text" ++ i,name,i * 100 + 6,129,100,48);
 		};
 		buildInfo[id, \pageName] = pageName;
 		buildInfo[id, \idNames] = idNames;
@@ -179,14 +216,14 @@ MLemurGui {
 				case
 				{ type == \Fader }
 				{       idNames = idNames ++ ["p" ++ id ++ "Fader" ++ i];
-					snippets = snippets ++ this.addFaderCode(idNames.last,i * 100 + 6,15,100, 678);
+					snippets = snippets ++ this.faderCode(pageName,idNames.last,i * 100 + 6,15,100, 678);
 				}
 				{ type == \Range }
 				{       idNames = idNames ++ ["p" ++ id ++ "Range" ++ i];
-					snippets = snippets ++ this.addRangeCode(idNames.last,i * 100 + 6,15,100, 678);
+					snippets = snippets ++ this.rangeCode(pageName,idNames.last,i * 100 + 6,15,100, 678);
 				};
 
-				snippets = snippets ++ this.addTextCode("p" ++ id ++ "Text" ++ i,name,i * 100 + 6,129,100,48);
+				snippets = snippets ++ this.textCode(pageName,"p" ++ id ++ "Text" ++ i,name,i * 100 + 6,129,100,48);
 			};
 			buildInfo[id, \pageName] = pageName;
 			buildInfo[id, \idNames] = idNames;

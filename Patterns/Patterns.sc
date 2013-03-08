@@ -22,7 +22,6 @@ PdefArray : Pattern {
 	storeArgs { ^[patternClass,envir,key,numArgs] }
 }
 
-
 PguiArray : Pattern {
 	var <>patternClass, <>dict, <>key, <>numArgs, <>additional;
 	*new { arg patternClass, dict, key, numArgs = 1, additional = nil;
@@ -43,8 +42,6 @@ PguiArray : Pattern {
 	}
 	storeArgs { ^[patternClass,dict,key,numArgs] }
 }
-
-
 
 /*
 Pdef(\a).set(\amp,[0,0.125]);
@@ -116,7 +113,7 @@ equal to zero or one in a 8 bit binary string.
 start count at 1. zero is filtered out.
 */
 
-Pbinc1 : Pattern {
+Pcount1 : Pattern {
 	var <>offset, <>mul, <>length;
 
 	*new { arg offset=0.0, mul=1.0, length=inf;
@@ -244,17 +241,22 @@ PESscale : Pattern {
 	}
 }
 
-Pdev : Pattern {
+PdevLin : Pattern {
 	var <>patternClass, <>avg, <>dev, <>additional;
 	*new { arg patternClass, avg, dev, additional = nil;
 		^super.newCopyArgs(patternClass,avg, dev, additional)
 	}
 	embedInStream { arg inval;
-		var argStream = Pfunc({
-			var lo = avg + (dev * avg * 0.5);
-			var hi = avg - (dev * avg * 0.5);
+		var
+		avgStr = avg.asStream,
+		devStr = dev.asStream,
+		argStream = Pfunc({
+			var vg = avgStr.next, dv = devStr.next;
+			var lo = avg + (dv * vg * 0.5);
+			var hi = avg - (dv * vg * 0.5);
 			[lo, hi] ++ additional }).asStream,
 		latestArgs,
+
 		proxies = Array.fill(2 + additional.size, { |i| Pfunc({ latestArgs[i] }).asStream }),
 
 		stream = patternClass.new(*proxies).asStream;
@@ -271,17 +273,21 @@ Pdev : Pattern {
 }
 
 PdevExp : Pattern {
-	var <>patternClass, <>avg, <>dev, <>additional;
-	*new { arg patternClass, avg, dev, additional = nil;
-		^super.newCopyArgs(patternClass,avg, dev, additional)
+	var <>patternClass, <>avg, <>dev, <>numArgs, <>additional;
+	*new { arg patternClass, avg = 0, dev = 0, numArgs = 2, additional = nil;
+		^super.newCopyArgs(patternClass, avg, dev, numArgs, additional)
 	}
 	embedInStream { arg inval;
-		var argStream = Pfunc({
-			var lo = 2 ** dev * avg;
-			var hi = 2 ** dev.neg * avg;
+		var
+		avgStr = avg.asStream,
+		devStr = dev.asStream,
+		argStream = Pfunc({
+			var vg = avgStr.next, dv = devStr.next;
+			var lo = 2 ** dv * vg;
+			var hi = 2 ** dv.neg * vg;
 			[lo, hi] ++ additional }).asStream,
 		latestArgs,
-		proxies = Array.fill(2 + additional.size, { |i| Pfunc({ latestArgs[i] }).asStream }),
+		proxies = Array.fill(numArgs, { |i| Pfunc({ latestArgs[i] }).asStream }),
 
 		stream = patternClass.new(*proxies).asStream;
 
@@ -293,6 +299,52 @@ PdevExp : Pattern {
 		};
 		^inval
 	}
-	storeArgs { ^[patternClass,avg,dev,additional] }
+	storeArgs { ^[patternClass,avg,dev,numArgs,additional] }
+}
+
+Pdeviate : Pattern {
+	var <>avg, <>dev;
+	*new { arg avg = 0, dev = 0;
+		^super.newCopyArgs(avg, dev)
+	}
+	embedInStream { arg inval;
+		var lo,hi,a,b,
+		avgStr = avg.asStream,
+		devStr = dev.asStream;
+
+		inf do: {
+			a = avgStr.next;
+			b = devStr.next;
+			lo = b * 0.5 - a;
+			hi = b * 0.5 + a;
+
+			inval = [lo,hi].yield;
+		};
+		^inval
+	}
+	storeArgs { ^[avg,dev] }
+}
+
+Pdeviote : Pattern {
+	var <>avg, <>dev;
+	*new { arg avg = 0, dev = 0;
+		^super.newCopyArgs(avg, dev)
+	}
+	embedInStream { arg inval;
+		var lo,hi,a,b,
+		avgStr = avg.asStream,
+		devStr = dev.asStream;
+
+		inf do: {
+			a = avgStr.next;
+			b = devStr.next;
+			lo = a - (b * a * 0.5);
+			hi = b * a * 0.5 + a;
+
+			inval = [lo,hi].yield;
+		};
+		^inval
+	}
+	storeArgs { ^[avg,dev] }
 }
 

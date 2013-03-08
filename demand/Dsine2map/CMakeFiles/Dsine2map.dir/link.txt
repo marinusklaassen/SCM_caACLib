@@ -1,0 +1,1 @@
+/usr/bin/c++   -arch i386 -arch x86_64 -bundle -Wl,-headerpad_max_install_names   -o Dsine2map.scx CMakeFiles/Dsine2map.dir/Dsine2map.cpp.o 

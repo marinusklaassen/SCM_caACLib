@@ -4,9 +4,9 @@ categories:: External Control>Lemur
 related:: Classes/EnvirGui, Classes/NetAddr, Classes/OSCFunc
 
 DESCRIPTION::
-A new instance of MLemurGui will build via a TCP connection with the Lemur applications on a remote device and sclang, a basic control user interface, wich can be used as an OSC controller for SuperCollider programs. Multiple devices can be connected at the same time by evaluating more instances of the MLemurGui.
+A new instance of MLemurGui will build via a TCP connection with the Lemur applications on a remote device and sclang, a basic control user interface, wich can be used as an OSC controller for SuperCollider programs. The current available elements for addition, to move and removing are for create a page, fader, rangeslider and a text object. Multiple devices can be connected at the same time by evaluating more instances of the MLemurGui. No color control is available yet.
 
-image::lpict.png#The interface builded realtime with using the example code.::
+image::lpict.png#An interface build realtime with a part of the example code.::
 
 The best way to setup a network is to create a adhoc privata LAN wich is broadcasted via an onboard modem. This will increase the reaction speed of working with an external osc controller via wifi.
 
@@ -24,7 +24,7 @@ numberedlist::
 ## IPv4 Addres: 192.10.1.16
 ## Subnet Mask: 255.255.255.0
 ## Router: empty
-## onfigure IPv6: Automatically
+## Configure IPv6: Automatically
 ::
 
 SOFT::
@@ -83,14 +83,16 @@ METHOD:: removePage
 Remove a page.
 
 
-private:: addFaderCode
+private:: faderCode
 private:: removeFAderCode
 
-METHOD:: addFader
+METHOD:: fader
 Add a Fader
 
+argument:: pagename
+Page to front: ~lm.oscaddr.sendMsg("/interface", pagename)
 argument:: idname
-The pagename is also the id name.
+The idname argument sets also the cmdname osc msg packet.
 argument:: x
 argument:: y
 argument:: width
@@ -102,29 +104,33 @@ Remove a Fader
 argument:: idname
 Is also the id name.
 
-private:: addRangeCode
+private:: rangeCode
 private:: removeRangeCode
 
-METHOD:: addRange
+METHOD:: range
 Add a Range Slider
 
+argument:: pagename
+This argument is needed to target the page to be build on, it can be a Symbol or String.
 argument:: idname
-Is also the id name.
+The idname argument sets also the cmdname osc msg packet
 argument:: x
 argument:: y
 argument:: width
 argument:: height
 
 METHOD:: removeRange
-Remove a Ranger
+Remove a Range slider
 
-private:: addTextCode
+private:: textCode
+private:: removeTextCode
 
-METHOD:: addText
+METHOD:: text
 Add a Text object.
-
+argument:: pagename
+This argument is needed to target the page to be build on, it can be a Symbol or String.
 argument:: idname
-Is also the id name.
+The idname argument sets also the cmdname osc msg packet
 argument:: content
 argument:: x
 argument:: y
@@ -168,6 +174,8 @@ argument:: pageName
 argument:: id
 The id name to is concatenate to the osc tag. Example tags: (p1Range1, p1Fader2 etc.)
 
+METHOD:: oscaddr
+NetAddr instance used to provide communication with the targetted Lemur app.
 
 private:: buildInfo
 private:: current_ip
@@ -196,23 +204,23 @@ a.buildDemo({ [\Fader,\Range].choose } ! 10,{ |i| "par " ++ (i+1) } ! 10,"Range 
 
 // What buildDemo basically is doing.
 (
-z = a.addPageCode("collection", 2);
+z = a.addPageCode("collection");
 
 // adds gui elements to it.
-b = a.addFaderCode("p1Fader1");
-c = a.addFaderCode("p1Fader2", 106);
-d = a.addFaderCode("p1Fader3", 206);
-e = a.addFaderCode("p1Fader4", 306);
-f = a.addRangeCode("p1Range5", 406);
-g = a.addRangeCode("p1Range6", 506);
+b = a.faderCode("collection","p1Fader1");
+c = a.faderCode("collection","p1Fader2", 106);
+d = a.faderCode("collection","p1Fader3", 206);
+e = a.faderCode("collection","p1Fader4", 306);
+f = a.rangeCode("collection","p1Range5", 406);
+g = a.rangeCode("collection","p1Range6", 506);
 
 a.sendPacket("<JZML>" ++ z ++ b ++ c ++ d ++ e ++ f ++ g ++ "<JZML>");
 )
 
 (
-a.addPageCode("custom build", 2);
-a.addFader("Fader1", 100,100, 400, 500);
-a.addFader("Fader2", 600,100, 200, 500);
+a.addPage("custom build");
+a.fader("custom build","Fader1", 100,100, 400, 500);
+a.fader("custom build","Fader2", 600,100, 200, 500);
 )
 
 a.resetAll;
@@ -220,4 +228,32 @@ a.resetAll;
 a.disconnect;
 
 OSCFunc.trace(false);
+
+// another example of a additve synth.
+~lm = MLemurGui.new;
+~lm.connect("192.10.1.2",8002,8000);
+~lm.set_osctarget(0,"192.10.1.16", NetAddr.langPort);
+~lm.resetAll;
+
+// faders
+30 do: {|i|~lm.fader("klang",\sine++i,i%15*65+25,asInt(i/15%2,1)*350,65,350)};
+30 do: {|i|~lm.oscaddr.sendMsg('/sine'++i++'/x',1.0.linrand)};
+30 do: {|i|~lm.removeFader("klang",\sine++i)};
+
+~bunch = Array.fill(10, {
+	var name = "HAPPYCAMPER".scramble.asString, x = Pbrown(0,1023,30).asStream, y = Pbrown(0,768,30).asStream;
+	[name, r { inf do: { |i|
+		~lm.text("Thing", name, x: x.next, y: y.next, content: "sono-boy-kinky-noise-pop-sound".scramble, width: 100);
+		exprand(0.01,0.01).wait;
+		}}.play
+	]
+});
+
+~bunch do: { |slot| ~lm.removeText("Thing",slot.first); slot.last.stop };
+
+~lm.oscaddr.sendMsg("/interface", "klang")
+~lm.oscaddr.sendMsg("/interface", "Thing");
+
+~lm.disconnect;
+// set array with klang!
 ::
