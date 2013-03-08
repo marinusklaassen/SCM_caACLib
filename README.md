@@ -1,4 +1,3 @@
-
 caAC-MLib 0.42
 ===========
 **Computer Aided Algorithmic Composition Library 0.42**
@@ -50,7 +49,7 @@ Contact
 
 **Marinus Klaassen**  
 marinus_klaassen@hotmail.com  
-[www.soundcloud.com/marinusklaassen](www.soundcloud.com/marinusklaassen)
+[www.soundcloud.com/marinus-klaassen](www.soundcloud.com/marinus-klaassen)
 
 
 
