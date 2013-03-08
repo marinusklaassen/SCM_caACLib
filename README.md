@@ -1,19 +1,56 @@
-AC-MLib: Algorithmic Composition Library for SuperCollider.
 
-Objects to be loaded as extensions to use with the SuperCollider language. 
+caAC-MLib 0.42
+===========
+**Computer Aided Algorithmic Composition Library 0.4**
 
-This library I am working on is going to contain implementations of UI tools that 
-allows for easier interaction and organisation with Patterns and tactile interfaces 
-like the PadKontrol in native mode and the Lemur app. Also I will add Pattern classes 
-and UGens that I implemented to use with Algorithmic Composition. 
+ 
+This library I am currently developing contains various SuperCollider classes and UGens extensions to perform algorithmic compostion and digital sound synthesis within concepts and approaches towards flexible models and user interfaces.   
+An important aspect is the development of a flexible UI frontend that I am programming with the SuperCollider language, to work with patterns and tactile controllers in a model-view-controller paradigm, to have a bi-directional control between SuperCollider and the Lemur applications to perform realtime CAAC and digital sound synthesis.    
 
-What I have added until now:
-- Stochastic number generators as Demand UGens.
-- Lemur class to build elementary elements realtime on the Ipad app.
-- Some patterns classes: tools and number generators. 
-- Test physical modeling UGens like a gravity oscillator. 
 
-Marinus Klaassen
+**Content:**
+ 
+- Various GUI elements  
+- Various (demand) UGens  
+- Various Patterns   
+- MLemurGui  
+- Score & Controller interface  
+- MPreset  
 
-marinus_klaassen@hotmail.com
-www.soundcloud.com/marinusklaassen
+**Example code:**  
+Adding a bunch of faders to the Lemur app. 
+ 
+`~lm = MLemurGui.new;`  
+
+`~lm.connect("192.10.1.2",8002,8000);`    
+`~lm.set_osctarget(0,"192.10.1.16", NetAddr.langPort);`    
+`~lm.resetAll;`    
+  
+`30 do: {|i|~lm.fader("klang",\sine++i,i%15*65+25,asInt(i/15%2,1)*350,65,350,Color.rand)};`  
+`30 do: {|i|~lm.oscaddr.sendMsg('/sine'++i++'/x',1.0.linrand)};` 
+ 
+`OSCFunc.trace(true);`   
+
+`30 do: {|i|~lm.removeFader("klang",\sine++i)};`  
+
+`~lm.disconnect;`  
+
+
+![](http://https://github.com/marinusklaassen/AC-MLib/blob/Update/Lemur/HelpSource/Classes/lpict.png)
+
+
+Status
+======
+This library is currently under active development. 
+
+
+
+Contact
+=======
+
+**Marinus Klaassen**  
+marinus_klaassen@hotmail.com  
+[www.soundcloud.com/marinusklaassen](www.soundcloud.com/marinusklaassen)
+
+
+

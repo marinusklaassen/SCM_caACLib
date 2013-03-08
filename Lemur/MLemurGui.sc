@@ -17,6 +17,8 @@ Font sizes are clipped between 8 and 24
 - add button
 - add toggle
 - add knop
+
+- With pads toggle and sequencers can be build. check editor!
 */
 
 MLemurGui {
