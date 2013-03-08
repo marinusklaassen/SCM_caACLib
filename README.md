@@ -36,7 +36,7 @@ Adding a bunch of faders to the Lemur app.
 `~lm.disconnect;`  
 
 
-![](http://https://github.com/marinusklaassen/AC-MLib/blob/Update/Lemur/HelpSource/Classes/lpict.png)
+![](http://https://github.com/marinusklaassen/caAC-MLib/blob/Update/Lemur/HelpSource/Classes/lpict.png)
 
 
 Status
