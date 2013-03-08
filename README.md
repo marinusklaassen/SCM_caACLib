@@ -1,7 +1,7 @@
 
 caAC-MLib 0.42
 ===========
-**Computer Aided Algorithmic Composition Library 0.4**
+**Computer Aided Algorithmic Composition Library 0.42**
 
  
 This library I am currently developing contains various SuperCollider classes and UGens extensions to perform algorithmic compostion and digital sound synthesis within concepts and approaches towards flexible models and user interfaces.   
