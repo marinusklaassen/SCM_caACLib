@@ -5,7 +5,7 @@ caAC-MLib 0.42
 
  
 This library I am currently developing contains various SuperCollider classes and UGens extensions to perform algorithmic compostion and digital sound synthesis within concepts and approaches towards flexible models and user interfaces.   
-An important aspect is the development of a flexible UI frontend that I am programming with the SuperCollider language, to work with patterns and tactile controllers in a model-view-controller paradigm, to have a bi-directional control between SuperCollider and the Lemur applications to perform realtime CAAC and digital sound synthesis.    
+An important aspect is the development of a flexible UI frontend that I am programming with the SuperCollider language, to work with patterns and tactile controllers, such as the Lemur app, in a model-view-controller paradigm, to have a bi-directional control between SuperCollider and the Lemur applications to perform realtime CAAC and digital sound synthesis.    
 
 
 **Content:**
@@ -14,11 +14,11 @@ An important aspect is the development of a flexible UI frontend that I am progr
 - Various (demand) UGens  
 - Various Patterns   
 - MLemurGui  
-- Score & Controller interface  
+- Score & Controller interface (not yet added) 
 - MPreset  
 
 **Example code:**  
-Adding a bunch of faders to the Lemur app. 
+Adding a bunch of faders with random colors to the Lemur app. 
  
 `~lm = MLemurGui.new;`  
 
@@ -49,8 +49,8 @@ Contact
 =======
 
 **Marinus Klaassen**  
-marinus_klaassen@hotmail.com  
-[www.soundcloud.com/marinusklaassen](www.soundcloud.com/marinusklaassen)
-
+marinus@rotterdamruis.nl  
+[www.soundcloud.com/marinusklaassen](www.soundcloud.com/marinusklaassen)  
+[www.rotterdamruis.nl](www.rotterdamruis.nl)
 
 

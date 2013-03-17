@@ -21,6 +21,7 @@ Font sizes are clipped between 8 and 24
 - With pads toggle and sequencers can be build. check editor!
 */
 
+
 MLemurGui {
 	classvar connections, buildPort = 8002, oscPort = 8000;
 	var <current_ip, <buildInfo, <oscaddr, <>standardColor;
@@ -54,7 +55,7 @@ MLemurGui {
 
 	sendPacket { |message|
 		if (connections[current_ip].notNil, {
-		connections[current_ip][0].sendMsg("/jzml",message.ascii.add(0).as(Int8Array));
+			connections[current_ip][0].sendMsg("/jzml",message.ascii.add(0).as(Int8Array));
 			},{
 				"evaluate method .connect".postln;
 		});
@@ -152,13 +153,13 @@ MLemurGui {
 	}
 
 	textCode { |pagename = "Default", idname = "Text1", content = "parname", x = 6, y = 129, width = 100, height = 48, color, fontSize = 24|
-	// this will add a text gui
+		// this will add a text gui
 		^'<WINDOW class="JAZZINTERFACE" text="%"> <WINDOW class="Text" text="%" x="%" y="%" width="%" height="%" id="1" state="245" group="0" font="tahoma,%,0" send="1" osc_target="-2" midi_target="-2" kbmouse_target="-2" color="%" content="%"> <VARIABLE name="light=0" send="0" osc_target="0" osc_trigger="1" osc_message="/Text1/light" midi_target="-1" midi_trigger="1" midi_message="0x90,0x90,0,0" midi_scale="0,16383" kbmouse_target="-1" kbmouse_trigger="1" kbmouse_message="0,0,0" kbmouse_scale="0,1,0,1"/> </WINDOW>'
 		.asString.format(pagename,idname,x,y,width,height,fontSize.asInt,this.setColor(color),content);
 	}
 
 	removeTextCode { |pagename = "Default", idname = "Text1", content = "parname", x = 6, y = 129, width = 100, height = 48|
-	// this will add a text gui
+		// this will add a text gui
 		^'<WINDOW class="JAZZINTERFACE" text="%"> <DELETE> <WINDOW class="Text" text="%" group="0" id="1"/></WINDOW> <DELETE>'
 		.asString.format(pagename, idname);
 	}
@@ -171,8 +172,48 @@ MLemurGui {
 		this.sendPacket(this.removeTextCode(pagename,idname));
 	}
 
+	padsCode { |pagename = "Default", idname = "Pads1", x = 200, y = 0, width = 100, height = 700, column = 1, row = 1, colorOff, colorOn|
+		// this will add a pads gui
+		^'<WINDOW class="JAZZINTERFACE" text="%"> <WINDOW class="Pads" text="%" x="%" y="%" width="%" height="%" column="%" row="%" id="1" group="0" multilabel="1" label="0" color="%,%" radio="%"/> </WINDOW>'
+		.asString.format(pagename,idname,x,y,width,height,column,row,this.setColor(colorOff),this.setColor(colorOn))
+	}
+
+	removePadsCode { |pagename = "Default", idname = "Pads1"|
+		// this will remove a pads gui
+		^'<WINDOW class="JAZZINTERFACE" text="%"> <DELETE> <WINDOW class="Pads" text="%" group="0" id="1"/></WINDOW> <DELETE>'
+		.asString.format(pagename, idname);
+	}
+
+	pads { |pagename = "Default", idname = "Pads1", x = 200, y = 0, width = 100, height = 700, column = 1, row = 1, colorOff, colorOn|
+		this.sendPacket(this.padsCode(pagename,idname,x,y,width,height,column,row,colorOff,colorOn));
+	}
+
+	removePads { |pagename = "Default", idname = "Pads1"|
+		this.sendPacket(this.removePadsCode(pagename,idname));
+	}
+
+	switchesCode { |pagename = "Default", idname = "Switches1", x = 200, y = 0, width = 100, height = 700, column = 1, row = 1, colorOff, colorOn, radio = 0|
+		// this will add a pads gui
+		^'<WINDOW class="JAZZINTERFACE" text="%"> <WINDOW class="Switches" text="%" x="%" y="%" width="%" height="%" column="%" row="%" id="1" group="0" multilabel="1" label="0" color="%,%" radio="%"/> </WINDOW>'
+		.asString.format(pagename,idname,x,y,width,height,column,row,this.setColor(colorOff),this.setColor(colorOn),radio)
+	}
+
+	removeSwitchesCode { |pagename = "Default", idname = "Switches"|
+		// this will remove a pads gui
+		^'<WINDOW class="JAZZINTERFACE" text="%"> <DELETE> <WINDOW class="Switches" text="%" group="0" id="1"/></WINDOW> <DELETE>'
+		.asString.format(pagename, idname);
+	}
+
+	switches { |pagename = "Default", idname = "Switches1", x = 200, y = 0, width = 100, height = 700, column = 1, row = 1, colorOff, colorOn, radio = 0|
+		this.sendPacket(this.switchesCode(pagename,idname,x,y,width,height,column,row,colorOff,colorOn),radio);
+	}
+
+	removeSwitches { |pagename = "Default", idname = "Switches1"|
+		this.sendPacket(this.removeSwitchesCode(pagename,idname));
+	}
+
 	set_osctarget { |target_number=0,ip_host="192.10.1.16",port=57120|
-	this.sendPacket('<OSC target=\"%\" ip=\"%\" port=\"%\"/>'.asString.format(target_number,ip_host,port));
+		this.sendPacket('<OSC target=\"%\" ip=\"%\" port=\"%\"/>'.asString.format(target_number,ip_host,port));
 	}
 
 	buildBind { | bindGui, pageName, id = 1|
@@ -183,24 +224,24 @@ MLemurGui {
 			snippets = snippets ++ this.addPageCode(pageName);
 
 			parNames do: { |name, i|
-			var type = typeArray[i];
+				var type = typeArray[i];
 
-			case
-			{ type == \Fader }
-			{       idNames = idNames ++ ["p" ++ id ++ "Fader" ++ i];
-				snippets = snippets ++ this.faderCode(pageName,idNames.last,i * 100 + 6,15,100, 678);
-			}
-			{ type == \Range }
-			{       idNames = idNames ++ ["p" ++ id ++ "Range" ++ i];
-				snippets = snippets ++ this.rangeCode(pageName,idNames.last,i * 100 + 6,15,100, 678);
+				case
+				{ type == \Fader }
+				{       idNames = idNames ++ ["p" ++ id ++ "Fader" ++ i];
+					snippets = snippets ++ this.faderCode(pageName,idNames.last,i * 100 + 6,15,100, 678);
+				}
+				{ type == \Range }
+				{       idNames = idNames ++ ["p" ++ id ++ "Range" ++ i];
+					snippets = snippets ++ this.rangeCode(pageName,idNames.last,i * 100 + 6,15,100, 678);
+				};
+
+				snippets = snippets ++ this.textCode(pageName,"p" ++ id ++ "Text" ++ i,name,i * 100 + 6,129,100,48);
 			};
+			buildInfo[id, \pageName] = pageName;
+			buildInfo[id, \idNames] = idNames;
 
-			snippets = snippets ++ this.textCode(pageName,"p" ++ id ++ "Text" ++ i,name,i * 100 + 6,129,100,48);
-		};
-		buildInfo[id, \pageName] = pageName;
-		buildInfo[id, \idNames] = idNames;
-
-		this.sendPacket("<JZML>" ++ snippets ++ "<JZML>");
+			this.sendPacket("<JZML>" ++ snippets ++ "<JZML>");
 
 			r { 0.1.wait; connections[current_ip][1].sendMsg("/interface", pageName); bindGui.randomize;}.play;
 		}, { "input typeArray and oscTagArray don't have the same sizes".postln; });
