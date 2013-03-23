@@ -12,10 +12,6 @@ a Color object.
 
 Font sizes are clipped between 8 and 24
 
-- simple step sequencer
-- search for nice examples.
-- add button
-- add toggle
 - add knop
 
 - With pads toggle and sequencers can be build. check editor!

@@ -4,12 +4,13 @@ categories:: External Control>Lemur
 related:: Classes/EnvirGui, Classes/NetAddr, Classes/OSCFunc
 
 DESCRIPTION::
-A new instance of MLemurGui will build via a TCP connection with the Lemur applications on a remote device and sclang, a basic control user interface, wich can be used as an OSC controller for SuperCollider programs. The current available elements for addition, to move and removing are for create a page, fader, rangeslider and a text object. Multiple devices can be connected at the same time by evaluating more instances of the MLemurGui. No color control is available yet.
+Builds a basic control user interface on a remote device containing a Lemur application, connected through TCP.
 
 image::lpict.png#An interface build realtime with a part of the example code.::
 
-The best way to setup a network is to create a adhoc privata LAN wich is broadcasted via an onboard modem. This will increase the reaction speed of working with an external osc controller via wifi.
+image::padswitches.png#An interface build realtime with a part of the example code.::
 
+The best way to setup a network is to create a adhoc and private LAN and to broadcast it via an onboard modem. This optimizes latency.
 This is how it is done in Mac OS X:
 numberedlist::
 ## Open network preferences
@@ -27,13 +28,20 @@ numberedlist::
 ## Configure IPv6: Automatically
 ::
 
-SOFT::
-In a working setting I am using always a fixed Device name for broadcasting an ad-hoc network. This because then on all the devices that I connect to the LAN with static adresses, will make it the next time easier to sync up again.
+The current set of available build message objects are:
+LIST::
+## addPage
+## fader
+## range
+## text
+## pads
+## switches
 ::
 
 SOFT::
-In example: When using an IThingy just configure the IP-adress in wifi-network as a static addres like: IP-addres "192.10.1.1" Subnetmasker: 255.255.255.0.
+Remark: In a working setting I always use a fixed Device name for broadcasting an ad-hoc network. This causes all the devices connected with static adresses to sync up more easily.
 ::
+
 
 
 CLASSMETHODS::
@@ -47,8 +55,8 @@ returns:: A new instance.
 INSTANCEMETHODS::
 
 METHOD:: connect
-To establish a TCP and UDP connection to communicate with the Lemur app.
-WARNING:: Make sure the ip address is correct and the Lemur applications is on. ::
+Establishes TCP and UDP connection between computer and the Lemur app.
+WARNING:: Make sure the ip address is correct and the Lemur application is on. ::
 
 argument:: ip
 This is the ip-address of the device where the Lemur app is located.
@@ -140,6 +148,50 @@ argument:: height
 METHOD:: removeText
 Remove a Text object.
 
+METHOD:: pads
+Add a Pads object.
+argument:: pagename
+This argument is needed to target the page to be build on, it can be a Symbol or String.
+argument:: idname
+The idname argument sets also the cmdname osc msg packet
+argument:: x
+argument:: y
+argument:: width
+argument:: height
+argument:: column
+set amount of columns
+argument:: row
+set amount of rows
+argument:: colorOff
+Set off color of object with the Color class, i.e: Color.rand.
+argument:: colorOn
+Set on color of object with the Color class, i.e: Color.rand.
+
+METHOD:: removePads
+Remove a Pads object.
+
+METHOD:: switches
+Add a Switches object.
+argument:: pagename
+This argument is needed to target the page to be build on, it can be a Symbol or String.
+argument:: idname
+The idname argument sets also the cmdname osc msg packet
+argument:: x
+argument:: y
+argument:: width
+argument:: height
+argument:: column
+set amount of columns
+argument:: row
+set amount of rows
+argument:: colorOff
+Set off color of object with the Color class, i.e: Color.rand.
+argument:: colorOn
+Set on color of object with the Color class, i.e: Color.rand.
+
+METHOD:: removeSwitches
+Remove a Switches object.
+
 METHOD:: set_osctarget
 An osc target is where the lemur application is sending osc messages to.
 argument:: target_number
@@ -181,7 +233,13 @@ private:: buildInfo
 private:: current_ip
 private:: removeFaderCode
 
-
+private:: convertColor
+private:: padsCode
+private:: removePadsCode
+private:: removeSwitchesCode
+private:: setColor
+private:: standardColor
+private:: switchesCode
 
 
 
@@ -243,7 +301,7 @@ OSCFunc.trace(false);
 ~bunch = Array.fill(10, {
 	var name = "HAPPYCAMPER".scramble.asString, x = Pbrown(0,1023,30).asStream, y = Pbrown(0,768,30).asStream;
 	[name, r { inf do: { |i|
-		~lm.text("Thing", name, x: x.next, y: y.next, content: "sono-boy-kinky-noise-pop-sound".scramble, width: 100);
+		~lm.text("Thing", name, x: x.next, y: y.next, content: "boulehausenstock".scramble, width: 100);
 		exprand(0.01,0.01).wait;
 		}}.play
 	]
@@ -254,6 +312,16 @@ OSCFunc.trace(false);
 ~lm.oscaddr.sendMsg("/interface", "klang")
 ~lm.oscaddr.sendMsg("/interface", "Thing");
 
+
+// pads and switches.
+(
+~lm.pads(x: 512, y: 100, width: 512,height: 512, column: 5, row: 5, colorOff: Color.blue, colorOn: Color.red);
+~lm.switches(x: 0, y: 100, width: 512,height: 512, column: 5, row: 5, colorOff: Color.red, colorOn: Color.black);
+)
+~lm.removeSwitches;~lm.removePads;
+
 ~lm.disconnect;
 // set array with klang!
+
+
 ::

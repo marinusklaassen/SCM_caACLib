@@ -135,20 +135,10 @@ OSCFunc.trace(true);
 ~lm.resetAll;
 
 
-// Pads:
-(
-var pagename = "Test", idname = "test", x = 0, y = 0, width = 100, height = 700, column = 2, row = 2, colorOff = 0, colorOn = 0;
-~lm.sendPacket(
-
-// Switches:
-(
-var pagename = "Test", idname = "test", x = 200, y = 0, width = 100, height = 700, column = 2, row = 2, colorOff = 0, colorOn, radio = 0;
-~lm.sendPacket('<WINDOW class="JAZZINTERFACE" text="%"> <WINDOW class="Switches" text="%" x="%" y="%" width="%" height="%" column="%" row="%" id="1" group="0" multilabel="1" label="0" radio="%" color="%,%"/> </WINDOW>'.asString.format(pagename,idname,x,y,width,height,column,row,radio,colorOff,colorOn))
-)
-
+// pads and switches.
 (
 ~lm.pads(x: 512, y: 100, width: 512,height: 512, column: 5, row: 5, colorOff: Color.blue, colorOn: Color.red);
-~lm.switches(x: 0, y: 100, width: 512,height: 512, column: 5, row: 5, colorOff: Color.blue, colorOn: Color.red);
+~lm.switches(x: 0, y: 100, width: 512,height: 512, column: 5, row: 5, colorOff: Color.red, colorOn: Color.black);
 )
 ~lm.removeSwitches;~lm.removePads;
 

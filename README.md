@@ -3,11 +3,11 @@ caAC-MLib 0.42
 **Computer Aided Algorithmic Composition Library 0.42**
 
  
-This library I am currently developing contains various SuperCollider classes and UGens extensions to perform algorithmic compostion and digital sound synthesis within concepts and approaches towards flexible models and user interfaces.   
-An important aspect is the development of a flexible UI frontend that I am programming with the SuperCollider language, to work with patterns and tactile controllers, such as the Lemur app, in a model-view-controller paradigm, to have a bi-directional control between SuperCollider and the Lemur applications to perform realtime CAAC and digital sound synthesis.    
+A library with various SuperCollider classes and UGens extensions to perform algorithmic composition and digital sound synthesis, according to concepts and approaches towards flexible models and user interfaces.   
+The most important aspect is the development of a flexible UI frontend progammed in SuperCollider, that works with patterns and tactile controllers, such as the Lemur app, in a model-view-controller paradigm, in order to achieve bi-directional control between SuperCollider and the Lemur applications, and furthermore to perform realtime CAAC and digital sound synthesis.    
 
 
-**Content:**
+**Contents:**
  
 - Various GUI elements  
 - Various (demand) UGens  
@@ -17,8 +17,7 @@ An important aspect is the development of a flexible UI frontend that I am progr
 - MPreset  
 
 **Example code:**  
-Adding a bunch of faders with random colors to the Lemur app. 
- 
+Adding a certain amount of faders to the Lemur interface:
 `~lm = MLemurGui.new;`  
 
 `~lm.connect("192.10.1.2",8002,8000);`    
@@ -38,6 +37,21 @@ Adding a bunch of faders with random colors to the Lemur app.
 ![](https://raw.github.com/marinusklaassen/caAC-MLib/caAC-MLib-master/Lemur/HelpSource/Classes/lpict.png)
 
 
+Adding a switch and pad matrix to the Lemur interface: 
+  
+(  
+~lm.pads(x: 512, y: 100, width: 512,height: 512, column: 5, row: 5, colorOff: Color.blue, colorOn: Color.red);  
+~lm.switches(x: 0, y: 100, width: 512,height: 512, column: 5, row: 5, colorOff: Color.red, colorOn: Color.black);  
+)  
+
+~lm.removeSwitches;~lm.removePads;
+
+
+
+
+
+
+
 Status
 ======
 This library is currently under active development. 
@@ -48,7 +62,7 @@ Contact
 =======
 
 Marinus Klaassen  
-marinus@rotterdamruis.nl  
+marinus_klaassen@hotmail.com 
 [www.soundcloud.com/marinusklaassen](www.soundcloud.com/marinusklaassen)  
 [www.rotterdamruis.nl](www.rotterdamruis.nl)
 
