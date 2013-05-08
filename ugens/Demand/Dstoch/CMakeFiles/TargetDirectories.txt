@@ -1,0 +1,1 @@
+/Users/MarinusKlaassen/Library/Application Support/SuperCollider/Extensions/caAC-MLib/UGens/Demand/Dstoch/CMakeFiles/Dstoch.dir
