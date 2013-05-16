@@ -10,14 +10,15 @@ The most important aspect is the development of a flexible UI frontend progammed
 **Contents:**
  
 - Various GUI elements  
-- Various (demand) UGens  
-- Various Patterns   
+- Various (Demand) UGens  
+- Various Pattern classes   
 - MLemurGui  
-- Score & Controller interface (not yet added) 
-- MPreset  
+- Score & Controller interface (prototype) 
+- PresetInterface (prototype) 
 
 **Example code:**  
 Adding a certain amount of faders to the Lemur interface:
+
 `~lm = MLemurGui.new;`  
 
 `~lm.connect("192.10.1.2",8002,8000);`    
@@ -34,22 +35,7 @@ Adding a certain amount of faders to the Lemur interface:
 `~lm.disconnect;`  
 
 
-![](https://raw.github.com/marinusklaassen/caAC-MLib/caAC-MLib-master/Lemur/HelpSource/Classes/lpict.png)
-
-
-Adding a switch and pad matrix to the Lemur interface: 
-  
-(  
-~lm.pads(x: 512, y: 100, width: 512,height: 512, column: 5, row: 5, colorOff: Color.blue, colorOn: Color.red);  
-~lm.switches(x: 0, y: 100, width: 512,height: 512, column: 5, row: 5, colorOff: Color.red, colorOn: Color.black);  
-)  
-
-~lm.removeSwitches;~lm.removePads;
-
-
-
-
-
+~lm.removeSwitches;
 
 
 Status
@@ -63,8 +49,14 @@ Contact
 
 Marinus Klaassen  
 marinus_klaassen@hotmail.com 
+
 [www.soundcloud.com/marinusklaassen](www.soundcloud.com/marinusklaassen)  
 [www.rotterdamruis.nl](www.rotterdamruis.nl)
+
+
+
+
+
 
 
 
