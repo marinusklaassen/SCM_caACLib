@@ -44,7 +44,7 @@ A library with various SuperCollider classes and UGens extensions to perform alg
 
 
 
-<img src="https://github.com/marinusklaassen/caAC-MLib/blob/caAC-MLib-master/Lemur/HelpSource/Classes/lpict.png" alt="Build Interface" width="400" height="300">
+<img src="/Lemur/HelpSource/Classes/lpict.png" alt="Build Interface" width="400" height="300">
 
 
 
