@@ -1,4 +1,4 @@
-caAC-MLib 0.42
+**caAC-MLib 0.42**
 ---
 **Computer Aided Algorithmic Composition Library 0.42**
 ---
@@ -6,7 +6,7 @@ caAC-MLib 0.42
  
 A library with various SuperCollider classes and UGens extensions to perform algorithmic composition and digital sound synthesis, according to concepts and approaches towards flexible models and user interfaces. The most important aspect is the development of a flexible UI frontend progammed in SuperCollider, that works with patterns and tactile controllers, such as the Lemur app, in a model-view-controller paradigm, in order to achieve bi-directional control between SuperCollider and the Lemur applications, and furthermore to perform realtime CAAC and digital sound synthesis.    
 
----
+
 
 **Contents:**
 ---
@@ -18,7 +18,8 @@ A library with various SuperCollider classes and UGens extensions to perform alg
 - Score & Controller interface (prototype) 
 - PresetInterface (prototype) 
 
----
+
+
 **Example code:**  
 ---
     
@@ -41,26 +42,19 @@ A library with various SuperCollider classes and UGens extensions to perform alg
     ~lm.disconnect;
     ~lm.removeSwitches;
 
----
----
----
----
 
-<img src="/Users/MarinusKlaassen/Library/Application Support/SuperCollider/Extensions/caAC-MLib/Lemur/HelpSource/Classes/lpict.png" alt="Build Interface" width="400" height="300">
 
----
----
+<img src="https://github.com/marinusklaassen/caAC-MLib/blob/caAC-MLib-master/Lemur/HelpSource/Classes/lpict.png" alt="Build Interface" width="400" height="300">
+
+
+
 **The Score & Controller Interface:**
 ---
 An important tool in this library is a flexible interface: the Score & Controller Interface to embed script-based composition into an OSC-controller setup. This interface is going to be released in September. A prototype can be found here. 
 
-<img src="/Users/MarinusKlaassen/Library/Application Support/SuperCollider/Extensions/caAC-MLib/score.png" alt="Pulpit rock" >
+<img src="https://github.com/marinusklaassen/caAC-MLib/blob/caAC-MLib-master/score.png" alt="Score" >
 
-<img src="/Users/MarinusKlaassen/Library/Application Support/SuperCollider/Extensions/caAC-MLib/mixer.png" alt="Pulpit rock">
-
-
-
-
+<img src="https://github.com/marinusklaassen/caAC-MLib/blob/caAC-MLib-master/mixer.png" alt="Mixer">
 
 
 
