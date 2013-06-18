@@ -87,8 +87,8 @@
 	.background_(Color.white.alpha_(0.5))
 	.string_(object.model[\script])
 	.keyDownAction_({| ... args|
-		var bool = args[2] == 131072;
-		bool = postln(args[1].ascii == 13) && bool.postln;
+		var bool = args[2] == 524288;
+		bool = args[1].ascii == 13 && bool;
 		if (bool) { object.setValueFunction(object.scriptTextField.string) };
 	})
 	.enterInterpretsSelection_(false)
@@ -108,8 +108,8 @@
 		.background_(Color.white.alpha_(0.5))
 		.string_(object.model[\script])
 		.keyDownAction_({| ... args|
-			var bool = args[2] == 131072;
-			bool = postln(args[1].ascii == 13) && bool.postln;
+			var bool = args[2] == 524288;
+			bool = args[1].ascii == 13 && bool;
 			if (bool) { object.setValueFunction(object.enlargedTextField.string) };
 		})
 		.enterInterpretsSelection = false;
@@ -143,18 +143,16 @@
 	object.setFaderFunction = {|object, value|
 		object.modelFader[\widgetValue] = value;
 		if (object.widgetIndex == 1) { object.modelFader.changed(\widgetValue, value); };
-		object.modelFader.postln;
 	};
 	object.setRangeFunction = {|object, value|
 		object.modelRange[\widgetValue] = value;
 		if (object.widgetIndex == 2) { object.modelRange.changed(\widgetValue, value); };
-		object.modelRange.postln;
 	};
 
 	object.modelDependants = ();
 
 	object.modelDependants[\lemurFader] = {|theChanger, what, val|
-		if (object.lemurFlag) { object.lemur.oscaddr.sendMsg("/" ++ object.nameID ++ "/x", val) };
+		if (object.lemurFlag) { object.lemur.oscaddr.sendMsg("/" ++ object.pageID ++ object.nameID ++ "/x", val) };
 	};
 
 	object.modelDependants[\widgetFader] = {|theChanger, what, val|
@@ -162,12 +160,12 @@
 	};
 
 	object.modelDependants[\mapFader] = {|theChanger, what, val|
-	object.proxies[\fader].source = object.spec.map(val).postln;
+	object.proxies[\fader].source = object.spec.map(val);
 
 	};
 
 	object.modelDependants[\lemurRange] = {|theChanger, what, val|
-		if (object.lemurFlag) { object.lemur.oscaddr.sendMsg("/" ++ object.nameID ++ "/x", val[0],val[1]) };
+		if (object.lemurFlag) { object.lemur.oscaddr.sendMsg("/" ++ object.pageID ++ object.nameID ++ "/x", val[0],val[1]) };
 	};
 
 	object.modelDependants[\widgetRange] = {|theChanger, what,val|
@@ -175,8 +173,8 @@
 	};
 
 	object.modelDependants[\mapRange] = {|theChanger, what, val|
-	object.proxies[\rangeLo].source = object.spec.map(val.first).postln;
-	object.proxies[\rangeHi].source = object.spec.map(val.last).postln;
+	object.proxies[\rangeLo].source = object.spec.map(val.first);
+	object.proxies[\rangeHi].source = object.spec.map(val.last);
 	};
 
 	object.widgetIndex = 0;
@@ -223,18 +221,18 @@
 		object.view.visible = false;
 		if (object.lemur.notNil) {
 			object.freeResp;
-			object.lemur.removeRange(object.pageID, object.nameID);
-			object.lemur.removeFader(object.pageID, object.nameID);
+			object.lemur.removeRange(object.pageID, object.pageID ++ object.nameID);
+			object.lemur.removeFader(object.pageID, object.pageID ++ object.nameID);
 		};
 	} { index == 1 } {
 		object.switchView(object.view);
 		if (object.lemur.notNil) {
-			object.lemur.removeRange(object.pageID, object.nameID);
-			object.lemur.removeFader(object.pageID, object.nameID);
+			object.lemur.removeRange(object.pageID, object.pageID ++ object.nameID);
+			object.lemur.removeFader(object.pageID, object.pageID ++ object.nameID);
 			object.freeResp;
-			object.lemur.fader(object.pageID, object.nameID, color: Color.blue, x: object.xOffset);
-			fork { 0.02.wait; object.lemur.oscaddr.sendMsg("/" ++ object.nameID ++ "/x", object.modelFader[\widgetValue]) };
-			object.lemurResp = OSCFunc({|msg|object.setFaderFunction(msg[1])}, "/" ++ object.nameID ++ "/x");
+			object.lemur.fader(object.pageID, object.pageID ++ object.nameID, color: Color.blue, x: object.xOffset);
+			fork { 0.02.wait; object.lemur.oscaddr.sendMsg("/" ++ object.pageID ++ object.nameID ++ "/x", object.modelFader[\widgetValue]) };
+			object.lemurResp = OSCFunc({|msg|object.setFaderFunction(msg[1])}, "/" ++ object.pageID ++ object.nameID ++ "/x");
 		};
 		object.widget = Slider(object.view,object.view.bounds.extent)
 		.value_(object.modelFader[\widgetValue])
@@ -243,11 +241,11 @@
 		object.switchView(object.view);
 		if (object.lemur.notNil) {
 			object.freeResp;
-			object.lemur.removeRange(object.pageID, object.nameID);
-			object.lemur.removeFader(object.pageID, object.nameID);
-			object.lemur.range(object.pageID, object.nameID, color: Color.blue, x: object.xOffset);
-			fork { 0.02.wait; object.lemur.oscaddr.sendMsg(*(["/" ++ object.nameID ++ "/x"] ++ object.modelRange[\widgetValue])) };
-			object.lemurResp = OSCFunc({ |msg| object.setRangeFunction([msg[1],msg[2]])}, "/" ++ object.nameID ++ "/x");
+			object.lemur.removeRange(object.pageID, object.pageID ++ object.nameID);
+			object.lemur.removeFader(object.pageID, object.pageID ++ object.nameID);
+			object.lemur.range(object.pageID, object.pageID ++ object.nameID, color: Color.blue, x: object.xOffset);
+			fork { 0.02.wait; object.lemur.oscaddr.sendMsg(*(["/" ++ object.pageID ++ object.nameID ++ "/x"] ++ object.modelRange[\widgetValue])) };
+			object.lemurResp = OSCFunc({ |msg| object.setRangeFunction([msg[1],msg[2]])}, "/" ++ object.pageID ++ object.nameID ++ "/x");
 
 		};
 		object.widget = RangeSlider(object.view,object.view.bounds.extent)
@@ -588,7 +586,7 @@
 			object.reorderMixer;
 		};
 		object.scoreArray = object.scoreArray.add(score);
-
+		score.lemurFlag = object.lemurFlag;
 		object.addView.moveTo(10,object.scoreArray.size * 50 + object.mixerVerticalOffset + 5)
 	}
 
@@ -939,7 +937,7 @@
 				object.view.bounds.width,
 				object.chDistance),
 			scoreSettings.posSettings);
-		paramWidget.selectWidget.lemurLoad(lemur, object.scoreNameModel[\scoreName], parName, currentIndex * 100 + 4);
+		paramWidget.selectWidget.lemurLoad(lemur, object.scoreNameModel[\scoreName].postln, parName.postln, currentIndex * 100 + 4);
 
 		paramWidget.nameAction = {
 			if (paramWidget.proxy.isNil) { paramWidget.proxy = PatternProxy.new };
@@ -966,6 +964,9 @@
 			object.channelArray.removeAt(channelObject.widgetIndex);
 			object.reorderChannels(object.chDistance, scoreSettings.posSettings);
 		};
+
+		paramWidget.selectWidget.lemurFlag = object.lemurFlag;
+
 		object.channelArray = object.channelArray.add(paramWidget);
 		object.addView.moveTo(
 			scoreSettings.posSettings.xWorkSpace,
@@ -1083,3 +1084,13 @@
 	object.scoreViewIsOpenFlag = true;
 	}
 };
+
+
+
+// (
+// ~scoreAndMixer.scoreArray do: { |score|
+// 	score.channelArray do: { |channel|
+// 		channel.selectWidget.lemurFlag = true;
+// 	}
+// }
+// )
