@@ -57,7 +57,7 @@ An important tool in this library is a flexible interface: the Score & Controlle
 <img src="mixer.png" alt="Mixer">
 
 
-[This is the link to a crappy video demonstration of the prototype version on Vimeo](https://vimeo.com/68702753/) 
+[This is the link to a crappy video demonstration of the prototype version on Vimeo.](https://vimeo.com/68702753/) 
 
 
 
