@@ -24,7 +24,7 @@
 
 // BOOT SERVER
 s.boot;
-
+s.reboot
 (
 // MAKE A NEW MIXER INSTANCE
 ~scoreAndMixer.newInstance;
@@ -38,57 +38,67 @@ s.boot;
 ~scoreAndMixer.makeView;
 
 
-
-
 // CLEANUP STUF
-~lm.disconnect; s.quit;
+~lm.disconnect;
+s.quit;
 
-s.quit
-// Laad FM
-Pbind(
-	\instrument, \FM1,
-	\addAction, 0,
-	\buf, Prand(~segBuf,inf),
-	\dur, Pexprand(1,13),
-	\note,Pn(Pshuf(Pxrand(Scale.choose,inf).asStream.nextN(5),Pexprand(1,7)),inf),
-	\amm, Pexprand(0.01,0.1),
-	\hr,  1.21,
-	\md,  12,
-	\pan, Pwhite(-1,1.0),
-	\amp, Pexprand(0.1,1.0) * dbamp(Pstutter(Pexprand(10,70), Prand([0,-18],inf))) * 0.1,
-/*	\type,Pwrand([\note,\rest], [0.7,0.3],inf),*/
-	\legato, 8
-).play
+
+
 (
-// Good with fm. make short burst!
-b = Ppar({ |i|
-	Pbind(
-		\instrument, \oneShot1,
-		\freq,Pwrand([40,4],[0.99,0.01],inf),
-		\dur, reciprocal(Pkey(\freq)),
-		\amp, Pseg(Pwhite(0,0.1), Pexprand(0.01,exprand(0.5,2)), \sqr,inf),
-		\buf, Pstutter(Pbeta(1,20,0.1,0.1), Purno(~segBuf,inf)),
-		\envbuf, ~noEnv,
-		\pan, ~spatSpeakerAngles.choose,
-		\type, Pstutter(16, Prand([\r, \note],inf))
-	)
-}!2).play;
-)
-s.boot;
-(
-c.stop; c = Pbind(
-	\instrument, \KICK,
-	/*\dur, Pseq([3/4,1/4,1/8,1/8,1],inf),*/
-	\dur, 1/4,
-	\plow, 30,
-	\phigh, 110,
-	\dtime, Pkey(\dur),
-	\atime, Pkey(\dur),
-	\subtime, Pkey(\dur),
-	\curveFactor, -18,
-	\distort, 10,
-	\amp, 0.2
-).play
-)
+SynthDef(\FMpercGrain1, { arg freq = 200, hr = 4, md = 24, dur = 5,curve = -4, amp = 0.1, out, pan = 0;
+	var env = EnvGen.kr(Env.perc(0.001,dur,amp,curve),1,doneAction: 2);
+	var modFreq = (freq * hr.reciprocal);
+	var sig = PMOsc.ar(freq, modFreq, md,0);
+	OffsetOut.ar(out, PanAz.ar(4, sig, pan, env));
+}, \ir!8).add;
 
+SynthDef(\FMpercGrain1am, { arg freq = 200, hr = 4, md = 24, dur = 5,curve = -4, amp = 0.1, out, pan = 0, amFreq = 40;
+	var env = EnvGen.kr(Env.perc(0.001,dur,amp,curve),1,doneAction: 2);
+	var modFreq = (freq * hr.reciprocal);
+	var sig = PMOsc.ar(freq, modFreq, md,0);
+		sig = VarSaw.ar(amFreq,mul: sig,width: 0.5);
+	OffsetOut.ar(out, PanAz.ar(4, sig, pan, env));
+}, \ir!9).add;
 
+SynthDef(\FMpercGrain1amVib, { arg freq = 200, hr = 4, md = 24, dur = 5,curve = -4, amp = 0.1, out, pan = 0, amFreq = 100, vibFreq = 4, vibPower = 20;
+	var env = EnvGen.kr(Env.perc(0.001,dur,amp,curve),1,doneAction: 2);
+	var car = freq + SinOsc.ar(vibFreq, 0, vibPower);
+	var modFreq = (car * hr.reciprocal);
+	var sig = PMOsc.ar(car, modFreq, md,0);
+		sig = VarSaw.ar(amFreq,mul: sig,width: 0.5);
+	OffsetOut.ar(out, PanAz.ar(4, sig, pan, env));
+}, \ir!11).add;
+
+SynthDef(\FMsineGrain1, { arg freq = 200, hr = 4, md = 24, dur = 5,curve = -4, amp = 0.1, out, pan = 0;
+	var env = EnvGen.kr(Env.sine(dur,amp),doneAction: 2);
+	var modFreq = (freq * hr.reciprocal);
+	var sig = PMOsc.ar(freq, modFreq, md,0);
+	OffsetOut.ar(out, PanAz.ar(4, sig, pan, env));
+}, \ir!8).add;
+
+SynthDef(\FMsineGrain1am, { arg freq = 200, hr = 4, md = 24, dur = 5,curve = -4, amp = 0.1, out, pan = 0, amFreq = 40;
+	var env = EnvGen.kr(Env.sine(dur,amp),doneAction: 2);
+	var modFreq = (freq * hr.reciprocal);
+	var sig = PMOsc.ar(freq, modFreq, md,0);
+	sig = VarSaw.ar(amFreq,mul: sig,width: 0.5);
+	OffsetOut.ar(out, PanAz.ar(4, sig, pan, env));
+}, \ir!9).add;
+
+SynthDef(\FMpercGrain1amVib, { arg freq = 200, hr = 4, md = 24, dur = 5,curve = -4, amp = 0.1, out, pan = 0, amFreq = 100, vibFreq = 4, vibPower = 20;
+	var env = EnvGen.kr(Env.perc(0.001,dur,amp,curve),1,doneAction: 2);
+	var car = freq + SinOsc.ar(vibFreq, 0, vibPower);
+	var modFreq = (car * hr.reciprocal);
+	var sig = PMOsc.ar(car, modFreq, md,0);
+		sig = VarSaw.ar(amFreq,mul: sig,width: 0.5);
+	OffsetOut.ar(out, PanAz.ar(4, sig, pan, env));
+}, \ir!11).add;
+
+SynthDef(\FMsineGrain1amVib, { arg freq = 200, hr = 4, md = 24, dur = 5,curve = -4, amp = 0.1, out, pan = 0, amFreq = 40, vibFreq = 4, vibPower = 20;
+	var env = EnvGen.kr(Env.sine(dur,amp),doneAction: 2);
+	var car = freq + SinOsc.ar(vibFreq, 0, vibPower);
+	var modFreq = (car * hr.reciprocal);
+	var sig = PMOsc.ar(car, modFreq, md,0);
+	sig = VarSaw.ar(amFreq,width: 0.5,mul: 2).distort.sqrt * sig;
+	OffsetOut.ar(out, PanAz.ar(4, sig, pan, env));
+}, \ir!9).add;
+)
