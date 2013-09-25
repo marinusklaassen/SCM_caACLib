@@ -1,14 +1,9 @@
-// The page ID plus name ID are not combined to create
-// an osc-message slot.
-// This results in problems with the bidirectional osc
-// message flow with multiple scores
-// Ding opgelost.
-// Parameter linkin is opgelost.
 
-
-
-
-
+// How to store and load a project??
+// How to store and read states
+// Implement a way to use sliders mapped from another channel.
+// How to minimize the usage of controllers and its assignment?
+// Implement the whole Score&Controller interface as classes.
 
 
 // FIRST CONNECT LEMUR
@@ -31,74 +26,40 @@ s.reboot
 // Set lemur flag on true
 ~scoreAndMixer.lemurFlag = true;
 // MAKE A NEW MIXER VIEW
-~scoreAndMixer.makeView;
+~scoreAndMixer.makeGui;
 )
 
 // View to front
-~scoreAndMixer.makeView;
-
+~scoreAndMixer.makeGui;
 
 // CLEANUP STUF
 ~lm.disconnect;
-s.quit;
 
 
+// How to change a parameter??
+osc_message="/test/x", osc_message="/%/z"
+
+OSCFunc.trace(true);
 
 (
-SynthDef(\FMpercGrain1, { arg freq = 200, hr = 4, md = 24, dur = 5,curve = -4, amp = 0.1, out, pan = 0;
+SynthDef(\FM, { arg freq = 200, hr = 4, md = 24, dur = 5,curve = -4, amp = 0.1, out, pan = 0;
 	var env = EnvGen.kr(Env.perc(0.001,dur,amp,curve),1,doneAction: 2);
 	var modFreq = (freq * hr.reciprocal);
 	var sig = PMOsc.ar(freq, modFreq, md,0);
 	OffsetOut.ar(out, PanAz.ar(4, sig, pan, env));
 }, \ir!8).add;
-
-SynthDef(\FMpercGrain1am, { arg freq = 200, hr = 4, md = 24, dur = 5,curve = -4, amp = 0.1, out, pan = 0, amFreq = 40;
-	var env = EnvGen.kr(Env.perc(0.001,dur,amp,curve),1,doneAction: 2);
-	var modFreq = (freq * hr.reciprocal);
-	var sig = PMOsc.ar(freq, modFreq, md,0);
-		sig = VarSaw.ar(amFreq,mul: sig,width: 0.5);
-	OffsetOut.ar(out, PanAz.ar(4, sig, pan, env));
-}, \ir!9).add;
-
-SynthDef(\FMpercGrain1amVib, { arg freq = 200, hr = 4, md = 24, dur = 5,curve = -4, amp = 0.1, out, pan = 0, amFreq = 100, vibFreq = 4, vibPower = 20;
-	var env = EnvGen.kr(Env.perc(0.001,dur,amp,curve),1,doneAction: 2);
-	var car = freq + SinOsc.ar(vibFreq, 0, vibPower);
-	var modFreq = (car * hr.reciprocal);
-	var sig = PMOsc.ar(car, modFreq, md,0);
-		sig = VarSaw.ar(amFreq,mul: sig,width: 0.5);
-	OffsetOut.ar(out, PanAz.ar(4, sig, pan, env));
-}, \ir!11).add;
-
-SynthDef(\FMsineGrain1, { arg freq = 200, hr = 4, md = 24, dur = 5,curve = -4, amp = 0.1, out, pan = 0;
-	var env = EnvGen.kr(Env.sine(dur,amp),doneAction: 2);
-	var modFreq = (freq * hr.reciprocal);
-	var sig = PMOsc.ar(freq, modFreq, md,0);
-	OffsetOut.ar(out, PanAz.ar(4, sig, pan, env));
-}, \ir!8).add;
-
-SynthDef(\FMsineGrain1am, { arg freq = 200, hr = 4, md = 24, dur = 5,curve = -4, amp = 0.1, out, pan = 0, amFreq = 40;
-	var env = EnvGen.kr(Env.sine(dur,amp),doneAction: 2);
-	var modFreq = (freq * hr.reciprocal);
-	var sig = PMOsc.ar(freq, modFreq, md,0);
-	sig = VarSaw.ar(amFreq,mul: sig,width: 0.5);
-	OffsetOut.ar(out, PanAz.ar(4, sig, pan, env));
-}, \ir!9).add;
-
-SynthDef(\FMpercGrain1amVib, { arg freq = 200, hr = 4, md = 24, dur = 5,curve = -4, amp = 0.1, out, pan = 0, amFreq = 100, vibFreq = 4, vibPower = 20;
-	var env = EnvGen.kr(Env.perc(0.001,dur,amp,curve),1,doneAction: 2);
-	var car = freq + SinOsc.ar(vibFreq, 0, vibPower);
-	var modFreq = (car * hr.reciprocal);
-	var sig = PMOsc.ar(car, modFreq, md,0);
-		sig = VarSaw.ar(amFreq,mul: sig,width: 0.5);
-	OffsetOut.ar(out, PanAz.ar(4, sig, pan, env));
-}, \ir!11).add;
-
-SynthDef(\FMsineGrain1amVib, { arg freq = 200, hr = 4, md = 24, dur = 5,curve = -4, amp = 0.1, out, pan = 0, amFreq = 40, vibFreq = 4, vibPower = 20;
-	var env = EnvGen.kr(Env.sine(dur,amp),doneAction: 2);
-	var car = freq + SinOsc.ar(vibFreq, 0, vibPower);
-	var modFreq = (car * hr.reciprocal);
-	var sig = PMOsc.ar(car, modFreq, md,0);
-	sig = VarSaw.ar(amFreq,width: 0.5,mul: 2).distort.sqrt * sig;
-	OffsetOut.ar(out, PanAz.ar(4, sig, pan, env));
-}, \ir!9).add;
 )
+
+(
+// MAKE A NEW MIXER INSTANCE
+~scoreAndMixer.newInstance;
+// Set lemur flag on true
+~scoreAndMixer.lemurFlag = false;
+// MAKE A NEW MIXER VIEW
+~scoreAndMixer.makeGui;
+)
+
+
+
+
+

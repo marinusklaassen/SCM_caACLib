@@ -80,7 +80,7 @@
 		};
 };
 
-~scriptWidget.makeView = { |object, parent, bounds|
+~scriptWidget.makeGui = { |object, parent, bounds|
 	object.view = CompositeView(parent,bounds);
 	object.view.background = Color.white.alpha_(0.5);
 	object.scriptTextField = TextView(object.view,object.view.bounds.extent)
@@ -183,7 +183,7 @@
 	object.modelRange.addDependant(object.modelDependants[\mapRange]);
 };
 
-~selectWidget.naviteWidgets = { |object| object.selectWidget(object.widgetIndex + 1 % 3) };
+~selectWidget.navigateWidgets = { |object| object.selectWidget(object.widgetIndex + 1 % 3) };
 
 ~selectWidget.lemurLoad = { |object, lemurClass, pageID = "page 1", nameID = "default", xOffset = 4|
 	object.lemur = lemurClass;
@@ -213,48 +213,58 @@
 
 };
 
+~selectWidget.updateResp { |object| object.selectWidget(object.widgetIndex) };
+
+
+
 ~selectWidget.selectWidget = { |object, index|
-	object.widgetIndex = index.postln % 3;
-	case
-	{ index == 0 } {
-		object.switchView(object.returnView);
-		object.view.visible = false;
-		if (object.lemur.notNil) {
-			object.freeResp;
-			object.lemur.removeRange(object.pageID, object.pageID ++ object.nameID);
-			object.lemur.removeFader(object.pageID, object.pageID ++ object.nameID);
-		};
-	} { index == 1 } {
-		object.switchView(object.view);
-		if (object.lemur.notNil) {
-			object.lemur.removeRange(object.pageID, object.pageID ++ object.nameID);
-			object.lemur.removeFader(object.pageID, object.pageID ++ object.nameID);
-			object.freeResp;
-			object.lemur.fader(object.pageID, object.pageID ++ object.nameID, color: Color.blue, x: object.xOffset);
-			fork { 0.02.wait; object.lemur.oscaddr.sendMsg("/" ++ object.pageID ++ object.nameID ++ "/x", object.modelFader[\widgetValue]) };
-			object.lemurResp = OSCFunc({|msg|object.setFaderFunction(msg[1])}, "/" ++ object.pageID ++ object.nameID ++ "/x");
-		};
-		object.widget = Slider(object.view,object.view.bounds.extent)
-		.value_(object.modelFader[\widgetValue])
-		.action_({|val|object.setFaderFunction(val.value);});
-	} { index == 2 } {
-		object.switchView(object.view);
-		if (object.lemur.notNil) {
-			object.freeResp;
-			object.lemur.removeRange(object.pageID, object.pageID ++ object.nameID);
-			object.lemur.removeFader(object.pageID, object.pageID ++ object.nameID);
-			object.lemur.range(object.pageID, object.pageID ++ object.nameID, color: Color.blue, x: object.xOffset);
-			fork { 0.02.wait; object.lemur.oscaddr.sendMsg(*(["/" ++ object.pageID ++ object.nameID ++ "/x"] ++ object.modelRange[\widgetValue])) };
-			object.lemurResp = OSCFunc({ |msg| object.setRangeFunction([msg[1],msg[2]])}, "/" ++ object.pageID ++ object.nameID ++ "/x");
+		object.widgetIndex = index.postln % 3;
+		case
+		{ index == 0 } {
+			object.switchView(object.returnView);
+			object.view.visible = false;
+			if (object.lemur.notNil) {
+				object.freeResp;
+				object.lemur.removeRange(object.pageID, object.pageID ++ object.nameID);
+				object.lemur.removeFader(object.pageID, object.pageID ++ object.nameID);
+				object.lemur.removeText(object.pageID, object.pageID ++ object.nameID);
 
+			};
+		} { index == 1 } {
+			object.switchView(object.view);
+			if (object.lemur.notNil) {
+				object.lemur.removeRange(object.pageID, object.pageID ++ object.nameID);
+				object.lemur.removeFader(object.pageID, object.pageID ++ object.nameID);
+				object.freeResp;
+				object.lemur.fader(object.pageID, object.pageID ++ object.nameID, color: Color.blue, x: object.xOffset);
+				object.lemur.removeText(object.pageID, object.pageID ++ object.nameID);
+				object.lemur.text(object.pageID, object.pageID ++ object.nameID, object.getName, color: Color.blue, x: object.xOffset, y: 100);
+
+				fork { 0.02.wait; object.lemur.oscaddr.sendMsg("/" ++ object.pageID ++ object.nameID ++ "/x", object.modelFader[\widgetValue]) };
+				object.lemurResp = OSCFunc({|msg|object.setFaderFunction(msg[1])}, "/" ++ object.pageID ++ object.nameID ++ "/x");
+			};
+			object.widget = Slider(object.view,object.view.bounds.extent)
+			.value_(object.modelFader[\widgetValue])
+			.action_({|val|object.setFaderFunction(val.value);});
+		} { index == 2 } {
+			object.switchView(object.view);
+			if (object.lemur.notNil) {
+				object.freeResp;
+				object.lemur.removeRange(object.pageID, object.pageID ++ object.nameID);
+				object.lemur.removeFader(object.pageID, object.pageID ++ object.nameID);
+				object.lemur.range(object.pageID, object.pageID ++ object.nameID, color: Color.blue, x: object.xOffset);
+				object.lemur.removeText(object.pageID, object.pageID ++ object.nameID);
+				object.lemur.text(object.pageID, object.pageID ++ object.nameID, object.getName, color: Color.blue, x: object.xOffset, y: 100);
+				fork { 0.02.wait; object.lemur.oscaddr.sendMsg(*(["/" ++ object.pageID ++ object.nameID ++ "/x"] ++ object.modelRange[\widgetValue])) };
+				object.lemurResp = OSCFunc({ |msg| object.setRangeFunction([msg[1],msg[2]])}, "/" ++ object.pageID ++ object.nameID ++ "/x");
+
+			};
+			object.widget = RangeSlider(object.view,object.view.bounds.extent)
+			.lo_(object.modelRange[\widgetValue][0]).hi_(object.modelRange[\widgetValue][1])
+			.action_({|val|object.setRangeFunction([val.lo,val.hi]); })
 		};
-		object.widget = RangeSlider(object.view,object.view.bounds.extent)
-		.lo_(object.modelRange[\widgetValue][0]).hi_(object.modelRange[\widgetValue][1])
-		.action_({|val|object.setRangeFunction([val.lo,val.hi]); })
 	};
-};
-
-~selectWidget.makeView = { |object, parent, bounds|
+~selectWidget.makeGui = { |object, parent, bounds|
 	object.view = CompositeView(parent,bounds);
 	object.view.background = Color.blue.alpha_(0.5);
 	object.modelFader.addDependant(object.modelDependants[\widgetFader]);
@@ -310,7 +320,7 @@
 	object.model.addDependant(object.modelDependants[\outputFunc]);
 };
 
-~specWidget.makeView = { |object, parent, bounds|
+~specWidget.makeGui = { |object, parent, bounds|
 	object.view = CompositeView(parent, bounds)
 	.background = Color.yellow.alpha_(0.9);
 	object.specField = TextField(object.view,object.view.bounds.extent)
@@ -361,6 +371,7 @@
 	object.scriptWidget.newInstance; //
 	object.selectWidget = ~selectWidget.copy;
 	object.selectWidget.newInstance;
+	object.selectWidget.getName = { object.paramName.asString.postln; };
 	object.specWidget = ~specWidget.copy;
 	object.specWidget.newInstance;
 	object.selectWidget.spec = [0,1.0,\lin].asSpec;
@@ -393,7 +404,12 @@
 			posSettings[\widthName],
 			posSettings[\channelHeight]));
 	object.views[\paramNameText].string = "param";
-	object.views[\paramNameText].action_({|paramName| object.paramName = interpret(paramName.string); object.nameAction;});
+	object.views[\paramNameText].action_({|paramName|
+
+		object.paramName = interpret(paramName.string);
+		object.nameAction;
+		object.selectWidget.updateResp;
+	});
 
 	object.views[\removeView] =  MButtonV(object.views[\channelView],
 		Rect(
@@ -406,9 +422,10 @@
 
 ~paramWidget.setName = { |object, name|
 	object.views[\paramNameText].string = if (name.isKindOf(String)) { name } { name.asCode };
+
 };
 
-~paramWidget.makeView = { |object, parent, bounds, posSettings|
+~paramWidget.makeGui = { |object, parent, bounds, posSettings|
 	var worksSpaceBounds = Rect(
 		posSettings[\xWorkSpace], posSettings[\channelGap],
 		posSettings[\widthWorkSpace], posSettings[\channelHeight]);
@@ -420,23 +437,26 @@
 	object.buildControlButtons(posSettings);
 	object.buidNameRemove(posSettings);
 
-	object.scriptWidget.makeView(object.views[\channelView], worksSpaceBounds);
+	object.scriptWidget.makeGui(object.views[\channelView], worksSpaceBounds);
 
 	object.workSpacePrevView = object.scriptWidget.view.postln;
 
 	object.selectWidget.getPrevView = { object.workSpacePrevView};
 	object.selectWidget.assignPrevView = { |object, view| object.workSpacePrevView = view; };
 	object.selectWidget.returnView = object.scriptWidget.view;
-	object.selectWidget.makeView(object.views[\channelView], worksSpaceBounds);
+	object.selectWidget.makeGui(object.views[\channelView], worksSpaceBounds);
 
 	if (object.selectWidget.widgetIndex == 0) { object.selectWidget.view.visible = false; };
 
-	object.specWidget.makeView(object.views[\channelView], worksSpaceBounds);
+	object.specWidget.makeGui(object.views[\channelView], worksSpaceBounds);
 	object.specWidget.view.visible = false;
 
 	object.setName(object.paramName)
 };
 
+~paramWidget.updateResp = { |object|
+	object.selectWidget.updateResp;
+};
 ~paramWidget.moveLayer = { |object,verticalOffset| object.views[\channelView].moveTo(0,verticalOffset) };
 
 ~paramWidget.defineButtonOutputFuncs = { |object|
@@ -444,7 +464,7 @@
 	object.buttonPerformFuncs = ();
 	object.buttonPerformFuncs[\enlargeButton] = { object.scriptWidget.enlargedInterface; };
 
-	object.buttonPerformFuncs[\selectWidgetButton] = { object.selectWidget.naviteWidgets;};
+	object.buttonPerformFuncs[\selectWidgetButton] = { object.selectWidget.navigateWidgets;};
 	// optimaliseren. 2 x.
 	object.buttonPerformFuncs[\specButton] = {
 		var newView,key;
@@ -488,6 +508,13 @@
 };
 
 
+
+
+
+
+
+
+
 ~presetTop = ();
 
 ~presetTop.makeInstance = { |object|
@@ -495,7 +522,7 @@
 	object.refEvent = ();
 };
 
-~presetTop.makeView = { |object, parent, bounds|
+~presetTop.makeGui = { |object, parent, bounds|
 	var width = bounds.width, height = bounds.height,
 	canvas = CompositeView(parent, bounds);
 	canvas.background = Color.rand.alpha_(0);
@@ -574,8 +601,10 @@
 
 		var score = ~scoreController.copy;
 		score.newInstance(~lm);
+		"inMixer".postln;
+		score.lemurFlag = object.lemurFlag.postln;
 		score.setScoreNameFunction("Score" ++ (object.scoreArray.size + 1));
-		score.makeView(Rect(200,400,700,800), 40, ~scoreAndController);
+		score.makeGui(Rect(200,400,700,800), 40, ~scoreAndController);
 		score.mixerchannelView(object.view, object.scoreArray.size * 50 + object.mixerVerticalOffset);
 		score.scoreIndex = object.scoreArray.size.postln;
 		score.removeScoreFunc = { |objectScore|
@@ -586,17 +615,17 @@
 			object.reorderMixer;
 		};
 		object.scoreArray = object.scoreArray.add(score);
-		score.lemurFlag = object.lemurFlag;
+
 		object.addView.moveTo(10,object.scoreArray.size * 50 + object.mixerVerticalOffset + 5)
 	}
 
 };
 
-~scoreAndMixer.makeView = { |object, parent, bounds|
+~scoreAndMixer.makeGui = { |object, parent, bounds|
 	object.view = Window.new("Score Mixer", Rect(1000,300,400,500), false, true)
 	.background_(Color.new255(* ({ 150 }!3 ++ 230)));
 
-	object.allScoresPreset.makeView(object.view,Rect(0,0,object.view.bounds.width + 4,20));
+	object.allScoresPreset.makeGui(object.view,Rect(0,0,object.view.bounds.width + 4,20));
 	object.balk = CompositeView(object.view, Rect(0,20,object.view.bounds.width,30))
 	.background_(Color.black.alpha_(0.4));
 
@@ -717,7 +746,7 @@
 
 };
 
-~presetInterface.makeView = { |object, parent, bounds|
+~presetInterface.makeGui = { |object, parent, bounds|
 	var width,height; bounds = if(bounds.isKindOf(Point)) { bounds.asRect } { bounds };
 
 	width = bounds.width - 20; height = bounds.height - 8;
@@ -822,7 +851,7 @@
 ~scoreController.newInstance = { |object, lemur|
 
 	object.scoreViewIsOpenFlag = true;
-
+	object.lemur = lemur;
 	object.presetInterface = ~presetInterface.copy;
 	object.presetInterface.newInstance;
 	object.presetInterface.getPresetFunc = {
@@ -878,16 +907,30 @@
 		if (code.isNil) {
 			"Debug envirField".postln;
 		} {
-			"mae function!".postln; code.postln;
+			"make function!".postln; code.postln;
 		};
 	};
 
 	// SCORE NAME MODEL AND CONTROLLER
-	object.scoreNameModel = (scoreName: "Name");
+	object.scoreNameModel = (scoreName: nil);
+
+
+
 	object.setScoreNameFunction = {| object, name|
+		if (object.scoreNameModel[\scoreName].isNil) { object.scoreNameModel[\scoreName] = name };
+		object.lemurFlag.postln;
+		if (object.lemurFlag) { object.lemur.renamePage(object.scoreNameModel[\scoreName], name) };
 		object.scoreNameModel[\scoreName] = name;
 		object.scoreNameModel.changed(\scoreName, name);
 		object.scoreNameModel.postln;
+
+		object.channelArray do: { |channel|
+			if (object.lemurFlag) {
+
+				channel.pageID = name;
+				channel.updateResp;
+			};
+		};
 	};
 
 	object.modelDependants[\scoreNameModelDependant] = { |theChanger, what, name|
@@ -929,7 +972,7 @@
 
 		paramWidget.newInstance(parName);
 		paramWidget.widgetIndex = currentIndex;
-		paramWidget.makeView(
+		paramWidget.makeGui(
 			object.view,
 			Rect(
 				0,
@@ -976,10 +1019,11 @@
 	};
 
 	object.model.addDependant(object.modelDependants[\theInterpretter]);
+
 };
 
 // Make View
-~scoreController.makeView = { |object, bounds, chDistance = 40, scoreSettings|
+~scoreController.makeGui = { |object, bounds, chDistance = 40, scoreSettings|
 
 	object.scoreViewIsOpenFlag = false;
 	object.chDistance = chDistance;
@@ -1002,7 +1046,7 @@
 	.states_([["RANDOMIZE", Color.red, Color.black]])
 	.action_({ object.randomize });
 
-	object.presetInterface.makeView(object.view, Rect(6, 45, object.view.bounds.width - 14, 30));
+	object.presetInterface.makeGui(object.view, Rect(6, 45, object.view.bounds.width - 14, 30));
 
 	object.environmentField = TextView(object.view, Rect(10, 80, object.view.bounds.width - 20, 130))
 	.background_(Color.white.alpha_(0.5))
@@ -1018,7 +1062,7 @@
 	scoreSettings.addNamesToScore(object.view);
 
 	object.channelArray do: { |chan, i|
-		chan.makeView(
+		chan.makeGui(
 			object.view,
 			Rect(
 				0,
@@ -1064,7 +1108,7 @@
 	.states_([["SCORE", Color.red.alpha_(0.8), Color.black]])
 	.action_({
 		if (object.scoreViewIsOpenFlag.postln) {
-			object.makeView(Rect(200,400,700,800), 40, ~scoreAndController);
+			object.makeGui(Rect(200,400,700,800), 40, ~scoreAndController);
 			} { object.view.front }; });
 
 	object.scoreNameModel.addDependant(object.modelDependants[\scoreMixerNameModelDepedant]);
@@ -1094,3 +1138,15 @@
 // 	}
 // }
 // )
+
+
+
+~removeWhiteSpace = { |string|
+	var temp = "";
+	string do: { |char|
+		if (postln(char.ascii != " ".ascii.first))
+		{ temp = temp ++ char }
+	};
+	temp;
+}
+
