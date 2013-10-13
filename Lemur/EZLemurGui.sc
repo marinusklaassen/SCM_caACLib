@@ -1,3 +1,9 @@
+/*
+2013
+Marinus Klaassen
+rotterdamruis.nl
+*/
+
 
 EZLemurGui {
 	var currentLemurWidgets, tempObjectType, responder, <pagename, <>objectReferenceName, <name, <>lemur, <>action, <value, <>cmdName, <>xOffset;
@@ -81,12 +87,6 @@ EZLemurGui {
 		};
 		fork { 0.04.wait; this.value_(argValue) }
 	}
-
-
-
-
 }
-
-
 
 

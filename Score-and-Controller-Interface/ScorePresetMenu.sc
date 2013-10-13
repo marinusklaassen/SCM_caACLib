@@ -1,27 +1,30 @@
-// How to get all the preset stored in a score??
-// How to load and update preset from disk in a score??
-// Write out class methods to achieve the way presets are stored and loaded from disk
-// Make a new model for this based on an object orientated way.
+/*
+2013
+Marinus Klaassen
+rotterdamruis.nl
+*/
+
 
 ScorePresetMenu {
 	var <canvas, <>presets, <currentPresetIndex, <presetMenuItems, <gui, >action, >storeAction;
 
 	currentPresetIndex_ { |argCurrentPresetIndex|
-		currentPresetIndex = argCurrentPresetIndex.copy;
-		if (gui.notNil) { gui[\presetMenu].value = currentPresetIndex.postln };
-		presets.postln;
-		if (action.notNil) { action.value(presets[presetMenuItems[currentPresetIndex].postln].copy) };
+		currentPresetIndex = argCurrentPresetIndex;
+		if (gui[\presetMenu].notNil) { gui[\presetMenu].value = currentPresetIndex };
+		if (action.notNil) {
+			action.value(presets[presetMenuItems[currentPresetIndex].asSymbol])
+		};
 	}
 
 	presetMenuItems_ { |argPresetMenuItems|
 		presetMenuItems = argPresetMenuItems;
-		if (gui.notNil) { gui[\presetMenu].items_(presetMenuItems).value_(currentPresetIndex); }
+		if (gui[\presetMenu].notNil) { gui[\presetMenu].items_(presetMenuItems).value_(currentPresetIndex); }
 	}
 
 	*new { ^super.new.init }
 
 	init {
-		presets = IdentityDictionary.new;
+		presets = Dictionary.new;
 		presetMenuItems = Array.new;
 		currentPresetIndex = 0;
 	}
@@ -47,41 +50,45 @@ ScorePresetMenu {
 			.states_([[name,Color.red, if(i < 2, { Color.new255(189, 183, 107) }, { Color.black.alpha_(0.8) })]])
 			.action_(
 				[
-					{ "a".postln;
-
-						this.currentPresetIndex = currentPresetIndex + 1 % presetMenuItems.size; },
-					{
-						"b".postln;
-						this.currentPresetIndex = currentPresetIndex - 1 % presetMenuItems.size; },
-					{
-						"c".postln;
-						this.currentPresetIndex = gui[\presetMenu].value.postln }, {
+					{     this.currentPresetIndex = currentPresetIndex + 1 % presetMenuItems.size; },
+					{     this.currentPresetIndex = currentPresetIndex - 1 % presetMenuItems.size; },
+					{     this.currentPresetIndex = gui[\presetMenu].value.postln }, {
 						TypePresetName({ |name|
 							presetMenuItems = presetMenuItems.insert(currentPresetIndex, name);
 							gui[\presetMenu].items_(presetMenuItems);
 							gui[\presetMenu].value_(currentPresetIndex);
-							if (storeAction.notNil) { presets[name] = storeAction.value.copy };
+							if (storeAction.notNil) { presets[name.asSymbol] = storeAction.value.copy };
 					}) }, {
-						"d".postln;
 						TypePresetName({ |name|
 							presetMenuItems[currentPresetIndex] = name;
 							gui[\presetMenu].items_(presetMenuItems);
 							gui[\presetMenu].value_(currentPresetIndex);
-							if (storeAction.notNil) { presets[name] = storeAction.value.copy };
+							if (storeAction.notNil) { presets[name.asSymbol] = storeAction.value.copy };
 					}) }, {
-
 						var presetName = presetMenuItems.removeAt(currentPresetIndex);
-						"e".postln;
 						gui[\presetMenu].items_(presetMenuItems);
-
 						currentPresetIndex = if (currentPresetIndex >= presetMenuItems.size)
 						{ presetMenuItems.size - 1; }
 						{ currentPresetIndex };
-
-						presets[presetName] = nil;
+						presets[presetName.asSymbol] = nil;
 						gui[\presetMenu].value = currentPresetIndex;
 			}][i])
 		};
 	}
+
+	loadState { |argPreset|
+		presets = argPreset[\presets];
+		presetMenuItems = argPreset[\presetMenuItems];
+		currentPresetIndex = argPreset[\currentPresetIndex];
+	}
+
+	getState {
+		var preset = Dictionary.new;
+		preset[\currentPresetIndex] = currentPresetIndex.copy;
+		preset[\presets] = presets.copy.postln;
+		preset[\presetMenuItems] = presetMenuItems.copy;
+		^preset;
+	}
+
 }
 								

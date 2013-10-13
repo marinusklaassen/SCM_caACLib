@@ -101,7 +101,7 @@ MLemurGui {
 
 	// remove page doen't work..
 	removePage { |pagename = "Default"|
-		this.sendPacket(postln(this.removePageCode(pagename)));
+		this.sendPacket(this.removePageCode(pagename));
 	}
 
 	renamePage { |oldPageName, newPageName|
@@ -113,21 +113,21 @@ MLemurGui {
 	var string =
 	'<WINDOW class="JAZZINTERFACE" text="%"> <WINDOW class="%" text="%" x="%" y="%" width="%" height="%" id="1" state="1" group="0" font="tahoma,10,0" send="1" osc_target="-2" midi_target="-2" kbmouse_target="-2" capture="1" color="%" cursor="0" grid="0" grid_steps="1" label="0" physic="1" precision="3" unit="" value="0" zoom="0.000000"> <PARAM name="x=" value="0.000000" send="17" osc_target="0" osc_trigger="1" osc_message="/%/x" midi_target="-1" midi_trigger="1" midi_message="0x90,0x90,0,0" midi_scale="0,16383" osc_scale="0.000000,1.000000" kbmouse_target="-1" kbmouse_trigger="1" kbmouse_message="0,0,0" kbmouse_scale="0,1,0,1"/> <PARAM name="z=" value="0.000000" send="17" osc_target="0" osc_trigger="1" osc_message="/%/z"/> </WINDOW>'
 	.asString.format(pageName, objectType, idName, x, y, width, height, this.setColor(color),idName, idName);
-		this.sendPacket(string.postln);
+		this.sendPacket(string);
 	}
 
 	removeObject { |objectType = "Fader", pageName = "Default", idName = "Default"|
 	var string =
 	'<DELETE> <WINDOW class="JAZZINTERFACE" text="%"> <WINDOW class="%" text="%" id="1" state="1" group="0"> </WINDOW> </DELETE>'
 	.asString.format(pageName, objectType, idName);
-		this.sendPacket(string.postln);
+		this.sendPacket(string);
 	}
 
 	renameObjectReferenceName { |objectType = "Fader", pageName = "Default", oldIdName = "Default", newIdName = "Spanking"|
 	var string =
 	'<RENAME text="%"> <WINDOW class="JAZZINTERFACE" text="%"> <WINDOW class="%" text="%" id="1" state="1" group="0"> </WINDOW> </DELETE>'
 	.asString.format(newIdName, pageName, objectType, oldIdName);
-		this.sendPacket(string.postln);
+		this.sendPacket(string);
 	}
 
 	// Fader control add color control
@@ -136,7 +136,7 @@ MLemurGui {
 		var string =
 		'<WINDOW class="JAZZINTERFACE" text="%"> <WINDOW class="Fader" text="%" x="%" y="%" width="%" height="%" id="1" state="1" group="0" font="tahoma,10,0" send="1" osc_target="-2" midi_target="-2" kbmouse_target="-2" capture="1" color="%" cursor="0" grid="0" grid_steps="1" label="0" physic="1" precision="3" unit="" value="0" zoom="0.000000"> <PARAM name="x=" value="0.000000" send="17" osc_target="0" osc_trigger="1" osc_message="/%/x" midi_target="-1" midi_trigger="1" midi_message="0x90,0x90,0,0" midi_scale="0,16383" osc_scale="0.000000,1.000000" kbmouse_target="-1" kbmouse_trigger="1" kbmouse_message="0,0,0" kbmouse_scale="0,1,0,1"/> <PARAM name="z=" value="0.000000" send="17" osc_target="0" osc_trigger="1" osc_message="/%/z"/> </WINDOW>'
 		.asString.format(pagename, idname, x, y, width, height, this.setColor(color),idname, idname);
-		^string.postln;
+		^string;
 	}
 
 	removeFaderCode { |pagename = "Default", idname = "Fader1"|

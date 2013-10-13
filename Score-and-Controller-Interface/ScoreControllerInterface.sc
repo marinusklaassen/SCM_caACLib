@@ -1,3 +1,10 @@
+/*
+2013
+Marinus Klaassen
+rotterdamruis.nl
+*/
+
+
 MUI {
 	classvar settings;
 
@@ -26,10 +33,10 @@ MUI {
 }
 
 
-ProjectSaveLoad {
+ProjectSaveAndLoad {
 	var <canvas, <gui, >readAction, >storeAction;
 
-	*new { ^super.new.init }
+	*new { ^super.new }
 
 	makeGui { |argParent, argBounds|
 		var width = argBounds.width, height = argBounds.height;
@@ -37,7 +44,7 @@ ProjectSaveLoad {
 		.background_(Color.clear);
 
 		gui = { |i|
-			Button(canvas, Rect(i * 0.5 * width, 0, 1, - 4 + (width * 0.5), height))
+			Button(canvas, Rect(i * 0.5 * width, 0, width * 0.5, height))
 			.states_([[["all: open file", "all: save to file"][i], Color.black, Color.red]])
 			.action_({ var func = [{this.read}, {this.store}][i]; func.value; })
 			.font_(Font("Menlo",12)) } ! 2;
@@ -65,24 +72,26 @@ ProjectSaveLoad {
 
 
 ScoreWidget {
-
 	var parent, <model, <setValueFunction, dependants, <gui, <canvas, widgets, <bounds, <>action;
 
 	*new { ^super.new.init }
-
-	bounds_ { canvas.bounds = bounds }
 
 	init { }
 
 	makeGui { }
 
-	closeGui { canvas.remove; gui do: (_.remove); gui = nil; }
-
 	getState { ^model.copy }
 
 	loadState { |preset| setValueFunction.value(preset) }
 
+	closeGui { canvas.remove; gui do: (_.remove); gui = nil; }
 
+	close {
+		this.closeGui;
+		model.dependants do: { |i| model.removeDependant(i) };
+	}
+
+	bounds_ { canvas.bounds = bounds }
 }
 
 
@@ -93,7 +102,9 @@ ParamScript : ScoreWidget {
 		setValueFunction.value(argString);
 	}
 
-	init {  |argString = "Specify Pattern script or a value"|
+	loadState { |preset| this.string = preset[\script].asString }
+
+	init {  |argString = ""|
 		string = argString;
 		model = (script: string);
 		setValueFunction = { |script|
@@ -131,7 +142,7 @@ ParamScript : ScoreWidget {
 
 		};
 		model.addDependant(dependants[\scriptField]);
-		parent.onClose = { model.removeDependant(dependants[\scriptField]) };
+
 	}
 
 	makePopupGui {
@@ -218,7 +229,7 @@ ParamController : ScoreWidget {
 				.value_(model[\fader])
 				.action_({|val|setValueFunction[\fader].value(val.value)});
 				tempDependant = {|theChanger, what, val|
-					if (what.postln == \fader) { { gui[\fader].value = val }.defer;  };
+					if (what == \fader) { { gui[\fader].value = val }.defer;  };
 				};
 				model.addDependant(tempDependant);
 			};
@@ -260,6 +271,12 @@ ParamController : ScoreWidget {
 		gui = ();
 		canvas = CompositeView(parent,bounds)
 		.background_(Color.blue.alpha_(0.5));
+	}
+
+	close {
+		this.closeLemur;
+		this.closeGui;
+		model.dependants do: { |i| model.removeDependant(i) };
 	}
 
 	closeGui {
@@ -335,6 +352,8 @@ ParamController : ScoreWidget {
 		lemur = arglemur;
 		if (ezLemurInstance.isNil) { this.initLemur };
 	}
+
+
 }
 
 
@@ -347,8 +366,20 @@ ParamSpec : ScoreWidget {
 			gui: nil
 		);
 		setValueFunction = {| argSpec|
-			var controlSpec = argSpec.asSpec;
-			var code = argSpec.asCode;
+			var controlSpec,code;
+			if (argSpec.isKindOf(ControlSpec))
+			{ controlSpec = argSpec }
+			{ controlSpec = argSpec.asSpec; };
+
+			code = controlSpec.asCode;
+			"paramSpec setValueFunction".postln;
+			controlSpec.class.postln;
+			controlSpec.postln;
+			code.class.postln;
+			code.postln;
+
+
+
 			model[\controlSpec] = controlSpec;
 			model.changed(\controlSpec, controlSpec);
 			model[\gui] = code;
@@ -395,6 +426,10 @@ ParamSpec : ScoreWidget {
 	}
 
 	closeGui { model.removeDependant(dependants[\gui]) }
+
+	loadState { |preset|
+		setValueFunction.value(preset)
+	}
 }
 
 
@@ -425,7 +460,7 @@ EZButtons4  {
 
 ParamChannel : ScoreWidget {
 	var <pScript, <paramController, <pSpec, ez4Buttons, <name, <>currentLayerIndex, <>currentWidgetType, <>currentWidgetIndex, previousLayer;
-	var <>nameAction, <>removeAction, <>index, <>paramProxy, <>controllerProxies;
+	var <>nameAction, <>removeAction, <>index, <>paramProxy, <>controllerProxies, <>scriptFunc;
 
 	*new { |argName, argIndex, argLemur, argLemurXoffset, argPageName, argObjectReferenceName|
 		^super.newCopyArgs.init(argName, argIndex, argLemur, argLemurXoffset, argPageName, argObjectReferenceName)
@@ -434,7 +469,7 @@ ParamChannel : ScoreWidget {
 	init { |argName, argIndex, argLemur, argLemurXoffset, argPageName, argObjectReferenceName|
 
 		name = argName;
-
+		scriptFunc = {};
 		currentLayerIndex = 0;
 		currentWidgetType = "Empty";
 		currentWidgetIndex = argIndex;
@@ -445,13 +480,15 @@ ParamChannel : ScoreWidget {
 		paramController.pagename = argPageName;
 		paramController.objectReferenceName = argObjectReferenceName;
 		paramController.name = argName.asString;
-		//paramController.rangeAction = { | ... args | args.postln };
-		//paramController.faderAction = { | ... args | args.postln };
 		paramController.initLemur(argLemur, argLemurXoffset);
 		paramController.spec = ControlSpec(); // to be initialize
 
 		pSpec = ParamSpec.new;
-		pSpec.action = { |argSpec| paramController.spec = argSpec; };
+		pSpec.action = { |argSpec|
+			"a new spec:".postln;
+			paramController.spec = argSpec.postln;
+			"is added".postln;
+		};
 		pSpec.spec = ControlSpec();
 
 		ez4Buttons = EZButtons4.new;
@@ -496,7 +533,8 @@ ParamChannel : ScoreWidget {
 		name = argName.asString;
 		if (nameAction.notNil) { nameAction.value(name) };
 		paramController.name = name;
-		gui[\name].string = if (name.isKindOf(String)) { name } { name.asCode };
+		"what is this??".postln;
+		if (gui.notNil) { gui[\name].string = if (name.isKindOf(String)) { name } { name.asCode }; };
 	}
 
 	makeGui { |parent, bounds|
@@ -563,4 +601,22 @@ ParamChannel : ScoreWidget {
 	}
 
 	closeLemur { paramController.closeLemur; }
+
+	loadState { |aPreset|
+		this.name = aPreset[\name];
+		pSpec.loadState(aPreset[\spec]);
+		pScript.loadState(aPreset[\script]);
+		paramController.loadState(aPreset[\paramController]);
+		paramController.selectElement(aPreset[\paramControllerCurrentWidget]);
+	}
+
+	getState {
+		var preset = Dictionary.new;
+		preset[\name] = name.copy;
+		preset[\script] = pScript.getState;
+		preset[\paramController] = paramController.getState.copy;
+		preset[\paramControllerCurrentWidget] = currentWidgetType.copy;
+		preset[\spec] = pSpec.spec.copy;
+		^preset;
+	}
 }

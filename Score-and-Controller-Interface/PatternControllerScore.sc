@@ -1,8 +1,15 @@
+/*
+2013
+Marinus Klaassen
+rotterdamruis.nl
+*/
+
+
 PatternControllerScore : ScoreWidget {
 	var isOpen, <>lemur, <scorePresetMenu, <controllers, <scoreName, <playingStream, <keyAndPatternPairs;
-	var mixerAmpProxy, eventStreamProxy, eventStream, controllerProxies;
-	var <parent, scoreGui, mixerGui, mixerCanvas;
-	var <>index;
+	var mixerAmpProxy, eventStreamProxy, <eventStream, controllerProxies, eventParProxy;
+	var <parent, scoreGui, mixerGui, <mixerCanvas, >removeAction;
+	var <>index, >closeAction;
 
 	*new { |argLemur, argIndex|
 		^super.newCopyArgs.init(argLemur, argIndex);
@@ -13,7 +20,10 @@ PatternControllerScore : ScoreWidget {
 		mixerAmpProxy.source = 1;
 		eventStreamProxy = PatternProxy.new;
 		eventStreamProxy.source = Pbind(\dur, 1);
-		eventStream = Pmul(\amp, mixerAmpProxy, eventStreamProxy);
+		eventParProxy = PatternProxy.new;
+		eventParProxy.source = Ppar([eventStreamProxy]);
+		eventStream = Pmul(\amp, mixerAmpProxy, eventParProxy);
+
 	}
 
 	init { |argLemur, argIndex|
@@ -27,21 +37,20 @@ PatternControllerScore : ScoreWidget {
 
 		scorePresetMenu = ScorePresetMenu.new;
 		scorePresetMenu.storeAction = {
-			var preset = IdentityDictionary.new;
+			var preset = Dictionary.new;
 			controllers do: { |channel|
-				preset[channel.name.postln] = channel.paramController.getState.postln;
+				preset[channel.name.asSymbol] = channel.paramController.getState;
 			};
-			preset.copy.postln;
+			preset.copy;
 		};
 
-		scorePresetMenu.action = { |preset|
+		scorePresetMenu.action = { |aPreset|
 			var nameArray = [];
-			controllers do: { |channel| nameArray = nameArray.add(channel.name); };
-			preset = preset.copy;
-			preset.keys do: { |key|
-				var nameIndex = nameArray.indexOf(key).postln;
+			controllers do: { |channel| nameArray = nameArray.add(channel.name.asSymbol); };
+			aPreset.keys do: { |key|
+				var nameIndex = nameArray.indexOf(key);
 				if (nameIndex.notNil) {
-					controllers[nameIndex].paramController.loadState(preset[key].postln)
+					controllers[nameIndex].paramController.loadState(aPreset[key])
 				};
 			};
 		};
@@ -53,6 +62,7 @@ PatternControllerScore : ScoreWidget {
 		model = (
 			scoreName: scoreName,
 			envirTextField: "",
+			environment: Environment[],
 			mixerAmpFader: 1,
 			playButton: 0
 		);
@@ -64,15 +74,25 @@ PatternControllerScore : ScoreWidget {
 				model.changed(key, inArg);
 			};
 		};
-		dependants[\interpresetEnvirTextField] = {|theChanger, what, script|
+
+		dependants[\interpresetEnvirTextField] = {|theChanger, what, environment|
 			if (what == \envirTextField) {
-				script=  "Environment.make({" ++ script ++ "})";
-				script = interpret(script);
-				if (script.isNil) {
-					"Debug envirField".postln;
+				environment =  "Environment.make({" ++ environment ++ "})".postln;
+				environment = interpret(environment);
+				if (environment.notNil) {
+					///////////////////////////////////////// TEXTFIELD ENVIRONMENT DEPEDANT FUNCTION
+					model[\environment] = environment.postln;
+
+					controllers do: { |aCon|
+						aCon.paramProxy.source = aCon.scriptFunc.value(
+						aCon.controllerProxies['fader'],
+						aCon.controllerProxies['rangeLo'],
+						aCon.controllerProxies['rangeHi'],
+						model[\environment]
+						)
+					};
 				} {
-					"Add environment output to Pbind and stuff".postln;
-					script.postln;
+					"Debug envirField!!".postln;
 				};
 			};
 		};
@@ -150,8 +170,8 @@ PatternControllerScore : ScoreWidget {
 		.background_(Color.white.alpha_(0.5))
 		.string_(model[\envirTextField])
 		.keyDownAction_({| ... args|
-			var bool = args[2] == 131072;
-			bool = postln(args[1].ascii == 13) && bool.postln;
+			var bool = args[2] == 524288;
+			bool = args[1].ascii == 13 && bool;
 			if (bool) { setValueFunction[\envirTextField].value(scoreGui[\envirTextField].string) };
 		});
 
@@ -186,14 +206,23 @@ PatternControllerScore : ScoreWidget {
 
 		scoreGui[\addChannelView] = CompositeView(parent, Rect(
 			MUI.settings[\xLayers],
-			controllers.size * 40 + MUI.settings[\chOffset] + 44,
+			controllers.size * 40 + MUI.settings[\chOffset],
 			40,
 			30)).background_(Color.clear);
 
 		scoreGui[\addChannelButton] = MButtonP(scoreGui[\addChannelView],scoreGui[\addChannelView].bounds.extent)
 		.action_({ this.addChannel });
 
-		parent.onClose = { this.closeGui };
+
+		scoreGui[\LayerView] = EZNumber(parent,
+				Rect(0, parent.bounds.height - 30, 88, 20),
+				"LAYERS", ControlSpec(1,20, \lin, 1),
+				{ |ez| this.layerAction(ez.value.postln) },
+			1, false, 60);
+		scoreGui[\LayerView].setColors(Color.grey,Color.white);
+		scoreGui[\LayerView].labelView.align_(\center);
+
+		parent.onClose = { this.closeScoreGui; };
 		parent.front;
 
 	}
@@ -224,20 +253,27 @@ PatternControllerScore : ScoreWidget {
 			\db.asSpec.step_(0.01),
 			unitWidth:30,
 			numberWidth:60,
-			layout:
-			\line2,
+			layout: \line2,
 			margin: nil)
 		.setColors(Color.black.alpha_(0),Color.black, Color.black.alpha_(0),Color.black.alpha_(0), Color.red,Color.black.alpha_(1),nil,nil, Color.black.alpha_(0))
 		.value_(model[\mixerAmpFader])
-		.action_({ |v| setValueFunction[\mixerAmpFader].value(v.value) })
-		.labelView.string_(model[\scoreName]);
+		.action_({ |v| setValueFunction[\mixerAmpFader].value(v.value.dbamp.postln) });
+
+		mixerGui[\mixerAmpFader].labelView.string_(model[\scoreName]);
 
 		dependants[\mixerAmpFaderGui] =  {|theChanger, what, value|
 			if (what == \mixerAmpFader) {
-				mixerGui[\mixerAmpFader].value = value;
+				mixerGui[\mixerAmpFader].value = value.ampdb;
 			};
 		};
 		model.addDependant(dependants[\mixerAmpFaderGui]);
+
+		dependants[\mixerLabelView] =  {|theChanger, what, value|
+			if (what == \scoreName) {
+				mixerGui[\mixerAmpFader].labelView.string_(value);
+			};
+		};
+		model.addDependant(dependants[\mixerLabelView]);
 
 		mixerGui[\popupScore] = Button(mixerCanvas,Rect(350,0,50,40))
 		.font_(font)
@@ -247,13 +283,12 @@ PatternControllerScore : ScoreWidget {
 			} {
 				this.makeScoreGui;
 		}});
-		scoreGui[\removeScore] = MButtonV(mixerCanvas, Rect(350,42,6,6))
-		.action_({ this.removeScore });
+		mixerGui[\removeScore] = MButtonV(mixerCanvas, Rect(350,42,6,6))
+		.action_({ this.close; });
 	}
 
 	addChannel {
 		var currentIndex = controllers.size;
-
 		var paramName = "Param" ++ currentIndex;
 		var paramChannel = ParamChannel.new(
 			argName: paramName,
@@ -265,39 +300,42 @@ PatternControllerScore : ScoreWidget {
 		);
 
 		paramChannel.controllerProxies = (
-			fader: PatternProxy.new(1),
-			rangeLo: PatternProxy.new(1),
+			fader: PatternProxy.new(0),
+			rangeLo: PatternProxy.new(0),
 			rangeHi: PatternProxy.new(1)
 		);
 
 		paramChannel.paramController.rangeAction = { | val |
-			paramChannel.controllerProxies[\rangeLo] = val[0];
-			paramChannel.controllerProxies[\rangeHi] = val[1];
+			paramChannel.controllerProxies[\rangeLo].source = val[0].postln;
+			paramChannel.controllerProxies[\rangeHi].source = val[1].postln;
 		};
+
+		paramChannel.paramProxy = PatternProxy.new(1);
 
 		paramChannel.paramController.faderAction = { | val |
-			paramChannel.controllerProxies[\fader] = val
+			paramChannel.controllerProxies[\fader].source = val.postln
 		};
 
-		paramChannel.nameAction = {
-			paramChannel.name.postln;
+		paramChannel.nameAction = { |argName|
+			argName.postln;
 			keyAndPatternPairs = Dictionary.new;
 			if (paramChannel.paramProxy.isNil) { paramChannel.paramProxy = PatternProxy.new(1) };
-			controllers do: { |i|
-				keyAndPatternPairs[i.name.asSymbol] = paramChannel.paramProxy;
+			controllers do: { |aChannel|
+				keyAndPatternPairs[aChannel.name.asSymbol] = aChannel.paramProxy;
 			};
-			eventStreamProxy.source = Pbind(*keyAndPatternPairs.getPairs);
+			eventStreamProxy.source = Pbind(*keyAndPatternPairs.getPairs.postln);
 		};
 
 		paramChannel.pScript.action = { |code|
-			code = "{ |fader, rangeLo, rangeHi| " ++ code ++ "}";
-			code.postln;
-			code = interpret(code);
-			if (paramChannel.paramProxy.isNil) { paramChannel.paramProxy = PatternProxy.new(1) };
-			paramChannel.paramProxy.source = code.value(
-				controllerProxies[\fader],
-				controllerProxies[\rangeLo],
-				controllerProxies[\rangeHi]);
+			var func = interpret("{ |fader, rangeLo, rangeHi, env| " ++ code ++ "}");
+			paramChannel.scriptFunc = func;
+
+			paramChannel.paramProxy.source = func.value(
+				paramChannel.controllerProxies['fader'],
+				paramChannel.controllerProxies['rangeLo'],
+				paramChannel.controllerProxies['rangeHi'],
+				model[\environment]
+			);
 		};
 
 		paramChannel.removeAction = { |index|
@@ -307,7 +345,7 @@ PatternControllerScore : ScoreWidget {
 			this.positionChannels;
 			keyAndPatternPairs = IdentityDictionary.new;
 			controllers do: { |i|
-				keyAndPatternPairs[i.name.asSymbol] = i.controllerProxy;
+				keyAndPatternPairs[i.name.asSymbol] = i.paramProxy;
 			};
 			if (keyAndPatternPairs.size >= 2) {
 				eventStreamProxy.source = Pbind(*keyAndPatternPairs.getPairs);
@@ -318,18 +356,17 @@ PatternControllerScore : ScoreWidget {
 
 		controllers = controllers.add(paramChannel);
 
-		scoreGui[\addChannelView].moveTo(
-			MUI.settings[\xLayers],
-			controllers.size * 42 + MUI.settings[\chOffset],
-			40,
-			30);
-
 		if (isOpen != false) { paramChannel.makeGui(parent,
 			Rect(
 				0,
 				currentIndex * 42 + MUI.settings[\chOffset],
 				parent.bounds.width,
-				40))
+				40));
+			scoreGui[\addChannelView].moveTo(
+				MUI.settings[\xLayers],
+				controllers.size * 42 + MUI.settings[\chOffset],
+				40,
+				30);
 		};
 
 		paramChannel;
@@ -356,12 +393,33 @@ PatternControllerScore : ScoreWidget {
 			30);
 	}
 
+	layerAction { |argLayers|
+		eventParProxy.source = Ppar({eventStreamProxy}!argLayers);
+		argLayers.postln;
+	}
+
+	close {
+		if (closeAction.notNil) { closeAction.value(index) };
+		this.closeGui;
+		model.dependants do: { |i| model.removeDependant(i) };
+	}
+
+	closeGui {
+		this.closeMixerChannelGui;
+		this.closeScoreGui;
+	}
+
 	closeMixerChannelGui {
+		mixerCanvas.remove;
+		mixerGui do: (_.remove);
 		model.removeDependant(dependants[\mixerScorePlay]);
 		model.removeDependant(dependants[\mixerAmpFaderGui]);
+		model.removeDependant(dependants[\mixerLabelView]);
 	}
 
 	closeScoreGui {
+		parent.close;
+		scoreGui do: (_.remove);
 		isOpen = false;
 		model.removeDependant(dependants[\scoreNameScoreGui]);
 		model.removeDependant(dependants[\envirTextFieldScoreGui]);
@@ -370,25 +428,29 @@ PatternControllerScore : ScoreWidget {
 
 	getState {
 		var scoreState = Dictionary.new;
-		// Basic PatternControllerScore state:
 		scoreState[\scoreName] = model[\scoreName].copy;
-		scoreState[\presetMenu] = Dictionary.new;
-		scoreState[\presetMenu][\currentPresetIndex] = scorePresetMenu.currentPresetIndex.copy;
-		scoreState[\presetMenu][\presets] = scorePresetMenu.presets.copy;
-		scoreState[\presetMenu][\presetMenuItems] = scorePresetMenu.presetMenuItems.copy;
+		scoreState[\presetMenu] = scorePresetMenu.getState.postln;
 		scoreState[\envirTextField] = model[\envirTextField].copy;
 		scoreState[\mixerAmpFader] = model[\mixerAmpFader].copy;
-		// retrieve controller settings by iteration over the controller array
-		scoreState[\controllers] = IdentityDictionary.new;
-		controllers do: { |conCh, i|
-			scoreState[\controllers][i] = Dictionary.new;
 
-			scoreState[\controllers][i][\name] = conCh.name.copy;
-			scoreState[\controllers][i][\script] = conCh.pScript.getState;
-			scoreState[\controllers][i][\paramController] = conCh.paramController.getState.copy;
-			scoreState[\controllers][i][\paramControllerCurrentWidget] = conCh.currentWidgetType.copy;
-			scoreState[\controllers][i][\spec] = conCh.pSpec.spec.copy;
+		scoreState[\controllers] = Dictionary.new;
+		controllers do: { |conCh, i|
+			scoreState[\controllers][i.asSymbol] = conCh.getState;
 		};
 		^scoreState;
 	}
+
+	loadState { |argPreset|
+		setValueFunction[\envirTextField].value(argPreset[\envirTextField]);
+		setValueFunction[\scoreName].value(argPreset[\scoreName]);
+		setValueFunction[\mixerAmpFader].value(argPreset[\mixerAmpFader]);
+		scorePresetMenu.loadState(argPreset[\presetMenu].postln);
+		argPreset[\controllers].size do: { |i|
+			if (controllers[i].isNil) { this.addChannel; };
+		};
+		controllers do: { |aScore,i |
+			aScore.loadState(argPreset[\controllers][i.asSymbol])
+		};
+	}
 }
+

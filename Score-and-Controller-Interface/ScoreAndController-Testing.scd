@@ -1,9 +1,11 @@
+//  How to store and load a project??
+//  How to store and read states
+//  Implement a way to use sliders mapped from another channel.
+//  How to minimize the usage of controllers and its assignment?
+//  Implement the whole Score&Controller interface as classes.
 
-// How to store and load a project??
-// How to store and read states
-// Implement a way to use sliders mapped from another channel.
-// How to minimize the usage of controllers and its assignment?
-// Implement the whole Score&Controller interface as classes.
+
+Facebook
 
 
 // FIRST CONNECT LEMUR
