@@ -1,39 +1,4 @@
-// zoek naar korg native
 
-f0 42 40 6e 08 01 00 63 f7 :: Set the first pad light to blink. The bold is the light number - numbering starts at zero. The red part tells the light what to do. 00=Off, 20=On, 63=Blink, 5F=Longest OneShot, 41=Shortest OneShot. PDF section 3-2(1)
-
-00=Off, 20=On, 63=Blink, 5F=Longest OneShot, 41=Shortest OneShot
-
-(
-{ var toggle = 0, i = 0;
-
-	m.sysex(Int8Array[0xf0, 0x42, 0x40, 0x6e, 0x08, 0x01, toggle, #[0x00, 0x20, 0x63, 0x41][i], 0xf7])
-}.value
-)
-// MIDI native!!
-MIDIClient.init;
-MIDIClient.destinations;
-m = MIDIOut(2); // send sysex message to the ctrl port!!! B
-
-// enable native mode!!!
-m.sysex(Int8Array[0xf0, 0x42, 0x40, 0x6e, 0x08, 0x00, 0x00, 0x01, 0xF7])
-
-16.do({ |i|
-    m.sysex(Int8Array[0xf0, 0x42, 0x40 + i, 0, 1, 0x13, 0, 0xcd,  0xbf, 0x20, 0x7f, 0xf7]);
-})
-
-m.sysex(Int8Array[0xf0, 0x42, 0x40, 0x6e, 0x08, 0x3f, 0x0a, 0x01, 0x7f , 0x7f, 0x7f, 0x7f, 0x7f, 0x03, 0x38, 0x38, 0x38 ,0xF7])
-
-
-MIDIIn.sysex = { |a,b| [a,b].postln }
-
-
-16.do({ |i|
-    m.sysex(Int8Array[0xf0, 0x42, 0x40 + i, 0, 1, 0x13, 0, 0xcd,  0xbf, 0x20, 0x7f, 0xf7]);
-})
-
-
-[f0, 42, 40, 6e, 08, 00, 00, 01, F7
 (
 g.free; g ={
 	var freq = exprand(50,130);
