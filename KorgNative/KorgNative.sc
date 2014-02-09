@@ -16,6 +16,8 @@ KorgToggleMatrix {
 	}
 }
 
+
+
 KorgTogglePad {
 	var responder, >onAction, >offAction, <index;
 
@@ -90,8 +92,8 @@ KorgNative {
 /*
 
 a = KorgToggleMatrix()
-a.onAction = { |argIndex| argIndex.postln; };
-a.offAction = { |argIndex| argIndex.postln; };
+a.onAction = { |argIndex| ["on", argIndex].postln; };
+a.offAction = { |argIndex| ["off", argIndex].postln; };
 
 a = KorgNative()
 a.padLight(0, 32)

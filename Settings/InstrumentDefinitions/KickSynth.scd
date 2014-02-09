@@ -41,9 +41,12 @@ m.metadata[\noGui] = [\gate];
 SynthDesc.storeMetaData(\KickSynth, m.metadata);
 );
 
-
+3
 s.boot;
 // Test SynthDef
 EmbedGui(\KickSynth).makeGui;
+
+
+
 
 

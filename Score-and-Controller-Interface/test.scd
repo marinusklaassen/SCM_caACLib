@@ -1,14 +1,224 @@
+s.boot;
+
+SynthDef(\basicFM, {|out = 0, gate = 1, amp = 1, carFreq = 1000, modFreq = 100, modAmount = 2000, clipAmount = 0.1, pan = 0, atk = 0.02, rel = 1|
+	var mod = SinOsc.ar(modFreq) * modAmount;
+	var car = SinOsc.ar(carFreq + mod);
+	var ampEnv = EnvGen.ar(Env.adsr(atk, 0, 0.7, rel, peakLevel: amp), gate, doneAction: 2);
+	Out.ar(out, Pan2.ar(car * ampEnv,pan));
+}).add;
+
+
+
+
+s.reboot;
+
+a.release(1); a = { Splay.ar(SinOsc.ar(postln({exprand(30,80)}!3)),0,1).clip(-0.2,0.2) * 0.2 }.play
+a.free;
+
+e.release(1); e = { Splay.ar(SinOsc.ar({exprand(13000,18000)}!8),0,1).clip(-0.2,0.2) * LFNoise1.kr({1/7}!8,0.2,0.02).sqrt  }.play
+e.free;
+
+s.boot;
+s.record
+
+
+{ { var freq = midiratio(round(rrand(20,110.0),0.5)).postln; RLPF.ar(VarSaw.ar(freq, SinOsc.ar(1/3)),freq * SinOsc.ar(1/rrand(3,7)).rangeExp(0.24,4), 0.34,0.1)!2 }.play; } ! 5;
+
+s.boot;
+
 
 (
-g.free; g ={
-	var freq = exprand(50,130);
-	var env;
-	env = LFPar.ar([0.5,0.8],add:1);
-	RLPF.ar(Mix.new([Saw.ar(2 * freq)*env,Saw.ar(freq)*env])*Saw.ar(freq)*0.5, freq * MouseY.kr(0.25,8, 1), 0.34).distort;
-}.play;
+b.free;
+b = {
+	Splay.ar(
+		Mix.fill(8,
+			{
+				VarSaw.ar(
+					midicps(rrand(30,80.0).round(0.25)), SinOsc.ar(LFNoise2.kr(1/11).rangeExp(0.34,687.2),0,0.1),
+					{ LFNoise2.kr(1/3).rangeExp(0.01,0.5) } ! 5)
+				* { LFNoise2.kr(1/3,1.5) }!5
+				% { LFNoise2.kr(1/5) }!5
+		})
+	) * 0.02
+}.play
+);
+b.free;
+
+
+(
+b.free; b = {
+	Splay.ar(
+		Mix.fill(8,
+			{
+				VarSaw.ar(
+					midicps(rrand(30,80.0).round(0.25)), SinOsc.ar(LFNoise2.kr(1/11).rangeExp(0.34,687.2),0,0.1),
+					{ LFNoise2.kr(1/3).rangeExp(0.01,0.5) } ! 5)
+				* { LFNoise2.kr(1/3,2) }!5
+				% { LFNoise2.kr(1/5, LFNoise2.kr(1/8)) }!5
+		})
+	) * 0.1
+}.play
+);
+
+(
+b.free; b = {
+	Splay.ar(
+		Mix.fill(8,
+			{
+				VarSaw.ar(
+					midicps(rrand(30,80.0).round(0.25) + LFNoise1.kr(1/11, 4)), SinOsc.ar(LFNoise2.kr(1/11).rangeExp(0.34,687.2),0,0.1),
+					{ LFNoise2.kr(1/3).rangeExp(0.01,0.5) } ! 5)
+				* { LFNoise2.kr(1/3,2) }!5
+				% { LFNoise2.kr(1/5, LFNoise2.kr(1/8)) }!5
+		})
+	) * 0.1
+}.play
+);
+
+(
+b = {
+	var n = 5;
+	Splay.ar(
+		Mix.fill(n,
+			{
+				VarSaw.ar(
+					midicps(rrand(30,110.0).round(0.25) + LFNoise1.kr(1/13, 6)), SinOsc.ar(LFNoise2.kr(1/11).rangeExp(0.34,1),0,0.5),
+					{ LFNoise2.kr(1/3).rangeExp(0.01,0.5) } ! n)
+				* { LFNoise2.kr(1/3) } ! n
+				* { LFNoise2.kr(1/4, LFNoise2.kr(1/13)) }!n
+		})
+	) * 0.2
+}.play
+);
+
+(
+b = {
+	var n = 3;
+	Splay.ar(
+		Mix.fill(n,
+			{
+				VarSaw.ar(
+					midicps(rrand(30,80.0).round(0.25)), { SinOsc.ar(LFNoise2.kr(1/11).rangeExp(0.34,687.2),0,0.5) } ! n,
+					{ LFNoise2.kr(1/3).rangeExp(0.01,0.5) } ! n)
+				* { LFNoise2.kr(1/3,2) }!n
+				% { LFNoise2.kr(1/5, LFNoise2.kr(1/8)) }!n
+		})
+	) * 0.1
+}.play
+);
+
+(
+c.free; c = {
+	var sig = In.ar(0, 2) + DelayC.ar(LocalIn.ar(2), 2, { LFNoise2.kr(1/11).range(0,2.0) } ! 2);
+	var chain = sig;    // Start with the original signal
+	8.do {|i|       // Loop 8 times. For each loop, connect the signal through something.
+		// A simple reverb
+		chain = PitchShift.ar(LeakDC.ar(AllpassL.ar(RLPF.ar(chain*0.9,350, 1), 0.2, {0.19.rand+0.01}!2, 3)), 0.1, LFNoise1.ar(1/5).rangeExp(0.25,4));
+
+	};
+	sig = Limiter.ar(sig+chain);    // dry + wet
+	sig = RLPF.ar(sig, 13500, 0.7);
+	sig = LeakDC.ar(sig);
+	LocalOut.ar(sig * 0.8);
+	Out.ar(0, sig.softclip)
+}.play(s, addAction: \addToTail)
+);
+
+(
+b.free; b = {
+	Splay.ar(
+		Mix.fill(2,
+			{
+				VarSaw.ar(
+					midicps(rrand(20,110).round(0.25)), SinOsc.ar(LFNoise2.kr(1/11).rangeExp(0.34,687.2),0,0.1),
+					{ LFNoise2.kr(1/3).rangeExp(0.01,0.5) } ! 5)
+				* { LFNoise2.kr(1/3,1.5) }!5
+				% { LFNoise2.kr(1/5) }!5
+		})
+	) * 0.01
+}.play(s, addAction: \addToHead)
+);
+
+b.free;
+s.record
+
+(
+c = {
+
+	var sig = In.ar(0, 2) + DelayC.ar(LocalIn.ar(2), 2, { LFNoise2.kr(1/11).range(0,2.0) } ! 2) + HPF.ar(EnvGen.kr(Env([1,0],0.2,-4))*WhiteNoise.ar(0.001),4000,12).distort;
+	var chain = sig;    // Start with the original signal
+	8.do {|i|       // Loop 8 times. For each loop, connect the signal through something.
+		// A simple reverb
+		chain = PitchShift.ar(LeakDC.ar(AllpassL.ar(RLPF.ar(chain*0.9,13500, 1), 0.2, {0.19.rand+0.01}!2, 3)), 0.1, LFNoise1.ar(1/5).rangeExp(0.25,4));
+
+	};
+	sig = Limiter.ar(sig+chain);    // dry + wet
+	sig = RLPF.ar(sig, LFNoise1.ar(1/3).rangeExp(2000,13500),0.8);
+	sig = LeakDC.ar(sig);
+	LocalOut.ar(sig * 0.7);
+	Out.ar(0, sig.softclip * 0.4)
+}.play(s, addAction: \addToTail)
+);
+
+
+c.release(8)
+c.free
+// make een synthese model van dit!!
+
+a.release(4); a = { Splay.ar(SinOscFB.ar((100,200..400), 2, Saw.ar(10,0.5,0.5) )) * 0.1  }.play
+
+a.release(0.01); a = { Splay.ar(SinOscFB.ar((100,200..400), 2, Saw.ar((1,3..7),0.5,-0.5) )) * 0.1  }.play
+a.release(0.01); a = { Splay.ar(SinOscFB.ar((100,200..400), 2, Saw.ar((1,3..7).reciprocal,0.5,-0.5) )) * 0.1  }.play
+
+a.release(0.01); a = { Splay.ar(SinOscFB.ar((100,200..400).scramble, 2, Saw.ar((1,3..7).scramble,0.5,0.5) )) * 0.1  }.play
+
+a.release(7); a = { Splay.ar(SinOscFB.ar((100,200..400), LFNoise1.kr(1/5,1,1), Saw.ar((1,3..7),0.5,0.5) )) * 0.1  }.play
+
+a.release(7); a = { Splay.ar(SinOscFB.ar((100,500..2900), 2, Saw.ar(scramble((1,2..8)*3),0.5,0.5))) * 0.1  }.play
+
+a.release(7); a = { Splay.ar(SinOscFB.ar((100,200..400), LFNoise1.kr(1/5,1,1), Saw.ar((1,3..7),0.5,0.5) )) * Decay2.ar(Impulse.ar({exprand(0.1,2)}!5),0.004,3).sqrt * 0.1  }.play
+
+a.release(7); a = { Splay.ar(SinOscFB.ar((100,200..3500), LFNoise1.kr(1/11,0.5,0.5), Saw.ar((0.1,0.3..2),0.5,0.5) )) * Decay2.ar(Impulse.ar({exprand(0.1,2)}!5),0.004,3).sqrt * 0.1  }.play
+
+a.release(7); a = { Splay.ar(Saw.ar((1,5..29)*midicps(1), Saw.ar(scramble((1,2..8)*3),0.5,0.5))) * 0.1  }.play
+
+a.release(0.2); a = { Splay.ar(SinOscFB.ar((1,2..4)*midicps(rrand(30,50)), LFNoise1.kr(1/5,1,1), Saw.ar((1,3..7)*midiratio(rrand(-18,18)),0.5,0.5) )) * 0.1  }.play
+
+a.release(7); a = { Splay.ar(SinOscFB.ar((100,200..400), LFNoise1.kr(1/5,1,1), Saw.ar((1,3..7),0.5,0.5) )) * Decay2.ar(Impulse.ar({exprand(0.34,2)}!5),0.004,3).sqrt * 0.1  }.play
+
+a.release(7); a = { Splay.ar(SinOscFB.ar((1,2..4) * midicps(rrand(20,80)), LFNoise1.kr(1/5,1,1), Saw.ar((1,3..7),0.5,0.5) )) * Decay2.ar(Impulse.ar({exprand(0.34,2)}!5),0.004,3).sqrt * 0.1  }.play
+
+a.release(7); a = { Splay.ar(SinOscFB.ar((1,2..8) * midicps(rrand(20,80)), LFNoise1.kr(1/5,1,1), Saw.ar((1,3..7)*midiratio(24),0.5,0.5) )) * Decay2.ar(Impulse.ar({exprand(3,11)}!5),0.004,0.2).sqrt * 0.1  }.play
+
+
+
+(
+a = {
+	EnvGen.kr(Env([0,1,0],[34,13],[3,7]),doneAction: 2) *
+	Splay.ar(SinOscFB.ar((1,2..8) * midicps(rrand(20,20)), { LFNoise1.kr(exprand(0.64,13)).range(0,4) } ! 5, Saw.ar((1,3..7).scramble*midiratio(exprand(0.125,8)),0.5,0.5) )) * Decay2.ar(Impulse.ar(sort({exprand(0.34,18.2)}!5)),0.004,exprand(0.1,4)).sqrt * 0.1  }.play
 )
-g.free;
-s.boot;
+(
+fork { loop {
+	{ EnvGen.kr(Env([0,1,0],[3,8],[3,7]),doneAction: 2) *
+		Splay.ar(SinOscFB.ar((1,2..4)*midicps(rrand(30,50)), LFNoise1.kr(1/5,1,1), Saw.ar((1,3..7)*midiratio(rrand(-18,18)),0.5,0.5))) * 0.1  }.play;
+	exprand(0.1,13).wait;
+}
+}.play
+)
+
+
+
+a.release(0.02); a = { Splay.ar(SinOscFB.ar((1,2..4), 2, Saw.ar(10,0.5,0.5) )) * 0.1  }.play
+
+a.release(0.02); a = { Splay.ar(SinOscFB.ar((1,2..4) * midicps(60 + choose(Scale.minor.semitones - 12 ++ Scale.minor.semitones)), 2, Saw.ar((1,3..7),0.5,0.5) )) * 0.1  }.play
+
+
+
+
+{ SinOsc.ar(100) }.plot(0.01)
+s.scope
+
+s.reboot;
 
 (
 ~lm = MLemurGui.new;
@@ -17,6 +227,9 @@ s.boot;
 m = ScoreMixer.new(~lm);
 m.makeGui;
 )
+
+m.makeGui;
+
 
 
 s.reboot;
@@ -300,7 +513,7 @@ b = { PlayBuf.ar(2, a, 1, loop: 1, rate: MouseX.kr(1,100)) * 0.1 }.play
 { var x; x = { BrownNoise.ar(0.2) } !2;
     x = Mix.ar([DelayC.ar(x,0.01,0.01),DelayC.ar(x,0.02,MouseX.kr(0,0.02))]);
     x * 0.1
-}.scope(2);
+}.play;
 )
 
 
@@ -379,9 +592,14 @@ SynthDef("lazerdrone", {
 
 (
 // inter-speaker delays
-{ var x; x = LFTri.ar(1000,0,Decay2.ar(Impulse.ar(4,0,0.2),0.004,0.2));
+{ var x; x = LFTri.ar(8000,0,Decay2.ar(Impulse.ar(8,0,0.2),0.004,0.2));
     [DelayC.ar(x,0.01,0.01),DelayC.ar(x,0.02,MouseX.kr(0.02, 0))]
-}.scope(2);1
+}.scope(2);
+
+
+
+
+
 
 
 (
@@ -795,7 +1013,7 @@ Blog post about the creation of this track: http://schemawound.tumblr.com/post/2
 )
 
 s.boot;
-
+18/25*10
 
 (
 g.free; g ={
