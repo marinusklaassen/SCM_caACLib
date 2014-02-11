@@ -25,14 +25,21 @@ gebruik kan maken van deze buffers.
 */
 
 
+
+a = BufferPool();
+a.makeGui;
+
+
 // Record a buffer and append it to the current bank!!
 
-
-
+Server.local.boot
+Server.local.waitForBoot { "Yes" }
 (
 s.boot; s.waitForBoot {
 	w = Window.new("", Rect(200, 800, 604, 400));
 	w.background = Color.grey(0.2, 0.9);
+
+
 
 	~bufferDataBase = IdentityDictionary();
 
@@ -119,6 +126,7 @@ s.boot; s.waitForBoot {
 			~soundfileViews[~currentBankName.asSymbol].units do: (_.edit(false));
 		}
 	};
+	t.recorderDoneAction = { |buffer| buffer.postln; };
 	w.front;
 }
 )
