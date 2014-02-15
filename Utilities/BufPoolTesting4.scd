@@ -31,63 +31,120 @@ gebruik kan maken van deze buffers.
 (
 ~xmlDocument =  DOMDocument.new;
 
-~root = ~xmlDocument.createElement("BufferPool");
-~root.setAttribute( "selected bank", ~bufPool.currentBankName);
-~root.setAttribute( "selected soundfile index", "to be implemented");
+~root = ~xmlDocument.createElement("bufferPool");
+~root.setAttribute( "current_buffer_index", "to_be_implemented");
+~root.setAttribute( "selected_bank", ~bufPool.currentBankName);
 ~xmlDocument.appendChild(~root);
 
-~bufPoolSetup = ~xmlDocument.createElement("BufferPool Settings");
+~bufPoolSetup = ~xmlDocument.createElement("bufferPool_settings");
 ~root.appendChild(~bufPoolSetup);
 
 ~bufPool.soundFileViews keysValuesDo: { |key, soundFileView|
-	var bank = ~xmlDocument.createElement("Bank");
+	var bank = ~xmlDocument.createElement("bank");
 	bank.setAttribute( "name", key);
 	~bufPoolSetup.appendChild(bank);
 
 	soundFileView.units do: { |bufferObject|
-		var bufferElement = ~xmlDocument.createElement("Audio Buffer");
-		bufferElement.setAttribute( "name", bufferObject.string);
+		var bufferElement = ~xmlDocument.createElement("file");
+		bufferElement.setAttribute( "pathname", bufferObject.string);
 		bank.appendChild(bufferElement);
 	}
 };
-~xmlDocument.format
+
+~file = File("/Users/MarinusKlaassen/Desktop/test.xml", "w");
+~file.putString(~xmlDocument.format);
+~file.close;
 )
 
+
+
+File.saveDialog(successFunc: {
+	|path| var file;
+	path = PathName(path.standardizePath).extension_("xml").fullPath;
+	file = File(path, "w");
+	file.putString(~xmlDocument.format);
+	file.close;
+});
+
+File.openDialog(successFunc: {
+	|path| var file;
+	path.standardizePath;
+	file = File(path, "r");
+	~fileString = String.readNew(file);
+	file.close;
+	~fileString.postln;
+})
+
+~newDocument = DOMDocument.new;
+~newDocument.parseXML(~fileString);
+~newDocument.format;
+~root = ~newDocument.getChildNodes;
+~bufferlist = ~root.first.getChildNodes.first;
+~bufferBankList = ~bufferlist.getChildNodes;
 
 
 (
-// Create an empty XML document
-d = DOMDocument.new; // create empty XML document
-~root = d.createElement("sampler");
-~root.setAttribute( "a", "1" );
-~root.setAttribute( "b", "2" );
-d.appendChild(~root);
-d.format;
-~sample = d.createElement("soundfile");
-~sample.setAttribute( "a", "1" );
-~sample.setAttribute( "b", "2" );
-~root.appendChild(~sample);
-~sample = d.createElement("soundfile");
-~sample.setAttribute( "a", "100" );
-~sample.setAttribute( "b", "200" );
-~root.appendChild(~sample);
-(0, 1.. 20) do: { |i|
-	var temp = d.createElement("point");
-	temp.setAttribute( "time", 1000.rand.asString );
-	~sample.appendChild(temp);
+~bufferBankList do: { |bank, i|
+	"bank name of index: %\n\n\n".postf(i);
+	"listed audio files of ".postf(i);
+	bank.first.getAttribute("name").postln; "".postln;
+	bank.first.getChildNodes do: {
+		|file|
+		file.getAttribute("pathname").postln;
+	};
 };
-d.format;
+"\n\n\n\n".postf;
 )
 
-d.format;
 
-a = File("/Users/MarinusKlaassen/Desktop/test.xml", "w")
-a.putString(d.format);
-a.close
 
-f = File("/Users/MarinusKlaassen/Desktop/test.xml", "r")
-g = String.readNew(f);
-f.close;
+loop through bank:
+ store bank name
+ loop through soundfiles:
+ check if a soundfile pathname exists:
+ if true add soundfile path to xml
+ if false write Buffer to the project path ++ audio ++ bank name folder with
+ current buffer name:
+ add new soundfile path to xml
+ continue iteration!!
+
+
+
+
+
+
+
+~path = PathName("/Users/MarinusKlaassen/Desktop/test.xml").pathOnly ++ "audio/";
+
+"mkdir %".format(~path).unixCmd({|...args| args.postln}, false)
+~path.pathExists
+
+
+// Check if a path exists!! Write things!!!
+(
+fork {
+	~path = PathName("/Users/MarinusKlaassen/Desktop/").pathOnly ++ "audior/";
+	if (~path.pathExists != \folder) { "mkdir %".format(~path).unixCmd(postOutput: false) };
+	0.01.wait;
+	~bufPool.soundFileViews keysValuesDo: { |...args|
+		args[1].units do: { |unit|
+			var pathName = unit.string;
+			if (pathName.pathExists != \file) {
+				pathName = ~path ++ unit.string ++ ".aiff";
+				~bufPool.bufferDataBase[args[0]][unit.index].write(pathName)
+			}
+			// Add to XML!!
+
+		};
+	}
+}
+)
+unixC
+
+
+
+
+
 h = DOMDocument.new;
 h.parseXML(g);
 i = h.getChildNodes;

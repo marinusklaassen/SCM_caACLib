@@ -4,7 +4,6 @@ s.boot;
 a = AudioRecorder()
 
 w = Window.new; a.makeGui(w, Rect(100, 100, 200, 200)); w.front; a.doneAction_({ |buffer| buffer.play; b = buffer });
-
 */
 
 

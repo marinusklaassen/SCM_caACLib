@@ -17,13 +17,21 @@ BPDragAndDropElement {
 		stringModel = (string: "");
 
 		stringValueFunction = { |argString|
+			var check = true;
+			if(argString.class == Array) { argString = argString[1]; check = false; };
 			oldString = stringModel[\string];
 			stringModel[\string] = argString;
-			stringModel.changed(\string, argString);
+			if (check) {
+				stringModel.changed(\string, argString);
+			} {
+				stringModel.changed(\dontPerformStringAction, argString);
+			}
 		};
 
 		stringActionDependant = { |theChanger, what, argString|
+			if (what != \dontPerformStringAction) {
 			if(stringAction.notNil) { stringAction.value(argString, oldString, what, index); }
+			}
 
 		};
 
@@ -118,7 +126,7 @@ BPDragAndDropElement {
 	}
 
 	remove {
-		stringModel.removeDependant(stringActionDependant);
+		stringModel.removeDependant(stringActionDependant); this.closeGui;
 	}
 
 	string_ { |argString|
@@ -172,7 +180,7 @@ BPBankView {
 		units do: { |bankUnit, i|
 			bankUnit.makeGui(view, Rect(0, 35 * i, 175, 30));
 
-			bankUnit.beginDragAction = { |...array| startDragArray = array; };
+			bankUnit.beginDragAction = { |...array| startDragArray = array.postln; };
 
 			bankUnit.endDragAction = { |what, index, string, extra|
 				var currentDragObject = View.currentDrag;
@@ -184,11 +192,10 @@ BPBankView {
 						"Append Soundfile to this bank: %\n".postf(bankUnit.string);
 					} { currentDragObject.isArray } {
 						if (currentDragObject.at(0) == "bank") {
-
-							units[startDragArray[1]].string = units[bankUnit.index.postln].string.copy;
-							units[bankUnit.index].string = startDragArray[2];
+							units[startDragArray[1]].string = [\bankSwap, units[bankUnit.index.postln].string.copy];
+							units[bankUnit.index].string = [\bankSwap, startDragArray[2]];
 						};
-						if (startDragArray[3] != bankUnit.string) {
+						if (startDragArray[3].postln != bankUnit.string.postln && (startDragArray[0] == "soundfile")) {
 							"Append soundfile to %\n".postf(bankUnit.string);
 							"Peform remove action from previous arrays".postln;
 							"Update GUI".postln;
@@ -246,7 +253,6 @@ BPBankView {
 		this.update;
 
 		if (addAction.notNil) { addAction.value(unit) };
-
 	}
 }
 
@@ -274,7 +280,7 @@ BPSoundfileView {
 			var currentDrag = View.currentDrag;
 			case
 			{ currentDrag == \add } { this.addDialog("soundfile", units.size); }
-			{ currentDrag.isString } { this.addBuffer(currentDrag) };
+			{ currentDrag.isString } { this.addFileToBuffer(currentDrag) };
 		};
 
 		// Set actions!!!
@@ -292,7 +298,7 @@ BPSoundfileView {
 				if (string != dragString) {
 
 					case { currentDragObject.isString } {
-						this.addBuffer(currentDragObject, thisWhat, thisIndex, currentDragObject, extra);
+						this.addFileToBuffer(currentDragObject, thisWhat, thisIndex, currentDragObject, extra);
 
 					} { currentDragObject.isArray } {
 						if (currentDragObject.at(0) == "soundfile") {
@@ -357,11 +363,17 @@ BPSoundfileView {
 
 	}
 
-	addBuffer { |path, what, index|
+	addBuffer { |argBuffer, path, what, index|
+		if (addBufAction.notNil) {
+			addBufAction.value(argBuffer, path, what, index, bankName)
+		}
+	}
+
+	addFileToBuffer { |path, what, index|
 		if (path.pathExists != false) {
-			Buffer.read(path: path, action: { |buf|
+			Buffer.read(path: path, action: { |argBuffer|
 				if (addBufAction.notNil) {
-					addBufAction.value(buf, path, what, index, bankName)
+					addBufAction.value(argBuffer, path, what, index, bankName)
 				}
 			})
 		}
@@ -475,8 +487,6 @@ BPTransporter {
 
 
 
-
-
 BufferPool {
 	var <parent, <>soundFileViews, <>bufferDataBase, <bankView;
 	var <currentBankName, transporter;
@@ -503,6 +513,7 @@ BufferPool {
 
 			newSoundFileView.addBufAction = { |buf, path, what, index, bankName|
 				{
+					if (index.isNil) { index = newSoundFileView.units.size };
 					newSoundFileView.add(index, path);
 					bufferDataBase[thisBank.string] = bufferDataBase[thisBank.string].insert(index + 1, buf);
 				}.defer;
@@ -549,9 +560,12 @@ BufferPool {
 
 			bufferDataBase[argString] = t1;
 			soundFileViews[argString] = t2;
+			soundFileViews[argString].bankName = argString;
 
 			bufferDataBase[oldString] = nil;
 			soundFileViews[oldString] = nil;
+
+
 		};
 
 		Server.local.boot.waitForBoot {
@@ -570,14 +584,13 @@ BufferPool {
 				}
 			};
 			transporter.recorderDoneAction = { |buffer|
-				"implemented the recorder done action".postln;
-				buffer.postln;
+				soundFileViews[currentBankName].addBuffer(buffer, "recording_" ++ 100000.rand, index: soundFileViews[currentBankName].units.size);
 			};
 		}
 	}
 
 	makeGui {
-		parent = Window(bounds: Rect(200, 800, 604, 400), resizable: false);
+		parent = Window("", bounds: Rect(200, 800, 604, 400), resizable: false);
 		parent.background_(Color.grey(0.1, 0.9));
 
 		bankView.makeGui(parent, Rect(5, 5, 180, 300));
