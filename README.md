@@ -52,9 +52,9 @@ A library with various SuperCollider classes and UGens extensions to perform alg
 ---
 An important tool in this library is a flexible interface: the Score & Controller Interface to embed script-based composition into an OSC-controller setup. This interface is going to be released in September. A prototype can be found here. 
 
-<img src="score.png" alt="Score" >
+<img src="score.png" alt="ScoreMixerOverview" >
 
-<img src="mixer.png" alt="Mixer">
+
 
 
 [This is the link to a crappy video demonstration of the prototype version on Vimeo.](https://vimeo.com/68702753/) 
