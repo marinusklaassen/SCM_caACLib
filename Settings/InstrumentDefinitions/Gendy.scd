@@ -1,6 +1,6 @@
 // SynthDef Definition
 (
-SynthDef(\Gendy, {
+SynthDef(\Gendy_4, {
 	| freqA = 100, freqB = 100, maxDurSt1 = 0.1, maxDurSt2 = 0.5, durRange = 0.1
 	maxAmp = 0.5, maxAmpSt1 = 0.1, maxAmpSt2 = 0.5, ampRange = 0.2, gate = 1 |
 
@@ -41,28 +41,29 @@ Out.ar(0,env * Splay.ar({DemandEnvGen.ar(
 // Call and process SynthDef metadata
 
 (
-m = SynthDesc.readDef(\Gendy); if (m.metadata.isNil) { m.metadata = (); };
+m = SynthDesc.readDef(\Gendy_4); if (m.metadata.isNil) { m.metadata = (); };
 m.metadata[\specs] = (
-	ControlSpec(\freqA, #[ 20, 2500, \lin, 0, 100 ]);
-	ControlSpec(\freqB, #[ 20, 2500, \lin, 0, 100 ]);
-	ControlSpec(\maxDurSt1, #[ 0.01, 1, \exp, 0, 0.1]);
-	ControlSpec(\maxDurSt2, #[ 0.01, 1, \exp, 0, 0.1]);
-	ControlSpec(\durRange,  #[ 0,    1, \lin, 0, 0.1]);
-	ControlSpec(\maxAmp,    #[ 0.001,1, \exp, 0, 0.5 ]);
-	ControlSpec(\maxAmpSt1, #[ 0.01, 1, \exp, 0, 0.1]);
-	ControlSpec(\maxAmpSt2, #[ 0.01, 1, \exp, 0, 0.1]);
-	ControlSpec(\ampRange,  #[ 0,    1, \lin, 0, 0.1]);
+	freqA: ControlSpec(20, 2500, \lin, 0, 100 ),
+	freqB: ControlSpec(20, 2500, \lin, 0, 100),
+	\maxDurSt1: ControlSpec(0.01, 1, \exp, 0, 0.1),
+	\maxDurSt2: ControlSpec(0.01, 1, \exp, 0, 0.1),
+	\durRange: ControlSpec(0, 1, \lin, 0, 0.1),
+	\maxAmp: ControlSpec(0.001,1, \exp, 0, 0.5),
+	\maxAmpSt1: ControlSpec(0.01, 1, \exp, 0, 0.1),
+	\maxAmpSt2: ControlSpec(0.01, 1, \exp, 0, 0.1),
+	\ampRange: ControlSpec(0, 1, \lin, 0, 0.1)
 );
 
 // Ignore key list
 m.metadata[\noGui] = [\gate];
 
 // Store processed SynthDef metadata
-SynthDesc.storeMetaData(\Gendy, m.metadata);
+SynthDesc.storeMetaData(\Gendy_4, m.metadata);
 );
 
 // Test SynthDef
-EmbedGui(\Gendy).makeGui;
+EmbedGui(\Gendy_4).makeGui;
+
 
 
 

@@ -12,7 +12,7 @@ AudioRecorder {
 	var <>busIn, <>channels, <>maxRecordTime, <>sampleRate, <>recTime, tempBuffer, recordSynth;
 	var >doneAction, <>monitorBus;
 
-	*new { |argBusIn = 0, argChannels = 1, argMaxRecordTime = 60, argSampleRate = 44100|
+	*new { |argBusIn = 2, argChannels = 1, argMaxRecordTime = 60, argSampleRate = 44100|
 		^super.newCopyArgs.init(argBusIn, argChannels, argMaxRecordTime, argSampleRate)
 	}
 
@@ -52,7 +52,7 @@ AudioRecorder {
 				recTime = thisThread.seconds;
 				recordSynth = { |in, bufnum|
 					Out.ar(monitorBus, RecordBuf.ar(SoundIn.ar(busIn, channels),tempBuffer));
-				}.play(addAction: 'addToTail',);
+				}.play(addAction: 'addToTail');
 				recordSynth.track;
 			} {
 				this.stopRecordSynthAndCreateNewBuffer;

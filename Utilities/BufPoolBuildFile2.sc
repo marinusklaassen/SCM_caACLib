@@ -30,7 +30,7 @@ BPDragAndDropElement {
 
 		stringActionDependant = { |theChanger, what, argString|
 			if (what != \dontPerformStringAction) {
-			if(stringAction.notNil) { stringAction.value(argString, oldString, what, index); }
+				if(stringAction.notNil) { stringAction.value(argString, oldString, what, index); }
 			}
 
 		};
@@ -66,7 +66,6 @@ BPDragAndDropElement {
 		.string_(stringModel[\string])
 		.stringColor_(Color.yellow)
 		.action_({ |text| stringValueFunction.value(text.string) });
-
 
 		removeButton = MButtonV(editView, Rect(bounds.bounds.width -20, 5, 15, 15));
 		removeButton.action = { if (removeAction.notNil) { removeAction.value(what, index,  stringModel[\string], extra) } };
@@ -108,8 +107,10 @@ BPDragAndDropElement {
 			} {
 				dragAndDropView.visible = true;
 				editView.visible = false;
-
+				textEdit.doAction;
 			};
+
+
 
 		};
 		editModel.addDependant(editDependant);
@@ -331,7 +332,7 @@ BPSoundfileView {
 		unit.closeGui;
 		unit.remove;
 		this.update;
-		if (removeAction.notNil) { removeAction.value(argIndex) };
+		if (removeAction.notNil) { removeAction.value(bankName, argIndex) };
 	}
 
 	remove { this.closeGui; units do: (_.remove); }
@@ -371,22 +372,33 @@ BPSoundfileView {
 
 	addFileToBuffer { |path, what, index|
 		if (path.pathExists != false) {
-			Buffer.read(path: path, action: { |argBuffer|
+			Buffer.readChannel(channels: [0], path: path , action: {
+				|buf|
+				if (addBufAction.notNil) {
+					addBufAction.value(buf, buf.path, what, index, bankName)
+				}
+			})
+
+
+			/*Buffer.read(path: path, action: { |argBuffer|
 				if (addBufAction.notNil) {
 					addBufAction.value(argBuffer, path, what, index, bankName)
 				}
-			})
+			})*/
 		}
 
 	}
 
 	addDialog { |what, index|
-		Buffer.loadDialog(action: { |buf|
-			if (addBufAction.notNil) {
-				addBufAction.value(buf, buf.path, what, index, bankName)
-			}
-		});
-
+		Dialog.openPanel({
+			|path|
+			Buffer.readChannel(channels: [0], path: path , action: {
+				|buf|
+				if (addBufAction.notNil) {
+					addBufAction.value(buf, buf.path, what, index, bankName)
+				}
+			})
+		})
 	}
 }
 
@@ -394,7 +406,7 @@ BPSoundfileView {
 BPTransporter {
 	var view, playFlag, recordFlag, editFlag, waveformFlag, >editAction;
 	var addView, thrashView, addView, audioRecorder, editView, playView, waveformView;
-	var bufferToPlay, playSynth;
+	var <buffer, playSynth;
 
 	*new { ^super.new.init; }
 
@@ -404,19 +416,19 @@ BPTransporter {
 
 	init {
 		playFlag = 0;
-
 		audioRecorder = AudioRecorder();
 		editFlag = 0;
 		waveformFlag = 0;
 	}
 
-	changeBuffer { |argBuffer|
-		bufferToPlay = argBuffer;
-		if (playSynth.isPlaying) {
+	buffer_ { |argBuffer|
+		buffer = argBuffer;
+		if (playSynth.isPlaying.postln) {
 			playSynth.free;
-			playSynth = { PlayBuf.ar(bufferToPlay.numChannels, bufferToPlay, loop: 1) }.play;
+			playSynth = { PlayBuf.ar(buffer.numChannels, buffer, loop: 1) }.play;
 			playSynth.track;
-		}
+
+		};
 	}
 
 	makeGui { |argParent, argBounds|
@@ -461,8 +473,8 @@ BPTransporter {
 		])
 		.action_({ |b|
 			playFlag = b.value;
-			if (b.value > 0 && bufferToPlay.notNil) {
-				playSynth = { PlayBuf.ar(bufferToPlay.numChannels, bufferToPlay, loop: 1) }.play;
+			if (b.value > 0 && buffer.notNil) {
+				playSynth = { PlayBuf.ar(buffer.numChannels, buffer, loop: 1) }.play;
 				playSynth.track;
 			} {
 				playSynth.release(0.05)
@@ -489,13 +501,15 @@ BPTransporter {
 
 BufferPool {
 	var <parent, <>soundFileViews, <>bufferDataBase, <bankView;
-	var <currentBankName, transporter;
+	var <currentBankName, transporter, storeAndReadProject;
 
 	*new { ^super.new.init; }
 
 	init {
 		soundFileViews = Dictionary();
 		bufferDataBase = Dictionary();
+
+		storeAndReadProject = BPStoreAndReadProject(this);
 
 		bankView = BPBankView();
 		bankView.addAction = { |thisBank|
@@ -512,10 +526,12 @@ BufferPool {
 			newSoundFileView.makeGui(parent, Rect(200, 5, 400, 300));
 
 			newSoundFileView.addBufAction = { |buf, path, what, index, bankName|
+				transporter.buffer = buf;
 				{
 					if (index.isNil) { index = newSoundFileView.units.size };
 					newSoundFileView.add(index, path);
 					bufferDataBase[thisBank.string] = bufferDataBase[thisBank.string].insert(index + 1, buf);
+
 				}.defer;
 			};
 
@@ -524,12 +540,15 @@ BufferPool {
 				var a2 = bufferDataBase[bank][index2];
 				bufferDataBase[bank][index1] = a2;
 				bufferDataBase[bank][index2] = a1;
+				transporter.buffer = a1;
 			};
 
 			newSoundFileView.selectAction = { |argBankName, argIndex, argName|
-				var selectedBuffer;
-				selectedBuffer = bufferDataBase[argBankName][argIndex];
-				transporter.changeBuffer(selectedBuffer);
+				transporter.buffer = bufferDataBase[argBankName][argIndex];
+			};
+
+			newSoundFileView.removeAction = { |argBankName, argIndex|
+				bufferDataBase[argBankName].removeAt(argIndex);
 			};
 
 			soundFileViews[thisBank.string] = newSoundFileView;
@@ -548,6 +567,8 @@ BufferPool {
 		bankView.removeAction = { |...args|
 			soundFileViews[args[2]].remove;
 			soundFileViews[args[2]] = nil;
+			bufferDataBase[args[2]] do: (_.free);
+			bufferDataBase[args[2]] = nil;
 		};
 
 		bankView.stringAction = { |argString, oldString, argWhat, argIndex|
@@ -568,25 +589,24 @@ BufferPool {
 
 		};
 
-		Server.local.boot.waitForBoot {
-			transporter = BPTransporter();
-			transporter.editAction = { |buttonValue|
-				if (buttonValue > 0) {
-					bankView.units do: { |i| i.edit(true); };
-					if (soundFileViews[currentBankName].notNil) {
-						soundFileViews[currentBankName].units do: (_.edit(true));
-					}
-				} {
-					bankView.units do: { |i| i.edit(false); };
-					if (soundFileViews[currentBankName].notNil) {
-						soundFileViews[currentBankName].units do: (_.edit(false));
-					}
+		transporter = BPTransporter();
+		transporter.editAction = { |buttonValue|
+			if (buttonValue > 0) {
+				bankView.units do: { |i| i.edit(true); };
+				if (soundFileViews[currentBankName].notNil) {
+					soundFileViews[currentBankName].units do: (_.edit(true));
 				}
-			};
-			transporter.recorderDoneAction = { |buffer|
-				soundFileViews[currentBankName].addBuffer(buffer, "recording_" ++ 100000.rand, index: soundFileViews[currentBankName].units.size);
-			};
-		}
+			} {
+				bankView.units do: { |i| i.edit(false); };
+				if (soundFileViews[currentBankName].notNil) {
+					soundFileViews[currentBankName].units do: (_.edit(false));
+				}
+			}
+		};
+		transporter.recorderDoneAction = { |buffer|
+			soundFileViews[currentBankName].addBuffer(buffer, "recording_" ++ 100000.rand, index: soundFileViews[currentBankName].units.size);
+		};
+
 	}
 
 	makeGui {
@@ -597,8 +617,10 @@ BufferPool {
 
 		transporter.makeGui(parent, Rect(5, 320, 350, 60));
 		if (soundFileViews[currentBankName].notNil) {
-		soundFileViews[currentBankName].makeGui(parent, Rect(200, 5, 400, 300));
+			soundFileViews[currentBankName].makeGui(parent, Rect(200, 5, 400, 300));
 		};
+
+		storeAndReadProject.makeGui(parent, Rect(370, 360, 200, 20));
 
 		parent.front;
 	}
@@ -608,8 +630,127 @@ BufferPool {
 		bankView.closeGui;
 		transporter.closeGui;
 		soundFileViews do: (_.closeGui);
+		storeAndReadProject.closeGui;
 	}
 }
+
+
+BPStoreAndReadProject {
+	var doneAction, bufferPoolObject, canvas, gui;
+
+	*new { |argBufferPoolObject| ^super.new.init(argBufferPoolObject); }
+
+	init { |argBufferPoolObject|
+		bufferPoolObject = argBufferPoolObject;
+	}
+
+	saveDialog {
+		File.saveDialog(successFunc: {
+			|path| var file;
+			path = PathName(path.standardizePath).extension_("xml").fullPath;
+			file = File(path, "w");
+
+			this.retrieveXMLSTringAndSaveBuffersToAudioFiles(path);
+			doneAction = { |xmlFileString|
+				file.putString(xmlFileString);
+				file.close;
+			}
+		});
+	}
+
+	retrieveXMLSTringAndSaveBuffersToAudioFiles { |argPath|
+		var audio_file_bank_settings, audiofile_path;
+		var newDOMDocument = DOMDocument.new;
+		var root = newDOMDocument.createElement("bufferPool");
+		root.setAttribute( "selected_bank", bufferPoolObject.currentBankName);
+		newDOMDocument.appendChild(root);
+
+		audio_file_bank_settings = newDOMDocument.createElement("audiofile_bank_settings");
+		root.appendChild(audio_file_bank_settings);
+
+		audiofile_path = PathName(argPath).pathOnly ++ "audio/";
+		if (audiofile_path.pathExists != \folder) {
+
+			"mkdir %".format(audiofile_path).unixCmd(postOutput: false)
+		};
+
+		fork {
+			0.05.wait;
+
+			bufferPoolObject.soundFileViews keysValuesDo: { |bankName, soundFileView|
+				var bank = newDOMDocument.createElement("bank");
+				bank.setAttribute("name", bankName);
+				audio_file_bank_settings.appendChild(bank);
+
+				bufferPoolObject.soundFileViews[bankName].units do: { |bufferUnit|
+					var bufferElement = newDOMDocument.createElement("audio_file");
+
+					var pathName = bufferUnit.string;
+					if (pathName.pathExists != \file) {
+						pathName = audiofile_path ++ bufferUnit.string ++ ".aiff";
+						bufferPoolObject.bufferDataBase[bankName][bufferUnit.index].write(pathName)
+					};
+
+					bufferElement.setAttribute("pathname", pathName);
+					bank.appendChild(bufferElement);
+				}
+			};
+			doneAction.value(newDOMDocument.format);
+		}
+	}
+
+	openDialog {
+		File.openDialog(successFunc: {
+			|path| var file, xmlString;
+			path.standardizePath;
+			file = File(path, "r");
+			xmlString = String.readNew(file);
+			file.close;
+			this.loadStateFromXML(xmlString);
+		})
+	}
+
+	loadStateFromXML { |xmlString|
+		var root, audio_file_bank_settings, banks;
+		var newDOMDocument = DOMDocument.new;
+		newDOMDocument.parseXML(xmlString);
+
+		root = newDOMDocument.getChildNodes;
+		audio_file_bank_settings = root.first.getChildNodes.first;
+		banks = audio_file_bank_settings.getChildNodes;
+		banks do: { |bank, index|
+			var bankName = bank.first.getAttribute("name");
+			bufferPoolObject.bankView.add(argName: bankName);
+
+			bank.getChildNodes do: { |file|
+				var pathName = file.getAttribute("pathname");
+				bufferPoolObject.soundFileViews[bankName].addFileToBuffer(pathName);
+			};
+		};
+	}
+
+	makeGui { |argParent, argBounds|
+		var width = argBounds.width, height = argBounds.height;
+		canvas = CompositeView(argParent, argBounds)
+		.background_(Color.green(1,0));
+
+		gui = { |i|
+			Button(canvas, Rect(i * 0.5 * width, 0, width * 0.5, height))
+			.states_([[["open file", "save to file"][i], Color.black, Color.red(0.8,0.6)]])
+			.action_({ var func = [{this.openDialog; }, {this.saveDialog}][i]; func.value;  })
+			.font_(Font("Menlo",12)) } ! 2;
+	}
+
+	closeGui {
+		canvas.remove; gui do: (_.remove)
+	}
+
+}
+
+
+
+
+
 
 
 

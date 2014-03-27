@@ -1,3 +1,16 @@
+
+(
+l = MLemurGui();
+l.connect("192.10.1.2",8002,8000);
+l.resetAll;
+m = ScoreMixer(l);
+m.makeGui;
+)
+
+// Script field header aanpassen naar de parameter te veranderen.
+
+
+
 s.boot;
 
 SynthDef(\basicFM, {|out = 0, gate = 1, amp = 1, carFreq = 1000, modFreq = 100, modAmount = 2000, clipAmount = 0.1, pan = 0, atk = 0.02, rel = 1|
@@ -221,10 +234,10 @@ s.scope
 s.reboot;
 
 (
-~lm = MLemurGui.new;
-~lm.connect("192.10.1.2",8002,8000);
-~lm.resetAll;
-m = ScoreMixer.new(~lm);
+l = MLemurGui();
+l.connect("192.10.1.2",8002,8000);
+l.resetAll;
+m = ScoreMixer(l);
 m.makeGui;
 )
 

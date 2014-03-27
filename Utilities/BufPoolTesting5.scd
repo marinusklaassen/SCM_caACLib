@@ -24,13 +24,131 @@ Maak een bank slider/selector zodat de EmbedGui objecten en the Score & Controll
 gebruik kan maken van deze buffers.
 */
 
-"killall scsynth".unixCmd
+"killall scsynth".unixCmd;
+s.boot;
 
-~bufPool = BufferPool();
-~bufPool.makeGui;
+h = BufferPool();
+h.makeGui;
+(
+w = Window(); w.front;
+a = { |i|
+	var temp = MBBuffer();
+	temp.makeGui(w, Rect(0, i * 30, 400, 28));
+	temp;
+} ! 8;
+)
 
 
-s.scope
+// Setup GUI
+
+// Setup BufferPoolData class which holds all the Buffer Mappings etc.
+
+Window.new.front;
+
+// Add an env editor!!
+
+(
+// use shift-click to keep a node selected
+w = Window("envelope", Rect(150 , Window.screenBounds.height - 250, 250, 100)).front;
+w.view.decorator = FlowLayout(w.view.bounds);
+
+b = EnvelopeView(w, Rect(0, 0, 230, 80))
+    .drawLines_(true)
+    .selectionColor_(Color.red)
+    .drawRects_(true)
+    .resize_(5)
+    .step_(0.05)
+    .action_({arg b; [b.index, b.value].postln})
+    .thumbSize_(5)
+    .value_([[0.0, 0.1, 0.5, 1.0],[0.1,1.0,0.8,0.0]]);
+w.front;
+)
+
+
+
+// A knop with snap options!!
+
+(
+var model, controlSpec, window, knopView, valueFunction, actionDependant, viewDependant;
+
+model = (value: 0);
+
+controlSpec = ControlSpec(1, 20, \lin, 1);
+
+window = Window.new;
+window.front;
+
+knopView = Knob(window, window.bounds.extent);
+knopView.value = model[\value];
+knopView.action = { |knop| valueFunction.value(knop.value) };
+
+valueFunction = { |argValue|
+	argValue = controlSpec.map(argValue);
+	model[\value] = argValue;
+	model.changed(\value, argValue)
+};
+
+actionDependant = { |argModel|
+	argModel[\value].postln;
+};
+
+model.addDependant(actionDependant);
+
+viewDependant = { |argModel|
+	knopView.value = controlSpec.unmap(argModel[\value]).postln;
+};
+
+model.addDependant(viewDependant);
+)
+
+(
+w = Window.new.front;
+v = LED(w, w.bounds.extent);
+v.value = 1;
+)
+
+w.front; v.value = 1; v.bounds = Rect(0, 0, 200, 300);
+
+(
+{
+var buf = h.bufferDataBase["test"].choose;
+var nChannels = buf.numChannels;
+[nChannels, buf].postln
+} ! 10;
+)
+// Add an quick drop buffer option!!
+
+// Make a autogui buffer element!!
+(
+q = Font("Menlo", 11, true);
+w = Window();
+c = PopUpMenu(w, Rect(0, 0, 100, 30));
+c.items = h.soundFileViews.keys.asArray;
+c.action = { |b| b.value.postln };
+c.font_(q);
+d = PopUpMenu(w, Rect(100, 0, 100, 30));
+d.items = h.soundFileViews["test"].units.collect (_.string);
+d.action = { |b| b.value.postln };
+d.font_(q);
+e = NumberBox(w, Rect(200, 0, 50, 30));
+e.clipLo = 0;
+e.clipHi = d.items.size - 1;
+e.action = { |b| b.value.postln };
+e.background = Color.clear;
+e.font_(q);
+f = Button(w, Rect(300, 0, 90, 30))
+.states_([
+	            ["sampling on", Color.black, Color.red(0.8)],
+	            ["sampling off", Color.black, Color.clear],
+        ]);
+f.font_(q);
+f.action = { |b| b.value.postln; };
+w.front;
+)
+
+
+
+
 
 
 (
@@ -191,6 +309,9 @@ b = ~bufPool.bufferDataBase["default bank 0"].first;
 	out = BufRd.ar(1, bufnum, pos);
 	Out.ar(0, out!2);
 }
+
+
+
 
 
 // allocate a buffer with a sound file
