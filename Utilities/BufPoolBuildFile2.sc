@@ -533,9 +533,10 @@ BufferPool {
 					if (index.isNil) { index = newSoundFileView.units.size };
 					newSoundFileView.add(index, path);
 					bufferDataBase[thisBank.string] = bufferDataBase[thisBank.string].insert(index + 1, buf);
+					BufferGCM.changed(\add, bufferDataBase, bankName, index + 1, buf);
 
 				}.defer;
-				BufferGCM.changed(\add, bufferDataBase, bankName, index + 1);
+
 			};
 
 			newSoundFileView.swapAction = { |bank, index1, index2|

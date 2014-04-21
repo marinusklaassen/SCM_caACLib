@@ -22,36 +22,52 @@ gebruiken in hun processen. Dit om realtime sampling and processing mogelijk te 
 
 Maak een bank slider/selector zodat de EmbedGui objecten en the Score & Controller interface ook
 gebruik kan maken van deze buffers.
+
 */
+
+"killall scsynth".unixCmd;
+
 
 /* bufferGui Control Model */
 s.boot;
 
 BufferGCM.init;
+d = { |m, what, args|
+	case
+	{ what == 'add' }
+	{ ~addMethod.value(args) };
+};
 
-a = { "1".postln };
-b = { "2".postln };
-c = { "3".postln };
-d = { "4".postln };
-
-[a,b,c,d] do: { |i| BufferGCM.model.addDependant(i) };
-
-BufferGCM.changed;
-
-BufferGCM.model.removeDependant(c)
-
-
-
-if (BufferGCM.model.notNil) { BufferGCM.init; }
-
-
-
-
-"killall scsynth".unixCmd;
-s.boot;
+BufferGCM.model.addDependant(d);
+BufferGCM.model.removeDependant(d)
 
 h = BufferPool();
 h.makeGui;
+
+
+~currentBank = "default bank 1";
+~currentBufferIndex = 1;
+(
+~addMethod = { |argArray|
+	var bankIndex = nil;
+	argArray.first.keys.postln; /* get bank names */
+	argArray.first.keys.asArray do: { |bank,i| if (bank == ~currentBank) { bankIndex = i }; };
+	bankIndex.postln;
+	argArray.first[argArray[1]].collect(_.path).postln; /* get path names */
+	argArray[1].postln; /* get bank name of added soundfile */
+	argArray[2].postln; /* get index of the added soundfile */
+	argArray[3].postln; /* get buffer */
+};
+)
+
+
+
+
+// Double quote in string and next line.
+"po\"\nhello\ndn\"dfl".postln;
+
+
+
 (
 w = Window(); w.front;
 a = { |i|
@@ -87,7 +103,7 @@ b = EnvelopeView(w, Rect(0, 0, 230, 80))
 w.front;
 )
 
-
+"mix" + 6 /* concat */
 
 // A knop with snap options!!
 
