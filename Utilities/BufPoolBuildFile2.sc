@@ -506,6 +506,8 @@ BufferPool {
 	*new { ^super.new.init; }
 
 	init {
+		if (BufferGCM.model.isNil) { BufferGCM.init; };
+
 		soundFileViews = Dictionary();
 		bufferDataBase = Dictionary();
 
@@ -533,6 +535,7 @@ BufferPool {
 					bufferDataBase[thisBank.string] = bufferDataBase[thisBank.string].insert(index + 1, buf);
 
 				}.defer;
+				BufferGCM.changed(\add, bufferDataBase, bankName, index + 1);
 			};
 
 			newSoundFileView.swapAction = { |bank, index1, index2|
@@ -541,6 +544,7 @@ BufferPool {
 				bufferDataBase[bank][index1] = a2;
 				bufferDataBase[bank][index2] = a1;
 				transporter.buffer = a1;
+				BufferGCM.changed(\swap, bufferDataBase);
 			};
 
 			newSoundFileView.selectAction = { |argBankName, argIndex, argName|
@@ -549,11 +553,14 @@ BufferPool {
 
 			newSoundFileView.removeAction = { |argBankName, argIndex|
 				bufferDataBase[argBankName].removeAt(argIndex);
+				BufferGCM.changed(\remove, bufferDataBase, currentBankName, argIndex);
 			};
 
 			soundFileViews[thisBank.string] = newSoundFileView;
 
 			currentBankName = thisBank.string;
+
+
 		};
 
 		bankView.selectAction = { |bank, index, bankName|

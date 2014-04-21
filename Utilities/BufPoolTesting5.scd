@@ -24,6 +24,29 @@ Maak een bank slider/selector zodat de EmbedGui objecten en the Score & Controll
 gebruik kan maken van deze buffers.
 */
 
+/* bufferGui Control Model */
+s.boot;
+
+BufferGCM.init;
+
+a = { "1".postln };
+b = { "2".postln };
+c = { "3".postln };
+d = { "4".postln };
+
+[a,b,c,d] do: { |i| BufferGCM.model.addDependant(i) };
+
+BufferGCM.changed;
+
+BufferGCM.model.removeDependant(c)
+
+
+
+if (BufferGCM.model.notNil) { BufferGCM.init; }
+
+
+
+
 "killall scsynth".unixCmd;
 s.boot;
 

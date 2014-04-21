@@ -1,7 +1,21 @@
+
+BufferGCM {  /* static class BufferGui Control Model */
+	classvar <>model;
+
+	*init {
+		model = Event();
+	}
+
+	*changed { | ...args |
+		if (model.notNil) { model.changed(\bufferPool, args); };
+	}
+}
+
+
 MBBuffer {
 	var <>spec, <name, <>action, midiResp, learnFlag, invertFlag;
 	var bufferData;
-	var view, midiInvertView, midiToggleView, incBankView, decBankView, bankView, samplerModeView, ledView, labelView;
+	var view, midiInvertView, midiToggleView, incBankView, decBankView, bankView, samplerModeView, ledView, labelView, dropView;
 
 	*new { |argName, argSpec|
 		^super.newCopyArgs.init(argName);
