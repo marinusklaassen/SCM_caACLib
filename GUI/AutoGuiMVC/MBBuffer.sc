@@ -16,7 +16,7 @@ BufferGCM {  /* static class BufferGui Control Model */
 
 SBufControlView {
 	var <frame, <label, <bank, <soundfiles, <incBank, <decBank, <led,
-	    <samplerMode, <midi, <invert, <sampler, <labelName;
+	    <samplerMode, <midi, <invert, <sampler, labelName;
 
 	*new { |argLabelName|
 		^super.newCopyArgs.init(argLabelName);
@@ -34,37 +34,33 @@ SBufControlView {
 		frame = CompositeView(argParent, bounds);
 		frame.background = Color.grey;
 
-		label = StaticText.new(frame,Rect(4, 0, 54, height));
+		label = StaticText.new(frame,Rect(4, 2, 44, height - 4));
 		label.string_(labelName);
 
-		bank = PopUpMenu(frame, Rect(60, 0, 70, height));
-		bank.items = ["b1", "b2", "b3"];
+		bank = PopUpMenu(frame, Rect(50, 2, 70, height - 4));
 
-		soundfiles = PopUpMenu(frame, Rect(60, 0, 70, height));
-		soundfiles.items = ["s1", "s2", "s3"];
+		soundfiles = PopUpMenu(frame, Rect(130, 2, 70, height - 4));
 
-		incBank = RoundButton(frame, Rect(130, 0, height , height)).states_([[ "-".postln ]]);
+		incBank = RoundButton(frame, Rect(210, 2, height - 4 , height - 4)).states_([[ "-" ]]);
 		incBank.background = Color.yellow;
 
-		decBank = RoundButton(frame, Rect(160, 0, height , height) ).states_([[ "+".postln ]]);
+		decBank = RoundButton(frame, Rect(240, 2, height - 4 , height - 4) ).states_([[ "+" ]]);
 		decBank.background = Color.yellow;
 
-		led = LED(frame, Rect(190, 0, height, height));
-		led.value = 1;
+		led = LED(frame, Rect(268, 2, height - 4, height - 4));
+		led.value = 0;
 
-		sampler = Button(frame, Rect(220,0,height,height))
+		sampler = Button(frame, Rect(295,2,40,height - 4))
+		.font_(Font("Monaco", italic: true, size: 9))
 		.states_([["SM OFF", Color.red, Color.black],
-			["SM ON", Color.black, Color.red]])
-		.action_({ arg button;
-		 "sampler mode toggle".postln;
-		})
-		.value_(0);
+			["SM ON", Color.black, Color.red]]);
 
-		midi = Button(frame, Rect(250,0,height,height))
-		.states_([["OFF", Color.red, Color.black],
-			["ON", Color.black, Color.red]]);
+		midi = Button(frame, Rect(340,2,40,height - 4))
+			.font_(Font("Monaco", size: 9))
+		.states_([["CC OFF", Color.red, Color.black],
+			["CC ON", Color.black, Color.red]]);
 
-		invert = Button(frame, Rect(280,height - 18,18,18))
+		invert = Button(frame, Rect(382,2,18,18))
 		.states_([["ø", Color.red, Color.black],
 			["ø", Color.black, Color.red]]);
 	}
@@ -81,13 +77,13 @@ SBufControlView {
 SBufControl {
 	var <>spec, <name, <>action, midiResp, learnFlag, invertFlag;
 	var bufferData;
-	var view;
+	var <view;
 
 	*new { |argName, argSpec|
 		^super.newCopyArgs.init(argName);
 	}
 
-	init { |argName|
+	init { |argName = "buffer"|
 		name = argName;
 		/* make a reference to the class BufferPool to retrieve the buffers and control specs */
 		// bufferData = BufferPoolData();
@@ -98,8 +94,12 @@ SBufControl {
 	}
 
 	gui { |argParent, argBounds|
-		view = SBufControlView("buffer");
+		view = SBufControlView(name);
 		view.gui(argParent, argBounds);
+	}
+
+	closeGui {
+		view.closeGui;
 	}
 
 	midiLearn {
@@ -118,7 +118,7 @@ SBufControl {
 	}
 
 	invert { |argValue|
-		invertFlag = argValue.postln;
+		invertFlag = argValue;
 	}
 
 	/*

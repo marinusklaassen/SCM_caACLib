@@ -27,55 +27,73 @@ gebruik kan maken van deze buffers.
 
 "killall scsynth".unixCmd;
 
-
 /* bufferGui Control Model */
 s.boot;
-
+(
 BufferGCM.init;
 d = { |m, what, args|
 	case
 	{ what == 'add' }
 	{ ~addMethod.value(args) };
 };
-
 BufferGCM.model.addDependant(d);
-BufferGCM.model.removeDependant(d)
+)
+
+BufferGCM.model.removeDependant(d);
 
 h = BufferPool();
 h.makeGui;
 
-
+~currentSFIndex = 0;
 ~currentBank = "default bank 1";
 ~currentBufferIndex = 1;
-(
-~addMethod = { |argArray|
-	var bankIndex = nil;
-	argArray.first.keys.postln; /* get bank names */
-	argArray.first.keys.asArray do: { |bank,i| if (bank == ~currentBank) { bankIndex = i }; };
-	bankIndex.postln;
-	argArray.first[argArray[1]].collect(_.path).postln; /* get path names */
-	argArray[1].postln; /* get bank name of added soundfile */
-	argArray[2].postln; /* get index of the added soundfile */
-	argArray[3].postln; /* get buffer */
-};
-)
-
-
-
-
-// Double quote in string and next line.
-"po\"\nhello\ndn\"dfl".postln;
-
-
 
 (
 w = Window(); w.front;
 a = { |i|
-	var temp = MBBuffer();
-	temp.makeGui(w, Rect(0, i * 30, 400, 28));
-	temp;
+	var temp = SBufControl();
+	temp.gui(w, Rect(0, i * 30, 400, 28));
 } ! 8;
 )
+a.first.view.soundfiles.value = 0
+
+(
+~addMethod = { |argArray|
+	var bankIndex = nil;
+	/* get the order of banks somewhere */
+	a.first.view.bank.items = argArray.first.keys.asArray; /* update bank popup */
+	argArray.first.keys.asArray do: { |bank,i| if (bank == ~currentBank) { bankIndex = i }; };
+	a.first.view.bank.value = bankIndex;
+	a.first.view.bank.action = { |argBank| ~currentBank = argBank.value; };
+
+	a.first.view.soundfiles.items = argArray.first[argArray[1]].collect(_.path); /* get path names */
+	a.first.view.soundfiles.value = ~currentSFIndex;
+	a.first.view.soundfiles.action = { |argSf| ~currentSFIndex = argSf.value; };
+
+	argArray[2].postln; /* get index of the added soundfile */
+	argArray[1].postln; /* get bank name of added soundfile */
+	argArray[3].postln; /* get buffer */
+};
+)
+
+a.first.view.bank.items = [1,2,3];
+a.first.view.bank.value = 2;
+
+a.first.view.soundfiles.items = ({ |i| "s" + i }!10);
+a.first.view.soundfiles.value = 8;
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 // Setup GUI
@@ -147,6 +165,10 @@ v.value = 1;
 )
 
 w.front; v.value = 1; v.bounds = Rect(0, 0, 200, 300);
+
+// Double quote in string and next line.
+"po\"\nhello\ndn\"dfl".postln;
+
 
 (
 {
