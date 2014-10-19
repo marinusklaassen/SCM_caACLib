@@ -61,7 +61,7 @@ m.metadata[\noGui] = [];
 // Store processed SynthDef metadata
 SynthDesc.storeMetaData(\DaGrain, m.metadata);
 );
-
+s.boot;
 // Test SynthDef
 EmbedGui(\DaGrain).makeGui;
 

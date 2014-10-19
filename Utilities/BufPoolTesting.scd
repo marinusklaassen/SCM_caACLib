@@ -19,7 +19,7 @@ w.front;
 
 a = BPBankView();
 a.makeGui(w, Rect(5, 5, 180, 300)) ;
-a.addAction = { |...args| args.postln;
+a.addAction = { |...args|
 	var soundfileView = BPSoundfileView();
 	soundfileView.makeGui(w, Rect(200, 5, 400, 300));
 

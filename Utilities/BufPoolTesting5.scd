@@ -22,67 +22,121 @@ gebruiken in hun processen. Dit om realtime sampling and processing mogelijk te 
 
 Maak een bank slider/selector zodat de EmbedGui objecten en the Score & Controller interface ook
 gebruik kan maken van deze buffers.
-
+4
 */
 
 "killall scsynth".unixCmd;
 
 /* bufferGui Control Model */
-s.boot;
-(
-BufferGCM.init;
-d = { |m, what, args|
-	case
-	{ what == 'add' }
-	{ ~addMethod.value(args) };
-};
-BufferGCM.model.addDependant(d);
-)
 
-BufferGCM.model.removeDependant(d);
+
+/* Als er op de stop edit Gaat string actie gaat af. Waarom? */
+
+
+s.boot;
+
 
 h = BufferPool();
 h.makeGui;
 
-~currentSFIndex = 0;
-~currentBank = "default bank 1";
-~currentBufferIndex = 1;
 
+~iBank = 3;
+
+/* Responder function */
 (
 w = Window(); w.front;
-a = { |i|
-	var temp = SBufControl();
-	temp.gui(w, Rect(0, i * 30, 400, 28));
-} ! 8;
-)
-a.first.view.soundfiles.value = 0
+b = SBufControl();
+b.gui(w, Rect(0, 100, 400, 28));
 
-(
-~addMethod = { |argArray|
-	var bankIndex = nil;
-	/* get the order of banks somewhere */
-	a.first.view.bank.items = argArray.first.keys.asArray; /* update bank popup */
-	argArray.first.keys.asArray do: { |bank,i| if (bank == ~currentBank) { bankIndex = i }; };
-	a.first.view.bank.value = bankIndex;
-	a.first.view.bank.action = { |argBank| ~currentBank = argBank.value; };
+b.tempActionFunc = { |oModelIP, cWhatIP, tArgsIP|
 
-	a.first.view.soundfiles.items = argArray.first[argArray[1]].collect(_.path); /* get path names */
-	a.first.view.soundfiles.value = ~currentSFIndex;
-	a.first.view.soundfiles.action = { |argSf| ~currentSFIndex = argSf.value; };
+    cWhatIP.postln; tArgsIP.postln;
 
-	argArray[2].postln; /* get index of the added soundfile */
-	argArray[1].postln; /* get bank name of added soundfile */
-	argArray[3].postln; /* get buffer */
 };
 )
 
-a.first.view.bank.items = [1,2,3];
-a.first.view.bank.value = 2;
-
-a.first.view.soundfiles.items = ({ |i| "s" + i }!10);
-a.first.view.soundfiles.value = 8;
 
 
+
+
+
+
+
+
+
+/* In de werk logica de dependants toevoegen*/
+~model.addDependant({      }
+    if (owhat == \iBank) {
+
+        currentBank = // get bankname
+        create a control spec !! //
+        // Update sndfile list gui!!!
+
+    }
+
+
+
+
+
+
+
+
+
+(
+
+a = { |i|
+	var temp = SBufControl();
+
+} ! 20;
+)
+
+// BufferCM.changed(\bankUpdate, ["Test");
+
+
+
+
+    (
+a  = {
+    |...args|
+    args.postln;
+};
+BufferCM.model.addDependant(a);
+)
+
+BufferCM.model.removeDependant(a);
+
+
+  BufferDict.buffers
+
+
+
+// The Control Model generates the lists from the BufferPool objects.
+// These lists are passed to the BufferChannels
+
+// The buffer channel control object properties
+- The current bank
+- The current soundfile index
+- The midi cc controller assigned to it
+- The if the sampler mode is on or off
+- The if cc learn mode is enable
+- The invertion of the incoming cc
+
+
+- If the sampler mode is turned on the passed buffer is instantly assigned to the synth buffer key
+- When a
+- Also the bank is changed to the current sampling
+
+- make gui method
+- getState
+- loadState
+
+- Buffers en ControlSpecs are requested via the control model. This pool is static en nested in the model
+
+// In the BufferPool dictionary a ControlSpec should be assign to a dedicated slot.
+~spec = Dictionary();
+
+
+~specs[thisBank.string] = ControlSpec(0, bufferDataBase[thisBank.string], step: 1);
 
 
 
@@ -206,6 +260,14 @@ f.font_(q);
 f.action = { |b| b.value.postln; };
 w.front;
 )
+
+
+\
+
+
+
+
+
 
 
 

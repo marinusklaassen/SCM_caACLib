@@ -64,7 +64,7 @@ SynthDesc.storeMetaData(\Gendy_4, m.metadata);
 // Test SynthDef
 EmbedGui(\Gendy_4).makeGui;
 
-
-
+{ SinOsc.ar() }.play
+s.makeGui; s.meter;
 
 

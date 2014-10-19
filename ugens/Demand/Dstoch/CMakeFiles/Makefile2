@@ -47,10 +47,10 @@ RM = /usr/local/Cellar/cmake/2.8.8/bin/cmake -E remove -f
 CMAKE_EDIT_COMMAND = /usr/local/Cellar/cmake/2.8.8/bin/ccmake
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = "/Users/MarinusKlaassen/Library/Application Support/SuperCollider/Extensions/caAC-MLib/UGens/Demand/Dstoch"
+CMAKE_SOURCE_DIR = "/Users/MarinusKlaassen/Library/Application Support/SuperCollider/Extensions/AC-Mlib/demand/Dstoch"
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = "/Users/MarinusKlaassen/Library/Application Support/SuperCollider/Extensions/caAC-MLib/UGens/Demand/Dstoch"
+CMAKE_BINARY_DIR = "/Users/MarinusKlaassen/Library/Application Support/SuperCollider/Extensions/AC-Mlib/demand/Dstoch"
 
 #=============================================================================
 # Target rules for target CMakeFiles/Dstoch.dir
@@ -59,7 +59,7 @@ CMAKE_BINARY_DIR = "/Users/MarinusKlaassen/Library/Application Support/SuperColl
 CMakeFiles/Dstoch.dir/all:
 	$(MAKE) -f CMakeFiles/Dstoch.dir/build.make CMakeFiles/Dstoch.dir/depend
 	$(MAKE) -f CMakeFiles/Dstoch.dir/build.make CMakeFiles/Dstoch.dir/build
-	$(CMAKE_COMMAND) -E cmake_progress_report "/Users/MarinusKlaassen/Library/Application Support/SuperCollider/Extensions/caAC-MLib/UGens/Demand/Dstoch/CMakeFiles"  1
+	$(CMAKE_COMMAND) -E cmake_progress_report "/Users/MarinusKlaassen/Library/Application Support/SuperCollider/Extensions/AC-Mlib/demand/Dstoch/CMakeFiles"  1
 	@echo "Built target Dstoch"
 .PHONY : CMakeFiles/Dstoch.dir/all
 
@@ -69,9 +69,9 @@ all: CMakeFiles/Dstoch.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/Dstoch.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start "/Users/MarinusKlaassen/Library/Application Support/SuperCollider/Extensions/caAC-MLib/UGens/Demand/Dstoch/CMakeFiles" 1
+	$(CMAKE_COMMAND) -E cmake_progress_start "/Users/MarinusKlaassen/Library/Application Support/SuperCollider/Extensions/AC-Mlib/demand/Dstoch/CMakeFiles" 1
 	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/Dstoch.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start "/Users/MarinusKlaassen/Library/Application Support/SuperCollider/Extensions/caAC-MLib/UGens/Demand/Dstoch/CMakeFiles" 0
+	$(CMAKE_COMMAND) -E cmake_progress_start "/Users/MarinusKlaassen/Library/Application Support/SuperCollider/Extensions/AC-Mlib/demand/Dstoch/CMakeFiles" 0
 .PHONY : CMakeFiles/Dstoch.dir/rule
 
 # Convenience name for target.

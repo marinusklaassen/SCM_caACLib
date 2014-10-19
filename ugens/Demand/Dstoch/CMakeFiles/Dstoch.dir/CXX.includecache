@@ -228,9 +228,9 @@ SC_Types.h
 string.h
 -
 
-/Users/MarinusKlaassen/Library/Application Support/SuperCollider/Extensions/caAC-MLib/UGens/Demand/Dstoch/Dstoch.cpp
+/Users/MarinusKlaassen/Library/Application Support/SuperCollider/Extensions/AC-Mlib/demand/Dstoch/Dstoch.cpp
 SC_PlugIn.h
-/Users/MarinusKlaassen/Library/Application Support/SuperCollider/Extensions/caAC-MLib/UGens/Demand/Dstoch/SC_PlugIn.h
+/Users/MarinusKlaassen/Library/Application Support/SuperCollider/Extensions/AC-Mlib/demand/Dstoch/SC_PlugIn.h
 cstdio
 -
 cmath

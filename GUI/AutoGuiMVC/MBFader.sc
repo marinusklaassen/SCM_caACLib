@@ -1,9 +1,20 @@
+/* TODO
+- coding standards toevoegen
+- comments toevoegen
+- het opslaan van een midi control setting
+- het start met een midi control setting
+- controleer hierbij ook of er een midi controller aanwezig is
+- gui sizing mogelijkheden toevoegen
+
+*/
+
 MBFader {
-	var gui, model, depedants, <>spec, <name, <>action, midiResp, midiFlag;
+	var gui, model, depedants, <>spec, <name, <>action, midiResp, midiFlag, <>bMidiInvert;
 
 	*new { |argName, argSpec|
 		^super.newCopyArgs.init(argName,argSpec);
 	}
+
 
 	init { |argName, argSpec|
 		if (argSpec.isNil) { argSpec = \amp.asSpec };
@@ -11,6 +22,7 @@ MBFader {
 		spec = argSpec;
 		name = argName;
 		midiFlag = 0;
+		bMidiInvert = false;
 		model = (value: 0.0);
 		model[\setValueFunction] = { |value|
 			model[\value] = value;
@@ -23,8 +35,9 @@ MBFader {
 		model.addDependant(depedants[\actionFunc]);
 	}
 
+
 	makeGui { |parent, bounds|
-		var sliderWidth = bounds.asRect.width - 160;
+		var sliderWidth = bounds.asRect.width - 180;
 		bounds = bounds.asRect;
 		gui = Dictionary.new;
 		gui[\canvas] = CompositeView(parent,bounds);
@@ -44,6 +57,16 @@ MBFader {
 			if (butt.value == 1) { this.midiLearn; } { this.midiUnlearn; };
 		})
 		.value_(midiFlag);
+
+		gui[\btnMidiInvert] = Button(gui[\canvas], Rect(160+sliderWidth,0,16,16))
+		.states_([["ø", Color.red, Color.black],
+			["ø", Color.black, Color.red]])
+		.action_({ arg butt;
+
+			bMidiInvert = butt.value == 1;
+		})
+		.value_(\bMidiInvert);
+
 		depedants[\updateView] = {|theChanger, what, val|
 			gui[\sliderView].value_(val);
 			gui[\boxView].value_(spec.map(val));
@@ -52,34 +75,69 @@ MBFader {
 		model[\setValueFunction].value(model[\value]);
 	}
 
+
+	midiStart {
+
+		arg iControlChannel;
+
+		if (midiResp.notNil) { midiResp.remove; };
+
+		midiResp = CCResponder({
+
+			arg src, chan, num, value;
+
+			if (bMidiInvert) { value = 127 - value; };
+
+			{ model[\setValueFunction].value(value / 127); }.defer;
+
+			}
+			,chan: iControlChannel
+		);
+
+	} /* midiStart */
+
+
 	midiLearn {
-		if (midiResp.isNil) {
-			midiResp = CCResponder({ |src,chan,num,value|
+
+		if (midiResp.notNil) { midiResp.remove; };
+
+		midiResp = CCResponder({ |src,chan,num,value|
+
+			if (bMidiInvert) { value = 127 - value; };
+
 				{ model[\setValueFunction].value(value / 127); }.defer;
-			});
-		};
+
+		});
+
 		midiResp.learn; // wait for the first controller
 		midiFlag = 1;
 	}
+
 
 	midiUnlearn {
 		midiResp.remove; midiResp = nil; midiFlag = 0;
 	}
 
+
 	value_ {|argValue|
 		model[\setValueFunction].value(argValue)
 	}
 
+
 	value {
 		^model[\value]
 	}
+
 
 	name_ {|argName|
 		name = argName;
 		if (gui.notNil) { gui[\nameView].string_(name); };
 	}
 
-	closeGui { model.removeDependant(depedants[\updateView]); }
+
+	closeGui {
+	model.removeDependant(depedants[\updateView]);
+        }
 }
 
 MBNumberBox {
@@ -93,7 +151,7 @@ MBNumberBox {
 	}
 
 	makeGui { |parent,bounds|
-		var boxWidth = bounds.asRect.width - 160;
+		var boxWidth = bounds.asRect.width - 180;
 		bounds = bounds.asRect;
 		gui = Dictionary.new;
 		gui[\canvas] = CompositeView(parent,bounds);
@@ -259,123 +317,4 @@ MBControlPanel {
 	}
 }
 
-
-EmbedGui {
-
-	// Control Elements is an array with only the control elements!
-	var <controlElements, <synthDefName, synthDesc, <>controlPanel, canvas, tempNames, tempToggleSynth, <>index, <>widthOffset;
-
-	// first inialization and creation of a new instance
-	*new { |argSynthDefName|
-		^super.newCopyArgs.init(argSynthDefName);
-	}
-	// init all nescessary value
-	init { |argSynthDefName|
-		synthDefName = argSynthDefName;
-		synthDesc = SynthDesc.readDef(synthDefName);
-
-		widthOffset = 0;
-
-		controlPanel = MBControlPanel.new(synthDesc.metadata, synthDefName);
-		controlPanel.randomAction = {
-			controlElements do: { |element|
-				if (element.isKindOf(MBFader)) { element.value_(1.0.rand) }
-			}
-		};
-		controlPanel.playTrigger = { this.oneShotPlay };
-		controlPanel.playToggle = { |value| this.togglePlay(value) };
-		controlPanel.getPreset = { var preset = ();
-			preset[\volgorde] = Array.new;
-			controlElements do: { |element|
-				preset[\volgorde] = preset[\volgorde].add(element.name);
-				preset[preset[\volgorde].last] = element.value;
-			};
-			preset.copy;
-		};
-		controlPanel.loadPreset = { |preset|
-			var volgorde = preset[\volgorde].copy;
-			preset[\volgorde] = nil;
-
-			volgorde do: { |key, i| controlElements[i].value_(preset[key]) }; // maybe a value action in elements
-		};
-
-		controlPanel.fileAction = { |toStoreMetaData| SynthDesc.storeMetaData(synthDefName, toStoreMetaData); };
-
-		controlElements = List.new;
-		tempNames = synthDesc.controlNames;
-
-		synthDesc.metadata[\noGui] do: { |key| tempNames.removeAt(tempNames.indexOfEqual(key)) };
-
-		tempNames do: { |key|
-			var checkSpec = key.asSpec.isKindOf(ControlSpec) || synthDesc.metadata[\specs][key].isKindOf(ControlSpec);
-			if (checkSpec) {
-				controlElements.add(MBFader.new(key,if(key.asSpec.isKindOf(ControlSpec)){key.asSpec}{synthDesc.metadata[\specs][key]}));
-			} {
-				controlElements.add(MBNumberBox.new(key));
-			};
-			controlElements.last.name = key;
-		};
-	}
-
-	makeGui { |argParent|
-		var parent;
-		if (argParent.isNil) { parent = Window.new.front; } { parent = argParent };
-
-		canvas = CompositeView(parent,parent.bounds.width - widthOffset@(tempNames.size * 28 + 32));
-		canvas.addFlowLayout(0@0, 0@2);
-		canvas.background_(Color.grey);
-
-		controlPanel.makeGui(canvas,canvas.bounds.width@30);
-
-		controlElements do: { |element|
-			element.makeGui(canvas, canvas.bounds.width @ 22);
-			CompositeView(canvas,canvas.bounds.width@2).background_(Color.rand);
-		};
-	}
-
-	closeGui { canvas.remove }
-
-	getParamValuesArray {
-		var paramValuesArray = Array.new;
-		controlElements do: { |obj|
-			paramValuesArray = paramValuesArray.add(obj.name.asSymbol);
-			paramValuesArray = paramValuesArray.add(
-				if(obj.isKindOf(MBFader)) {
-					obj.spec.map(obj.value)
-				} {
-					obj.value;
-				}
-			)
-		};
-		^paramValuesArray
-	}
-
-	oneShotPlay {
-		fork {
-			var tempSynth, indexOf, paramsValues = this.getParamValuesArray;
-			if (tempSynth.notNil) { tempSynth.release; tempSynth = nil };
-			tempSynth = Synth(synthDefName, paramsValues);
-			Server.default.sync;
-			indexOf = paramsValues.indexOf(\atk);
-			if (indexOf.notNil) {
-				fork { (paramsValues[indexOf + 1]).wait; tempSynth.set(\gate, 0); tempSynth = nil }
-			} {
-				tempSynth.set(\gate, 0); tempSynth = nil
-			};
-		}
-	}
-
-	togglePlay { |toggle|
-		var paramsValues = this.getParamValuesArray;
-
-		if (toggle > 0) {
-			controlElements do: { |element| element.action = { |value| tempToggleSynth.set(element.name, value) } };
-			if (tempToggleSynth.notNil) { tempToggleSynth.release; tempToggleSynth = nil };
-			tempToggleSynth = Synth(synthDefName, paramsValues);
-		} {
-			tempToggleSynth.set(\gate, 0); tempToggleSynth = nil;
-			controlElements do: { |element| element.action = nil; };
-		};
-	}
-}
 

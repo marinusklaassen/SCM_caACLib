@@ -1,4 +1,4 @@
-# Install script for directory: /Users/MarinusKlaassen/Library/Application Support/SuperCollider/Extensions/caAC-MLib/UGens/Demand/Dstoch
+# Install script for directory: /Users/MarinusKlaassen/Library/Application Support/SuperCollider/Extensions/AC-Mlib/demand/Dstoch
 
 # Set the install prefix
 IF(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -33,7 +33,7 @@ ELSE(CMAKE_INSTALL_COMPONENT)
   SET(CMAKE_INSTALL_MANIFEST "install_manifest.txt")
 ENDIF(CMAKE_INSTALL_COMPONENT)
 
-FILE(WRITE "/Users/MarinusKlaassen/Library/Application Support/SuperCollider/Extensions/caAC-MLib/UGens/Demand/Dstoch/${CMAKE_INSTALL_MANIFEST}" "")
+FILE(WRITE "/Users/MarinusKlaassen/Library/Application Support/SuperCollider/Extensions/AC-Mlib/demand/Dstoch/${CMAKE_INSTALL_MANIFEST}" "")
 FOREACH(file ${CMAKE_INSTALL_MANIFEST_FILES})
-  FILE(APPEND "/Users/MarinusKlaassen/Library/Application Support/SuperCollider/Extensions/caAC-MLib/UGens/Demand/Dstoch/${CMAKE_INSTALL_MANIFEST}" "${file}\n")
+  FILE(APPEND "/Users/MarinusKlaassen/Library/Application Support/SuperCollider/Extensions/AC-Mlib/demand/Dstoch/${CMAKE_INSTALL_MANIFEST}" "${file}\n")
 ENDFOREACH(file)

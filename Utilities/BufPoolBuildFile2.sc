@@ -1,16 +1,21 @@
 
 
 BPDragAndDropElement {
-	var stringModel, stringValueFunction, stringActionDependant, oldString;
+
+    var stringModel, stringValueFunction, stringActionDependant, oldString;
 	var editModel, editValueFunction, editDependant, editModel;
 	var >beginDragAction, >endDragAction, <>stringAction, >selectAction;
 	var dragAndDropContainer, editView, dragAndDropView, textEdit, stringGuiDependant, editDependant, removeButton;
 	var >removeAction;
 	var <>what, <>index, <>extra;
 
-	*new { |argIndex, argWhat, argString|
-		^super.newCopyArgs.init(argIndex, argWhat, argString);
-	}
+	*new {
+
+        |argIndex, argWhat, argString|
+
+        ^super.newCopyArgs.init(argIndex, argWhat, argString);
+
+    }
 
 	stringModelViewController {
 
@@ -107,7 +112,7 @@ BPDragAndDropElement {
 			} {
 				dragAndDropView.visible = true;
 				editView.visible = false;
-				textEdit.doAction;
+				// textEdit.doAction; // TODO tijdelijk uitgecomment de gebruiker moet tijdelijk
 			};
 
 
@@ -195,6 +200,8 @@ BPBankView {
 						if (currentDragObject.at(0) == "bank") {
 							units[startDragArray[1]].string = [\bankSwap, units[bankUnit.index.postln].string.copy];
 							units[bankUnit.index].string = [\bankSwap, startDragArray[2]];
+                            // Verzamel de banknamen
+                            BufferCM.changed(\bankUpdate, Array.fill(units.size, { |i| units[i].string }));
 						};
 						if (startDragArray[3].postln != bankUnit.string.postln && (startDragArray[0] == "soundfile")) {
 							"Append soundfile to %\n".postf(bankUnit.string);
@@ -208,7 +215,8 @@ BPBankView {
 					if (selectAction.notNil) {
 						selectAction.value(what, index, string, extra)
 					}
-				}
+				};
+
 			}
 		}
 	}
@@ -246,14 +254,26 @@ BPBankView {
 		// Set action functions
 		units[index].selectAction = selectAction;
 		units[index].removeAction = { |what, index, string, extra|
-			this.removeBank(index);
+
+            this.removeBank(index);
 		};
 
-		units[index].stringAction =  stringAction;
+
+        units[index].stringAction  = { |...args|
+            /* collect banknames TODO method */
+            args = args.add(Array.fill(units.size, { |i| units[i].string }));
+
+            if (stringAction.notNil) {
+                stringAction.value(args);
+            };
+
+        };
 
 		this.update;
 
 		if (addAction.notNil) { addAction.value(unit) };
+        /* collect banknames TODO method */
+        BufferCM.changed(\bankUpdate, Array.fill(units.size, { |i| units[i].string }));
 	}
 }
 
@@ -280,7 +300,7 @@ BPSoundfileView {
 		view.receiveDragHandler = {
 			var currentDrag = View.currentDrag;
 			case
-			{ currentDrag == \add } { this.addDialog("soundfile", units.size); }
+			{ currentDrag == \add } { this.openFileDialog("soundfile", units.size); }
 			{ currentDrag.isString } { this.addFileToBuffer(currentDrag) };
 		};
 
@@ -309,7 +329,7 @@ BPSoundfileView {
 								swapAction.value(bankName, startDragArray[1], soundfileUnit.index) };
 						};
 
-					} { currentDragObject == \add } { this.addDialog(thisWhat, thisIndex) }
+					} { currentDragObject == \add } { this.openFileDialog(thisWhat, thisIndex) }
 				} {
 					if (selectAction.notNil) {
 						selectAction.value(bankName, index, string)
@@ -370,37 +390,50 @@ BPSoundfileView {
 		}
 	}
 
-	addFileToBuffer { |path, what, index|
-		if (path.pathExists != false) {
-			Buffer.readChannel(channels: [0], path: path , action: {
-				|buf|
-				if (addBufAction.notNil) {
+	addFileToBuffer {
+
+         /* Laad een filepath in een audio Buffer */
+
+        |path, what, index|
+
+        if (path.pathExists != false) {
+
+            Buffer.readChannel(channels: [0], path: path , action: {
+
+                |buf|
+
+                /* Voer een actie functie uit zodat aan processen geupdate worden */
+                if (addBufAction.notNil) {
+
+                    addBufAction.value(buf, buf.path, what, index, bankName)
+
+                }
+
+            })
+
+        } /* if (path.pathExists != false) */
+
+	} /* end method addFileToBuffer */
+
+
+	openFileDialog { |what, index|
+
+        Dialog.openPanel({ |path|
+
+            Buffer.readChannel(channels: [0], path: path , action: { |buf|
+
+                if (addBufAction.notNil) {
 					addBufAction.value(buf, buf.path, what, index, bankName)
-				}
-			})
 
+                }
 
-			/*Buffer.read(path: path, action: { |argBuffer|
-				if (addBufAction.notNil) {
-					addBufAction.value(argBuffer, path, what, index, bankName)
-				}
-			})*/
-		}
+            })
 
-	}
+        })
 
-	addDialog { |what, index|
-		Dialog.openPanel({
-			|path|
-			Buffer.readChannel(channels: [0], path: path , action: {
-				|buf|
-				if (addBufAction.notNil) {
-					addBufAction.value(buf, buf.path, what, index, bankName)
-				}
-			})
-		})
-	}
-}
+    } /* end method openFileDialog */
+
+} /* end class BPSoundfileView */
 
 
 BPTransporter {
@@ -500,28 +533,30 @@ BPTransporter {
 
 
 BufferPool {
-	var <parent, <>soundFileViews, <>bufferDataBase, <bankView;
+	var <parent, <>soundFileViews, <bankView;
 	var <currentBankName, transporter, storeAndReadProject;
 
 	*new { ^super.new.init; }
 
 	init {
-		if (BufferGCM.model.isNil) { BufferGCM.init; };
+		if (BufferCM.model.isNil) { BufferCM.init; };
 
 		soundFileViews = Dictionary();
-		bufferDataBase = Dictionary();
+
+        BufferDict.init;
 
 		storeAndReadProject = BPStoreAndReadProject(this);
 
 		bankView = BPBankView();
 		bankView.addAction = { |thisBank|
+
 			var newSoundFileView = BPSoundfileView();
 
 			if (soundFileViews[currentBankName].notNil) {
 				soundFileViews[currentBankName].closeGui;
 			};
 
-			bufferDataBase[thisBank.string] = Array();
+			BufferDict.buffers[thisBank.string] = Array();
 
 			newSoundFileView.bankName = thisBank.string;
 
@@ -530,42 +565,46 @@ BufferPool {
 			newSoundFileView.addBufAction = { |buf, path, what, index, bankName|
 				transporter.buffer = buf;
 				{
-					if (index.isNil) { index = newSoundFileView.units.size };
+
+                    if (index.isNil) { index = newSoundFileView.units.size };
 					newSoundFileView.add(index, path);
-					bufferDataBase[thisBank.string] = bufferDataBase[thisBank.string].insert(index + 1, buf);
-					BufferGCM.changed(\add, bufferDataBase, bankName, index + 1, buf);
+					BufferDict.buffers[thisBank.string] = BufferDict.buffers[thisBank.string].insert(index + 1, buf);
+					BufferCM.changed(\add, bankName, index + 1, buf);
+
 
 				}.defer;
 
 			};
 
 			newSoundFileView.swapAction = { |bank, index1, index2|
-				var a1 = bufferDataBase[bank][index1];
-				var a2 = bufferDataBase[bank][index2];
-				bufferDataBase[bank][index1] = a2;
-				bufferDataBase[bank][index2] = a1;
+				var a1 = BufferDict.buffers[bank][index1];
+				var a2 = BufferDict.buffers[bank][index2];
+				BufferDict.buffers[bank][index1] = a2;
+				BufferDict.buffers[bank][index2] = a1;
 				transporter.buffer = a1;
-				BufferGCM.changed(\swap, bufferDataBase);
+				BufferCM.changed(\SwapBuffer, bank, index1, index1);
 			};
 
 			newSoundFileView.selectAction = { |argBankName, argIndex, argName|
-				transporter.buffer = bufferDataBase[argBankName][argIndex];
+				transporter.buffer = BufferDict.buffers[argBankName][argIndex];
 			};
 
 			newSoundFileView.removeAction = { |argBankName, argIndex|
-				bufferDataBase[argBankName].removeAt(argIndex);
-				BufferGCM.changed(\remove, bufferDataBase, currentBankName, argIndex);
+				BufferDict.buffers[argBankName].removeAt(argIndex);
+				BufferCM.changed(\RemoveBuffer, currentBankName, argIndex);
+
+
 			};
 
 			soundFileViews[thisBank.string] = newSoundFileView;
 
 			currentBankName = thisBank.string;
 
-
 		};
 
 		bankView.selectAction = { |bank, index, bankName|
-			if (currentBankName != bankName) {
+
+            if (currentBankName != bankName) {
 				soundFileViews[currentBankName].closeGui;
 				soundFileViews[bankName].makeGui(parent, Rect(200, 5, 400, 300));
 				currentBankName = bankName;
@@ -573,27 +612,37 @@ BufferPool {
 		};
 
 		bankView.removeAction = { |...args|
-			soundFileViews[args[2]].remove;
+            soundFileViews[args[2]].closeGui();
+            soundFileViews[args[2]].remove;
 			soundFileViews[args[2]] = nil;
-			bufferDataBase[args[2]] do: (_.free);
-			bufferDataBase[args[2]] = nil;
+			BufferDict.buffers[args[2]] do: (_.free);
+			BufferDict.buffers[args[2]] = nil;
+            BufferCM.changed(\bankRemove, args[2]);
+
+
 		};
 
-		bankView.stringAction = { |argString, oldString, argWhat, argIndex|
-			var t1, t2;
-			currentBankName = argString;
-			soundFileViews[oldString].bankName = argString;
+		bankView.stringAction = { |tRenameArgs|
 
-			t1 = bufferDataBase[oldString];
-			t2 = soundFileViews[oldString];
+            /* Methode zodat een sample bank naam wijziging kan worden doorgevoerd */
 
-			bufferDataBase[argString] = t1;
-			soundFileViews[argString] = t2;
-			soundFileViews[argString].bankName = argString;
+            var cNewBankname = tRenameArgs[0].postln;
+            var cOldBankName = tRenameArgs[1].postln;
 
-			bufferDataBase[oldString] = nil;
-			soundFileViews[oldString] = nil;
+            soundFileViews[cOldBankName].bankName = cNewBankname;
+            soundFileViews[cNewBankname] = soundFileViews[cOldBankName].copy;
+            soundFileViews[cOldBankName] = nil;
 
+            if (currentBankName == cOldBankName) { currentBankName = cNewBankname };
+            "WATGEBEURT".postln;
+            BufferDict.buffers[cNewBankname] = BufferDict.buffers[cOldBankName].copy;
+            BufferDict.buffers[cNewBankname].postln;
+            BufferDict.buffers[cOldBankName] = nil;
+            BufferDict.buffers[cNewBankname].postln;
+
+
+            /* Update de dependant objecten */
+            BufferCM.changed(\changeBankname, cNewBankname, cOldBankName, tRenameArgs[4]);
 
 		};
 
@@ -696,7 +745,7 @@ BPStoreAndReadProject {
 					var pathName = bufferUnit.string;
 					if (pathName.pathExists != \file) {
 						pathName = audiofile_path ++ bufferUnit.string ++ ".aiff";
-						bufferPoolObject.bufferDataBase[bankName][bufferUnit.index].write(pathName)
+						BufferDict.buffers[bankName][bufferUnit.index].write(pathName) /* TODO er mag maar 1 instantie bestaan */
 					};
 
 					bufferElement.setAttribute("pathname", pathName);
@@ -754,11 +803,5 @@ BPStoreAndReadProject {
 	}
 
 }
-
-
-
-
-
-
 
 

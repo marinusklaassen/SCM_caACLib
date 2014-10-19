@@ -35,10 +35,10 @@ RM = /usr/local/Cellar/cmake/2.8.8/bin/cmake -E remove -f
 CMAKE_EDIT_COMMAND = /usr/local/Cellar/cmake/2.8.8/bin/ccmake
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = "/Users/MarinusKlaassen/Library/Application Support/SuperCollider/Extensions/caAC-MLib/UGens/Demand/Dstoch"
+CMAKE_SOURCE_DIR = "/Users/MarinusKlaassen/Library/Application Support/SuperCollider/Extensions/AC-Mlib/demand/Dstoch"
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = "/Users/MarinusKlaassen/Library/Application Support/SuperCollider/Extensions/caAC-MLib/UGens/Demand/Dstoch"
+CMAKE_BINARY_DIR = "/Users/MarinusKlaassen/Library/Application Support/SuperCollider/Extensions/AC-Mlib/demand/Dstoch"
 
 # Include any dependencies generated for this target.
 include CMakeFiles/Dstoch.dir/depend.make
@@ -51,17 +51,17 @@ include CMakeFiles/Dstoch.dir/flags.make
 
 CMakeFiles/Dstoch.dir/Dstoch.cpp.o: CMakeFiles/Dstoch.dir/flags.make
 CMakeFiles/Dstoch.dir/Dstoch.cpp.o: Dstoch.cpp
-	$(CMAKE_COMMAND) -E cmake_progress_report "/Users/MarinusKlaassen/Library/Application Support/SuperCollider/Extensions/caAC-MLib/UGens/Demand/Dstoch/CMakeFiles" $(CMAKE_PROGRESS_1)
+	$(CMAKE_COMMAND) -E cmake_progress_report "/Users/MarinusKlaassen/Library/Application Support/SuperCollider/Extensions/AC-Mlib/demand/Dstoch/CMakeFiles" $(CMAKE_PROGRESS_1)
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Building CXX object CMakeFiles/Dstoch.dir/Dstoch.cpp.o"
-	/usr/bin/c++   $(CXX_DEFINES) $(CXX_FLAGS) -o CMakeFiles/Dstoch.dir/Dstoch.cpp.o -c "/Users/MarinusKlaassen/Library/Application Support/SuperCollider/Extensions/caAC-MLib/UGens/Demand/Dstoch/Dstoch.cpp"
+	/usr/bin/c++   $(CXX_DEFINES) $(CXX_FLAGS) -o CMakeFiles/Dstoch.dir/Dstoch.cpp.o -c "/Users/MarinusKlaassen/Library/Application Support/SuperCollider/Extensions/AC-Mlib/demand/Dstoch/Dstoch.cpp"
 
 CMakeFiles/Dstoch.dir/Dstoch.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/Dstoch.dir/Dstoch.cpp.i"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_FLAGS) -E "/Users/MarinusKlaassen/Library/Application Support/SuperCollider/Extensions/caAC-MLib/UGens/Demand/Dstoch/Dstoch.cpp" > CMakeFiles/Dstoch.dir/Dstoch.cpp.i
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_FLAGS) -E "/Users/MarinusKlaassen/Library/Application Support/SuperCollider/Extensions/AC-Mlib/demand/Dstoch/Dstoch.cpp" > CMakeFiles/Dstoch.dir/Dstoch.cpp.i
 
 CMakeFiles/Dstoch.dir/Dstoch.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/Dstoch.dir/Dstoch.cpp.s"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_FLAGS) -S "/Users/MarinusKlaassen/Library/Application Support/SuperCollider/Extensions/caAC-MLib/UGens/Demand/Dstoch/Dstoch.cpp" -o CMakeFiles/Dstoch.dir/Dstoch.cpp.s
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_FLAGS) -S "/Users/MarinusKlaassen/Library/Application Support/SuperCollider/Extensions/AC-Mlib/demand/Dstoch/Dstoch.cpp" -o CMakeFiles/Dstoch.dir/Dstoch.cpp.s
 
 CMakeFiles/Dstoch.dir/Dstoch.cpp.o.requires:
 .PHONY : CMakeFiles/Dstoch.dir/Dstoch.cpp.o.requires
@@ -97,6 +97,6 @@ CMakeFiles/Dstoch.dir/clean:
 .PHONY : CMakeFiles/Dstoch.dir/clean
 
 CMakeFiles/Dstoch.dir/depend:
-	cd "/Users/MarinusKlaassen/Library/Application Support/SuperCollider/Extensions/caAC-MLib/UGens/Demand/Dstoch" && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" "/Users/MarinusKlaassen/Library/Application Support/SuperCollider/Extensions/caAC-MLib/UGens/Demand/Dstoch" "/Users/MarinusKlaassen/Library/Application Support/SuperCollider/Extensions/caAC-MLib/UGens/Demand/Dstoch" "/Users/MarinusKlaassen/Library/Application Support/SuperCollider/Extensions/caAC-MLib/UGens/Demand/Dstoch" "/Users/MarinusKlaassen/Library/Application Support/SuperCollider/Extensions/caAC-MLib/UGens/Demand/Dstoch" "/Users/MarinusKlaassen/Library/Application Support/SuperCollider/Extensions/caAC-MLib/UGens/Demand/Dstoch/CMakeFiles/Dstoch.dir/DependInfo.cmake" --color=$(COLOR)
+	cd "/Users/MarinusKlaassen/Library/Application Support/SuperCollider/Extensions/AC-Mlib/demand/Dstoch" && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" "/Users/MarinusKlaassen/Library/Application Support/SuperCollider/Extensions/AC-Mlib/demand/Dstoch" "/Users/MarinusKlaassen/Library/Application Support/SuperCollider/Extensions/AC-Mlib/demand/Dstoch" "/Users/MarinusKlaassen/Library/Application Support/SuperCollider/Extensions/AC-Mlib/demand/Dstoch" "/Users/MarinusKlaassen/Library/Application Support/SuperCollider/Extensions/AC-Mlib/demand/Dstoch" "/Users/MarinusKlaassen/Library/Application Support/SuperCollider/Extensions/AC-Mlib/demand/Dstoch/CMakeFiles/Dstoch.dir/DependInfo.cmake" --color=$(COLOR)
 .PHONY : CMakeFiles/Dstoch.dir/depend
 

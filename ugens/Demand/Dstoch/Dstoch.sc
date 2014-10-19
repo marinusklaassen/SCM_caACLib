@@ -20,11 +20,6 @@ Dexpon : DUGen {
 	}
 }
 
-Dexpon2 : DUGen {
-	*new { arg lo = 0.0, hi = 1.0, exponent = 2, length = inf;
-		^this.multiNew('demand', length, lo, hi, exponent)
-	}
-}
 
 Dexponential : DUGen {
 	*new { arg threshold = 0, gamma, upperLimit, length = inf;
