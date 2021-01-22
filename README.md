@@ -72,18 +72,7 @@ An important tool in this library is a flexible interface: the Score & Controlle
 
 **Status**
 ---
-This library is currently under active development. 
-
-
-
-**Contact**
----
-
-Marinus Klaassen  
-marinus_klaassen@hotmail.com 
-
-[www.soundcloud.com/marinusklaassen](www.soundcloud.com/marinusklaassen)  
-[www.rotterdamruis.nl](www.rotterdamruis.nl)
+This library is deprecated.
 
 
 
