@@ -1,9 +1,18 @@
 **caAC-MLib 0.42**
 ---
-**Computer Aided Algorithmic Composition Library 0.42**
+**Computer Aided Algorithmic Composition Library 0.42 [Deprecated]**
 ---
 
- 
+**[Deprecated]**
+---
+Most of the sclang code doesn't compile anymore using the newest SuperCollider releases. The idea of one big extension library containing al the good stuf isn't  from this time anymore. So I have decided to split some of the functionality into new repositories. 
+
+The first one is in the oven: 
+- https://github.com/marinusklaassen/SCLemurLib
+
+**About:**
+---
+
 A library with various SuperCollider classes and UGens extensions to perform algorithmic composition and digital sound synthesis, according to concepts and approaches towards flexible models and user interfaces. The most important aspect is the development of a flexible UI frontend progammed in SuperCollider, that works with patterns and tactile controllers, such as the Lemur app, in a model-view-controller paradigm, in order to achieve bi-directional control between SuperCollider and the Lemur applications, and furthermore to perform realtime CAAC and digital sound synthesis.    
 
 
