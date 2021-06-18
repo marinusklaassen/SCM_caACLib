@@ -43,19 +43,26 @@ EmbedGui {
 		tempNames = synthDesc.controlNames;
 
 		synthDesc.metadata[\noGui] do: { |key| tempNames.removeAt(tempNames.indexOfEqual(key)) };
+		// Collects controls
 
-		tempNames do: { |key|
-			var checkSpec = key.asSpec.isKindOf(ControlSpec) || synthDesc.metadata[\specs][key].isKindOf(ControlSpec);
-			if (checkSpec) {
-				controlElements.add(MBFader.new(key,if(key.asSpec.isKindOf(ControlSpec)){key.asSpec}{synthDesc.metadata[\specs][key]}));
-			} {
+		tempNames do: { | key |
+			var spec = synthDesc.metadata[\specs][key];
+			// Check for an controlspec override. Else try a default.
+			if (spec.notNil, {
+				spec = spec.asSpec; // When the ControlSpec is defined as an array.
+			}, {
+				spec = key.asSpec;
+			});
+			if (spec.isKindOf(ControlSpec), {
+				controlElements.add(MBFader.new(key, spec));
+			}, {
 				controlElements.add(MBNumberBox.new(key));
-			};
+			});
 			controlElements.last.name = key;
 		};
 	}
 
-	makeGui { |argParent|
+	gui { |argParent|
 		var parent;
 		if (argParent.isNil) { parent = Window.new(); parent.front; } { parent = argParent };
 
