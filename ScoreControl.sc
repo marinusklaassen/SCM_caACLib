@@ -8,6 +8,8 @@ ScoreControl : ScoreWidgetBase {
 	var <parent, scoreGui, mixerGui, <mixerCanvas, >removeAction;
 	var <>index, >closeAction;
 
+	classvar instanceCounter=0;
+
 	*new { |argLemur, argIndex|
 		^super.newCopyArgs.init(argLemur, argIndex);
 	}
@@ -23,12 +25,10 @@ ScoreControl : ScoreWidgetBase {
 
 	}
 
-	init { |argLemur, argIndex|
+	init { |argLemur|
 
 		isOpen = false;
 		lemur = argLemur;
-
-		index = argIndex;
 
 		controllerProxies = IdentityDictionary.new;
 
@@ -54,7 +54,9 @@ ScoreControl : ScoreWidgetBase {
 
 		this.initProxies;
 
-		scoreName = "Score" ++ argIndex;
+		instanceCounter = instanceCounter + 1;
+
+		scoreName = "Score" ++ instanceCounter;
 
 		model = (
 			scoreName: scoreName,
@@ -224,10 +226,11 @@ ScoreControl : ScoreWidgetBase {
 
 	}
 
-	makeScoreMixerChannelGui { |parent, yOffset = 200, height = 50|
+	getMixerChannelControl {
 		var font = Font("Menlo", 14);
-		mixerCanvas = CompositeView(parent, Rect(0, yOffset, parent.bounds.width,height))
-		.background_(Color.black.alpha_(0.2));
+		mixerCanvas = CompositeView()
+		.background_(Color.black.alpha_(0.2))
+		.minHeight_(50).maxHeight_(50);
 
 		mixerGui = ();
 		mixerGui[\mixerScorePlay] = Button(mixerCanvas,Rect(0,0,40,40))
@@ -282,6 +285,8 @@ ScoreControl : ScoreWidgetBase {
 		}});
 		mixerGui[\removeScore] = MButtonV(mixerCanvas, Rect(350,42,6,6))
 		.action_({ this.close; });
+
+		^mixerCanvas;
 	}
 
 	addChannel {
@@ -396,7 +401,7 @@ ScoreControl : ScoreWidgetBase {
 	}
 
 	close {
-		if (closeAction.notNil) { closeAction.value(index) };
+		if (closeAction.notNil) { closeAction.value(this) };
 		this.closeGui;
 		model.dependants do: { |i| model.removeDependant(i) };
 	}
@@ -415,13 +420,19 @@ ScoreControl : ScoreWidgetBase {
 	}
 
 	closeScoreGui {
-		parent.close;
+		if (parent.notNil, { parent.close; });
 		scoreGui do: (_.remove);
 		isOpen = false;
 		model.removeDependant(dependants[\scoreNameScoreGui]);
 		model.removeDependant(dependants[\envirTextFieldScoreGui]);
 		model.removeDependant(dependants[\playButtonScoreGui]);
 	}
+
+	dispose {
+		this.closeMixerChannelGui();
+		this.closeMixerChannelGui();
+	}
+
 
 	getState {
 		var scoreState = Dictionary.new;

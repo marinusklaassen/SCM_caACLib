@@ -53,6 +53,10 @@ MButtonV {
 
 
 
+
+
+
+
 /*
 w = Window.new.front; a = MButtonV(w,Rect(0,0,50,50)).action_({ "release function".postln; }); a.resize = 3
 */
@@ -109,10 +113,6 @@ MButtonP {
 
 }
 
-/*
-w = Window.new.front; a = MButtonP(w,Rect(0,0,80,80)).action_({ "release function".postln; });
-a.remove; w.front;
-*/
 
 MToggle4 {
 	var <>view, <>action, <>state, <>value, <>quadColor, <>offBalance;

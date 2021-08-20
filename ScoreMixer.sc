@@ -1,94 +1,84 @@
 
 ScoreMixer : ScoreWidgetBase {
-	var <scores, lemur, projectSaveAndLoad, yOffset;
+	var <scores, lemurClient, projectStateManager, yOffset=55, userControl, <window;
 
-	*new { |argLemur|
-		^super.newCopyArgs.init(argLemur)
+	*new { |lemurClient|
+		^super.newCopyArgs.init(lemurClient);
 	}
 
-	getState {
-		var aPreset = Dictionary.new;
-		scores do: { |aScore, i|
-			aPreset[i.asSymbol] = aScore.getState;
-		};
-		^aPreset;
+	init { |lemurClient|
+		scores = List();
+		projectStateManager = ProjectStateManager();
+		projectStateManager.storeAction = { this.getProjectState(); }; // storeProjectStateAction
+		projectStateManager.loadAction = { |projectState| this.loadProjectState(projectState); }; // loadProjectStateAction
+		lemurClient = lemurClient;
 	}
 
-	loadState { |aPreset|
-		aPreset do: { |aScorePreset, i|
-			var tempScore;
-			if (scores[i].isNil) {
-				tempScore = ScoreControl.new(lemur, i);
-				tempScore.makeScoreMixerChannelGui(parent, i * 50 + yOffset, 48);
-				scores = scores.add(tempScore);
+	getProjectState {
+		^scores.collect({ |score| score.getState(); });
+	}
+
+	loadProjectState { |projectState|
+		projectState do: { |scoreState, position|
+			var newScore;
+			if (scores[position].isNil) {
+				newScore = ScoreControl(lemurClient, position);
+				newScore.makeScoreMixerChannelGui(parent, position * 50 + yOffset, 48);
+				scores.add(newScore);
 			} {
-				tempScore = scores[i];
+				scores[position].loadState(scoreState);
 			};
-			tempScore.loadState(aScorePreset);
 		};
-		gui[\addCanvas].moveTo(10,scores.size * 50 + yOffset + 5);
+		userControl[\addCanvas].moveTo(10, scores.size * 50 + yOffset + 5);
 	}
 
-	positionChannels {
-		scores do: { |aScore, i|
-			aScore.index = i;
-			aScore.mixerCanvas.moveTo(0, i * 50 + yOffset);
-
+	addScoreControl {
+		var newScore = ScoreControl(lemurClient);
+		newScore.gui();
+		newScore.closeAction = { | self |
+			scores.remove(self).dispose();
 		};
-		gui[\addCanvas].moveTo(10,scores.size * 50 + yOffset + 5);
+		userControl[\layoutMixerChannels].insert(newScore.getMixerChannelControl(), scores.size); // workaround. insert before stretchable space.
+		scores.add(newScore);
 	}
 
-	init { |argLemur|
-		yOffset = 55;
-		scores = List.new;
-		lemur = argLemur;
-		projectSaveAndLoad = SaveAndLoadProjectStateWidget();
-		projectSaveAndLoad.storeAction = {
-			this.getState;
-		};
-		projectSaveAndLoad.readAction = { |aPreset|
-			this.loadState(aPreset);
-		};
-	}
+	gui {
+		window = Window("Score Mixer", Rect(1000, 300, 426.0, 600));
+		window.background_(Color.new255(* (150!3 ++ 230)));
+		window.alwaysOnTop_(true);
+		// layouts
+	    userControl = ();
+	    userControl[\layoutMain] = VLayout();
+        userControl[\layoutMixerChannels] = VLayout([nil, stretch:1, align: \bottom]); // workaround. insert before stretchable space.
+		userControl[\layoutMixerChannels].margins_(0!4);
+		// controls;
+		userControl[\projectStateManagerUserControl] = projectStateManager.userControl;
 
-	addScore {
-		var index = scores.size;
-		var tempScore = ScoreControl.new(lemur, index.postln);
-		tempScore.makeScoreGui;
+		userControl[\buttonAdd] = PlusButton()
+		.fixedHeight_(30)
+		.fixedWidth_(70)
+		.action_({ this.addScoreControl(); })
+		.refresh();
 
-		tempScore.makeScoreMixerChannelGui(parent.postln, scores.size.postln * 50 + yOffset, 48);
 
-		tempScore.closeAction = { |index|
-			scores.removeAt(index);
-			this.positionChannels;
-		};
-		scores = scores.add(tempScore);
-		gui[\addCanvas].moveTo(10,scores.size * 50 + yOffset + 5);
+		userControl[\mixerChannelsScrollView] = ScrollView();
+		userControl[\mixerChannelsScrollView].canvas = View();
+		userControl[\mixerChannelsScrollView].canvas.layout = userControl[\layoutMixerChannels];
+		userControl[\mixerChannelsScrollView].canvas.background_(Color.new255(* (150!3 ++ 230)));
 
-	}
+		// Add controls to main layout.
+		userControl[\layoutMain].add(userControl[\projectStateManagerUserControl], align: \top);
+		userControl[\layoutMain].add(userControl[\mixerChannelsScrollView]);
+		userControl[\layoutMain].add(userControl[\buttonAdd], align: \bottomRight);
 
-	makeGui {
-		gui = ();
-		parent = Window.new("Score Mixer", Rect(1000,300,400,500), false, true)
-		.background_(Color.new255(* ({ 150 }!3 ++ 230)));
+		// Add mixer channels to mixer channel layout.
+		scores do: { |score, position| userControl[\layoutMixerChannels].insert(score.makeScoreMixerChannelGui(), position); };
 
-		projectSaveAndLoad.makeGui(parent,Rect(0,0,parent.bounds.width,20));
-
-		gui[\balk] = CompositeView(parent, Rect(0,20,parent.bounds.width,30))
-		.background_(Color.black.alpha_(0.4));
-
-		gui[\addCanvas] = CompositeView(parent, Rect(
-			10,
-			scores.size * 50 + yOffset + 5,
-			40,
-			20));
-		gui[\addButton] = MButtonP(gui[\addCanvas], gui[\addCanvas].bounds.extent)
-		.action_({ this.addScore });
-		scores do: { |aScore, i| aScore.makeScoreMixerChannelGui(parent, i * 50 + yOffset, 48); };
-		parent.front;
+	    window.layout = userControl[\layoutMain];
+		window.front;
 	}
 
 	closeGui {
-		scores do: (_.closeMixerChannelGui)
+		scores do: (_.closeMixerChannelGui) // TODO just close will be fine. This should remove all connections.
 	}
 }
