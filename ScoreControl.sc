@@ -1,11 +1,19 @@
 /*
+ * FILENAME: ProjectStateManager
+ *
+ * DESCRIPTION:
+ *         - Channel mixer usercontrol
+ *         - Constructs a usercontrols
+ *         - Can be used without GUI.
+ *
+ * AUTHOR: Marinus Klaassen (2012, 2021Q3)
  *
  */
 
 ScoreControl : ScoreWidgetBase {
 	var isOpen, <>lemur, <scorePresetMenu, <controllers, <scoreName, <playingStream, <keyAndPatternPairs;
 	var mixerAmpProxy, eventStreamProxy, <eventStream, controllerProxies, eventParProxy;
-	var <parent, scoreGui, mixerGui, <mixerCanvas, >removeAction;
+	var <parent, scoreGui, mixerGui, <scoreControlMixerChannelView, >removeAction;
 	var <>index, >closeAction;
 
 	classvar instanceCounter=0;
@@ -30,9 +38,9 @@ ScoreControl : ScoreWidgetBase {
 		isOpen = false;
 		lemur = argLemur;
 
-		controllerProxies = IdentityDictionary.new;
+		controllerProxies = IdentityDictionary();
 
-		scorePresetMenu = ScorePresetMenuWidget.new;
+		scorePresetMenu = ScorePresetMenuWidget();
 		scorePresetMenu.storeAction = {
 			var preset = Dictionary.new;
 			controllers do: { |channel|
@@ -62,12 +70,12 @@ ScoreControl : ScoreWidgetBase {
 			scoreName: scoreName,
 			envirTextField: "",
 			environment: Environment[],
-			mixerAmpFader: 1,
+			\faderScoreControlVolume: 1,
 			playButton: 0
 		);
 		dependants = ();
 		setValueFunction = ();
-		[\envirTextField, \mixerAmpFader, \scoreName, \playButton] do: { |key|
+		[\envirTextField, \faderScoreControlVolume, \scoreName, \playButton] do: { |key|
 			setValueFunction[key] = { |inArg|
 				model[key] = inArg;
 				model.changed(key, inArg);
@@ -79,7 +87,7 @@ ScoreControl : ScoreWidgetBase {
 				environment =  "Environment.make({" ++ environment ++ "})".postln;
 				environment = interpret(environment);
 				if (environment.notNil) {
-					///////////////////////////////////////// TEXTFIELD ENVIRONMENT DEPEDANT FUNCTION
+					///////////////////////////////////////// TEXTFIELD ENVIRONMENT DEPEDANT FUNCTION <- I have no glue why I wrote this back in the day haha!
 					model[\environment] = environment.postln;
 
 					controllers do: { |aCon|
@@ -115,12 +123,12 @@ ScoreControl : ScoreWidgetBase {
 		};
 		model.addDependant(dependants[\playButton]);
 
-		dependants[\mixerAmpFader] =  {|theChanger, what, value|
-			if (what == \mixerAmpFader) {
+		dependants[\faderScoreControlVolume] =  {|theChanger, what, value|
+			if (what == \faderScoreControlVolume) {
 				mixerAmpProxy.source = value;
 			};
 		};
-		model.addDependant(dependants[\mixerAmpFader]);
+		model.addDependant(dependants[\faderScoreControlVolume]);
 
 		controllers = Array.new;
 
@@ -226,67 +234,119 @@ ScoreControl : ScoreWidgetBase {
 
 	}
 
+
+	/*
+
+// Dus je kan overerf van View. In de init set je de layout.
+(
+w = Window.new(bounds:Rect(100,100,200,200)).layout_(
+    VLayout(
+		View().layout_(VLayout(
+		UserView.new.background_(Color.rand),
+        TextField().string_("Super").maxWidth_(100),
+		UserView.new.background_(Color.rand).minSize_(0@300),
+        TextField().string_("Collider").maxWidth_(100)
+	)).background_(Color.red))
+).front;
+)
+	New channel mixer slider maken. Op basis van layout grid.
+
+ScoreMixer().gui;
+
+
+	Voeg een random button toe.
+
+	Marings weg halen. ipv fixedwith lege ruimtes.
+	Overerf van view.
+	Maak een EZSlider.
+	*/
+
 	getMixerChannelControl {
-		var font = Font("Menlo", 14);
-		mixerCanvas = CompositeView()
-		.background_(Color.black.alpha_(0.2))
-		.minHeight_(50).maxHeight_(50);
+
+		var font = Font("Menlo", 14); // Aanpassen. In een generieke settings object ofzo
+
+		var layout = HLayout();
+		layout.margins_(0!4);
+		scoreControlMixerChannelView = View()
+		.background_(Color.black.alpha_(0.2));
+
+		scoreControlMixerChannelView.layout = layout;
 
 		mixerGui = ();
-		mixerGui[\mixerScorePlay] = Button(mixerCanvas,Rect(0,0,40,40))
+		mixerGui[\togglePlayScore] = Button()
 		.font_(font)
+		.minHeight_(40)
+		.maxWidth_(45)
 		.states_([
 			["PLAY", Color.red.alpha_(0.8), Color.black],
 			["STOP", Color.black,Color.red.alpha_(0.8)]])
-		.action_({|b| setValueFunction[\playButton].value(b.value)});
-		dependants[\mixerScorePlay] =  {|theChanger, what, value|
-			if (what == \playButton) {
-				mixerGui[\mixerScorePlay].value = value;
+		.action_({|b| setValueFunction[\togglePlayScore].value(b.value)});
+
+		dependants[\togglePlayScore] =  {|theChanger, what, value|
+			if (what == \togglePlayScore) {
+				mixerGui[\togglePlayScore].value = value;
 			};
 		};
-		model.addDependant(dependants[\mixerScorePlay]);
 
-		mixerGui[\mixerAmpFader] = EZSlider(
-			mixerCanvas,
-			Rect(50,0,300,40),
-			"",
-			\db.asSpec.step_(0.01),
+		layout.add(mixerGui[\togglePlayScore], align: \left);
+
+		model.addDependant(dependants[\togglePlayScore]);
+
+		mixerGui[\faderScoreControlVolume] = Slider(
+			/*controlSpec: \db.asSpec.step_(0.01),
 			unitWidth:30,
 			numberWidth:60,
 			layout: \line2,
-			margin: nil)
-		.setColors(Color.black.alpha_(0),Color.black, Color.black.alpha_(0),Color.black.alpha_(0), Color.red,Color.black.alpha_(1),nil,nil, Color.black.alpha_(0))
-		.value_(model[\mixerAmpFader])
-		.action_({ |v| setValueFunction[\mixerAmpFader].value(v.value.dbamp.postln) });
+			margin: nil*/)
+		// .setColors(Color.black.alpha_(0),Color.black, Color.black.alpha_(0),Color.black.alpha_(0), Color.red,Color.black.alpha_(1),nil,nil, Color.black.alpha_(0))
+		.fixedHeight_(15)
+		.orientation_(\horizontal)
+		.value_(model[\faderScoreControlVolume])
+		.action_({ |v| setValueFunction[\faderScoreControlVolume].value(v.value) });
 
-		mixerGui[\mixerAmpFader].labelView.string_(model[\scoreName]);
+		layout.add(mixerGui[\faderScoreControlVolume], stretch: 1);
 
-		dependants[\mixerAmpFaderGui] =  {|theChanger, what, value|
-			if (what == \mixerAmpFader) {
-				mixerGui[\mixerAmpFader].value = value.ampdb;
+		//mixerGui[\faderScoreControlVolume].labelView.string_(model[\scoreName]);
+
+		dependants[\faderScoreControlVolumeGui] =  {|theChanger, what, value|
+			if (what == \faderScoreControlVolume) {
+				mixerGui[\faderScoreControlVolume].value = value;
 			};
 		};
-		model.addDependant(dependants[\mixerAmpFaderGui]);
+
+		model.addDependant(dependants[\faderScoreControlVolumeGui]);
 
 		dependants[\mixerLabelView] =  {|theChanger, what, value|
 			if (what == \scoreName) {
-				mixerGui[\mixerAmpFader].labelView.string_(value);
+				mixerGui[\faderScoreControlVolume].labelView.string_(value);
 			};
 		};
 		model.addDependant(dependants[\mixerLabelView]);
 
-		mixerGui[\popupScore] = Button(mixerCanvas,Rect(350,0,50,40))
+		mixerGui[\popupScore] = Button()
 		.font_(font)
 		.states_([["SCORE", Color.red.alpha_(0.8), Color.black]])
+		.minHeight_(40)
+		.maxWidth_(45)
 		.action_({ if (isOpen) {
 			parent.front
 			} {
 				this.makeScoreGui;
 		}});
-		mixerGui[\removeScore] = MButtonV(mixerCanvas, Rect(350,42,6,6))
+
+		layout.add(mixerGui[\popupScore]);
+
+		mixerGui[\removeScore] = DeleteButton()
+		.fixedSize_(10)
 		.action_({ this.close; });
 
-		^mixerCanvas;
+		layout.add(mixerGui[\removeScore], align: \topRight);
+
+		mixerGui[\colorSection] = UserView().maxWidth_(15).minWidth_(15);
+
+		mixerGui[\colorSection].background_(Color.black.alpha_(0.1));
+		layout.add(mixerGui[\colorSection]);
+		^scoreControlMixerChannelView;
 	}
 
 	addChannel {
@@ -312,7 +372,7 @@ ScoreControl : ScoreWidgetBase {
 			paramChannel.controllerProxies[\rangeHi].source = val[1].postln;
 		};
 
-		paramChannel.paramProxy = PatternProxy.new(1);
+		paramChannel.paramProxy = PatternProxy(1);
 
 		paramChannel.paramController.faderAction = { | val |
 			paramChannel.controllerProxies[\fader].source = val.postln
@@ -412,10 +472,10 @@ ScoreControl : ScoreWidgetBase {
 	}
 
 	closeMixerChannelGui {
-		mixerCanvas.remove;
+		scoreControlMixerChannelView.remove;
 		mixerGui do: (_.remove);
 		model.removeDependant(dependants[\mixerScorePlay]);
-		model.removeDependant(dependants[\mixerAmpFaderGui]);
+		model.removeDependant(dependants[\faderScoreControlVolumeGui]);
 		model.removeDependant(dependants[\mixerLabelView]);
 	}
 
@@ -439,7 +499,7 @@ ScoreControl : ScoreWidgetBase {
 		scoreState[\scoreName] = model[\scoreName].copy;
 		scoreState[\presetMenu] = scorePresetMenu.getState.postln;
 		scoreState[\envirTextField] = model[\envirTextField].copy;
-		scoreState[\mixerAmpFader] = model[\mixerAmpFader].copy;
+		scoreState[\faderScoreControlVolume] = model[\faderScoreControlVolume].copy;
 
 		scoreState[\controllers] = Dictionary.new;
 		controllers do: { |conCh, i|
@@ -451,7 +511,7 @@ ScoreControl : ScoreWidgetBase {
 	loadState { |argPreset|
 		setValueFunction[\envirTextField].value(argPreset[\envirTextField]);
 		setValueFunction[\scoreName].value(argPreset[\scoreName]);
-		setValueFunction[\mixerAmpFader].value(argPreset[\mixerAmpFader]);
+		setValueFunction[\faderScoreControlVolume].value(argPreset[\faderScoreControlVolume]);
 		scorePresetMenu.loadState(argPreset[\presetMenu].postln);
 		argPreset[\controllers].size do: { |i|
 			if (controllers[i].isNil) { this.addChannel; };

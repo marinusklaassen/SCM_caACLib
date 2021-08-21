@@ -1,6 +1,15 @@
+/*
+ * FILENAME: ScoreMixer
+ *
+ * DESCRIPTION:
+ *         Add, remove en mixer pattern score channels.
+ *
+ * AUTHOR: Marinus Klaassen (2012, 2021Q3)
+ *
+ */
 
 ScoreMixer : ScoreWidgetBase {
-	var <scores, lemurClient, projectStateManager, yOffset=55, userControl, <window;
+	var <scores, lemurClient, projectStateManager, userControl, <window;
 
 	*new { |lemurClient|
 		^super.newCopyArgs.init(lemurClient);
@@ -9,8 +18,8 @@ ScoreMixer : ScoreWidgetBase {
 	init { |lemurClient|
 		scores = List();
 		projectStateManager = ProjectStateManager();
-		projectStateManager.storeAction = { this.getProjectState(); }; // storeProjectStateAction
-		projectStateManager.loadAction = { |projectState| this.loadProjectState(projectState); }; // loadProjectStateAction
+		projectStateManager.storeAction = { this.getProjectState(); };
+		projectStateManager.loadAction = { |projectState| this.loadProjectState(projectState); };
 		lemurClient = lemurClient;
 	}
 
@@ -23,13 +32,12 @@ ScoreMixer : ScoreWidgetBase {
 			var newScore;
 			if (scores[position].isNil) {
 				newScore = ScoreControl(lemurClient, position);
-				newScore.makeScoreMixerChannelGui(parent, position * 50 + yOffset, 48);
+				userControl[\layoutMixerChannels].insert(newScore.getMixerChannelControl(), scores.size); // workaround. insert before stretchable space.
 				scores.add(newScore);
 			} {
 				scores[position].loadState(scoreState);
 			};
 		};
-		userControl[\addCanvas].moveTo(10, scores.size * 50 + yOffset + 5);
 	}
 
 	addScoreControl {
@@ -46,20 +54,20 @@ ScoreMixer : ScoreWidgetBase {
 		window = Window("Score Mixer", Rect(1000, 300, 426.0, 600));
 		window.background_(Color.new255(* (150!3 ++ 230)));
 		window.alwaysOnTop_(true);
+
 		// layouts
 	    userControl = ();
 	    userControl[\layoutMain] = VLayout();
         userControl[\layoutMixerChannels] = VLayout([nil, stretch:1, align: \bottom]); // workaround. insert before stretchable space.
-		userControl[\layoutMixerChannels].margins_(0!4);
+		userControl[\layoutMixerChannels].margins_([0,0,0,0]);
+		userControl[\layoutMixerChannels].spacing_(1);
 		// controls;
 		userControl[\projectStateManagerUserControl] = projectStateManager.userControl;
-
 		userControl[\buttonAdd] = PlusButton()
 		.fixedHeight_(30)
 		.fixedWidth_(70)
 		.action_({ this.addScoreControl(); })
 		.refresh();
-
 
 		userControl[\mixerChannelsScrollView] = ScrollView();
 		userControl[\mixerChannelsScrollView].canvas = View();
@@ -72,13 +80,9 @@ ScoreMixer : ScoreWidgetBase {
 		userControl[\layoutMain].add(userControl[\buttonAdd], align: \bottomRight);
 
 		// Add mixer channels to mixer channel layout.
-		scores do: { |score, position| userControl[\layoutMixerChannels].insert(score.makeScoreMixerChannelGui(), position); };
+		scores do: { |score, position| userControl[\layoutMixerChannels].insert(score.getMixerChannelControl(), position); }; // workaround. insert before stretchable space.
 
 	    window.layout = userControl[\layoutMain];
 		window.front;
-	}
-
-	closeGui {
-		scores do: (_.closeMixerChannelGui) // TODO just close will be fine. This should remove all connections.
 	}
 }
