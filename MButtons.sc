@@ -19,7 +19,6 @@ MButtonV {
 				(radius * 0.5) @ (radius * 0.5).neg
 			];
 
-
 			Pen.smoothing = true;
 			Pen.translate(bounds.width * 0.5, bounds.height * 0.5);
 			Pen.width = widthLine;

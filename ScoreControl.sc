@@ -234,33 +234,6 @@ ScoreControl : ScoreWidgetBase {
 
 	}
 
-
-	/*
-
-// Dus je kan overerf van View. In de init set je de layout.
-(
-w = Window.new(bounds:Rect(100,100,200,200)).layout_(
-    VLayout(
-		View().layout_(VLayout(
-		UserView.new.background_(Color.rand),
-        TextField().string_("Super").maxWidth_(100),
-		UserView.new.background_(Color.rand).minSize_(0@300),
-        TextField().string_("Collider").maxWidth_(100)
-	)).background_(Color.red))
-).front;
-)
-	New channel mixer slider maken. Op basis van layout grid.
-
-ScoreMixer().gui;
-
-
-	Voeg een random button toe.
-
-	Marings weg halen. ipv fixedwith lege ruimtes.
-	Overerf van view.
-	Maak een EZSlider.
-	*/
-
 	getMixerChannelControl {
 
 		var font = Font("Menlo", 14); // Aanpassen. In een generieke settings object ofzo
@@ -275,8 +248,7 @@ ScoreMixer().gui;
 		mixerGui = ();
 		mixerGui[\togglePlayScore] = Button()
 		.font_(font)
-		.minHeight_(40)
-		.maxWidth_(45)
+		.minWidth_(50).maxWidth_(45).minHeight_(50)
 		.states_([
 			["PLAY", Color.red.alpha_(0.8), Color.black],
 			["STOP", Color.black,Color.red.alpha_(0.8)]])
@@ -292,21 +264,15 @@ ScoreMixer().gui;
 
 		model.addDependant(dependants[\togglePlayScore]);
 
-		mixerGui[\faderScoreControlVolume] = Slider(
-			/*controlSpec: \db.asSpec.step_(0.01),
-			unitWidth:30,
-			numberWidth:60,
-			layout: \line2,
-			margin: nil*/)
-		// .setColors(Color.black.alpha_(0),Color.black, Color.black.alpha_(0),Color.black.alpha_(0), Color.red,Color.black.alpha_(1),nil,nil, Color.black.alpha_(0))
-		.fixedHeight_(15)
-		.orientation_(\horizontal)
+		mixerGui[\faderScoreControlVolume] = SCMSlider(controlSpec: \db.asSpec, initVal: 1, labelText: model[\scoreName])
 		.value_(model[\faderScoreControlVolume])
 		.action_({ |v| setValueFunction[\faderScoreControlVolume].value(v.value) });
 
-		layout.add(mixerGui[\faderScoreControlVolume], stretch: 1);
+		mixerGui[\faderScoreControlVolume].numberBoxView
+	    .background_(Color.white.alpha_(0.5))
+		.maxWidth_(60).minWidth_(60);
 
-		//mixerGui[\faderScoreControlVolume].labelView.string_(model[\scoreName]);
+		layout.add(mixerGui[\faderScoreControlVolume], stretch: 1);
 
 		dependants[\faderScoreControlVolumeGui] =  {|theChanger, what, value|
 			if (what == \faderScoreControlVolume) {
@@ -318,7 +284,7 @@ ScoreMixer().gui;
 
 		dependants[\mixerLabelView] =  {|theChanger, what, value|
 			if (what == \scoreName) {
-				mixerGui[\faderScoreControlVolume].labelView.string_(value);
+				mixerGui[\faderScoreControlVolume].labelText = value;
 			};
 		};
 		model.addDependant(dependants[\mixerLabelView]);
@@ -326,8 +292,7 @@ ScoreMixer().gui;
 		mixerGui[\popupScore] = Button()
 		.font_(font)
 		.states_([["SCORE", Color.red.alpha_(0.8), Color.black]])
-		.minHeight_(40)
-		.maxWidth_(45)
+	    .minWidth_(50).maxWidth_(45).minHeight_(50)
 		.action_({ if (isOpen) {
 			parent.front
 			} {
