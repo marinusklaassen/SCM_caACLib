@@ -1,5 +1,5 @@
 /*
- * FILENAME: ScoreMixer
+ * FILENAME: ScoreMixer -> ScoreMixerView
  *
  * DESCRIPTION:
  *         Add, remove en mixer pattern score channels.
@@ -31,7 +31,7 @@ ScoreMixer : ScoreWidgetBase {
 		projectState do: { |scoreState, position|
 			var newScore;
 			if (scores[position].isNil) {
-				newScore = ScoreControl(lemurClient, position);
+				newScore = ScoreControlView(lemurClient, position);
 				userControl[\layoutMixerChannels].insert(newScore.getMixerChannelControl(), scores.size); // workaround. insert before stretchable space.
 				scores.add(newScore);
 			} {
@@ -41,8 +41,8 @@ ScoreMixer : ScoreWidgetBase {
 	}
 
 	addScoreControl {
-		var newScore = ScoreControl(lemurClient);
-		newScore.gui();
+		var newScore = ScoreControlView(lemurClient);
+		newScore.front();
 		newScore.closeAction = { | self |
 			scores.remove(self).dispose();
 		};

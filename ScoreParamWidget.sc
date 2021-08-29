@@ -1,19 +1,56 @@
 /*
- * Marinus Klaassen 2021
+ * FILENAME: ScoreControl -> TODO rename ScoreEditorView
  *
- * Ties all the pieces together inorder to conttrol ScoreParameters which inorder control patterns are possible other constructs.
+ * DESCRIPTION:
+ *         - Score Editor View usercontrol
+ *
+ * AUTHOR: Marinus Klaassen (2012, 2021Q3)
+ *
+ * ScoreParamWidget().front();
+ * Script action get string and compile etcc..
+ * Add validation errors.
  */
 
 
-ScoreParamWidget : ScoreWidgetBase {
-	var <pScript, <paramController, <pSpec, ez4Buttons, <name, <>currentLayerIndex, <>currentWidgetType, <>currentWidgetIndex, previousLayer;
-	var <>nameAction, <>removeAction, <>index, <>paramProxy, <>controllerProxies, <>scriptFunc;
+ScoreParamWidget : View {
+	var buttonDelete,scorePatternScriptEditingView, <pScript, controlSpec, model, setValueFunction, dependants, <paramController, <pSpec, ez4Buttons, <name, <>currentLayerIndex, <>currentWidgetType, <>currentWidgetIndex, previousLayer;
+	var <>actionNameChanged, <>removeAction, <>index, <>paramProxy, <>controllerProxies, <>scriptFunc, actionbuttonDelete, rangeAction, >faderAction;
 
-	*new { |argName, argIndex, argLemur, argLemurXoffset, argPageName, argObjectReferenceName|
-		^super.newCopyArgs.init(argName, argIndex, argLemur, argLemurXoffset, argPageName, argObjectReferenceName)
+	*new { |parent, bounds, argName, argIndex, argLemur, argLemurXoffset, argPageName, argObjectReferenceName|
+		^super.new(parent, bounds).initialize(argName, argIndex, argLemur, argLemurXoffset, argPageName, argObjectReferenceName)
 	}
 
-	init { |argName, argIndex, argLemur, argLemurXoffset, argPageName, argObjectReferenceName|
+	initialize { |argName, argIndex, argLemur, argLemurXoffset, argPageName, argObjectReferenceName|
+
+		controlSpec = ControlSpec();
+		model = (fader: 0, range: [0, 1]);
+
+		setValueFunction = ();
+		setValueFunction[\fader] = { |value|
+			model[\fader] = value;
+			model.changed(\fader, value);
+		};
+		setValueFunction[\range] = { |value|
+			model[\range] = value;
+			model.changed(\range, value);
+		};
+
+		dependants = ();
+
+		dependants[\faderAction] = {|theChanger, what, val|
+			if (what == \fader) {
+				if (faderAction.notNil) { faderAction.value(controlSpec.map(val)) };
+			};
+		};
+
+		dependants[\rangeAction] = {|theChanger, what, val|
+			if (what == \range) {
+				if (rangeAction.notNil) { rangeAction.value(controlSpec.map(val)) };
+			};
+		};
+
+		model.addDependant(dependants[\faderAction]);
+		model.addDependant(dependants[\rangeAction]);
 
 		name = argName;
 		scriptFunc = {};
@@ -21,26 +58,13 @@ ScoreParamWidget : ScoreWidgetBase {
 		currentWidgetType = "Empty";
 		currentWidgetIndex = argIndex;
 		index = argIndex;
-		pScript = ScoreParamScriptWidget.new;
-		paramController = ScoreParamWidgetTypeSelectorWidget.new;
-		paramController.lemur = argLemur;
-		paramController.pagename = argPageName;
-		paramController.objectReferenceName = argObjectReferenceName;
-		paramController.name = argName.asString;
-		paramController.initLemur(argLemur, argLemurXoffset);
-		paramController.spec = ControlSpec(); // to be initialize
 
-		pSpec = ScoreParamControlSpecWidget.new;
-		pSpec.action = { |argSpec|
-			"a new spec:".postln;
-			paramController.spec = argSpec.postln;
-			"is added".postln;
+		ez4Buttons = ScoreParamButtonStripWidget.new; // Niet meer op deze manier. Is niet nodig. Dus TODO: button trip in deze view verwerken.
+
+		ez4Buttons.action[0] = {
+			scorePatternScriptEditingView.showSeparateEditingView();
+
 		};
-		pSpec.spec = ControlSpec();
-
-		ez4Buttons = ScoreParamButtonStripWidget.new;
-
-		ez4Buttons.action[0] = { pScript.makePopupGui };
 
 		ez4Buttons.action[1] = {
 			var showLayer, objectType;
@@ -48,7 +72,7 @@ ScoreParamWidget : ScoreWidgetBase {
 			currentLayerIndex = 1;
 			if (currentWidgetIndex == 0) {
 
-				showLayer = pScript.canvas;
+				// Doe dit via stacklayouts
 			} {
 				showLayer = paramController.canvas;
 			};
@@ -63,95 +87,141 @@ ScoreParamWidget : ScoreWidgetBase {
 			var showLayer;
 			currentLayerIndex = currentLayerIndex + 1 % 3;
 			// if (currentLayerIndex == 1) { currentLayerIndex = currentLayerIndex + 1 };
-			showLayer = [pScript.canvas, paramController.canvas, pSpec.canvas][currentLayerIndex];
+			// showLayer = [pScript.canvas, paramController.canvas, pSpec.canvas][currentLayerIndex];
+			// Doe dit via stacklayout
 			previousLayer.visible = false;
 			showLayer.visible = true;
 			previousLayer = showLayer;
 		};
 
 		ez4Buttons.action[3] = { "button action to be implemented".postln; };
+
+		this.initializeView();
 	}
 
-	moveBounds { |x = 0, y = 0| canvas.moveTo(x,y) }
-
-	moveLemur { |argxOffset| paramController.moveLemur(argxOffset); }
-
-	name_  { |argName|
-		name = argName.asString;
-		if (nameAction.notNil) { nameAction.value(name) };
-		paramController.name = name;
-		"what is this??".postln;
-		if (gui.notNil) { gui[\name].string = if (name.isKindOf(String)) { name } { name.asCompileString }; };
-	}
-
-	makeGui { |parent, bounds|
+	initializeView {
 		var layerBounds;
 
-		canvas = CompositeView(parent, bounds)
-		.background_(Color.red.alpha_(0.4));
+		var mainLayout, textPatternKeyname, layoutStackEditingSection, scorePatternScriptEditorView;
 
-		gui = ();
-		gui[\name] = TextField(canvas, Rect(
-			ScoreWidgetSettings.settings[\xName],
-			ScoreWidgetSettings.settings[\chGap],
-			ScoreWidgetSettings.settings[\widthName],
-			ScoreWidgetSettings.settings[\chHeight]
-			)
-		).string_(name.asString)
-		.action_({|argName|
-			name = argName.string.asString;
-			// name = interpret(argName.string);
-			if (nameAction.notNil) { nameAction.value(name) };
+		mainLayout = HLayout();
+		mainLayout.background_(Color.red.alpha_(0.4));
+
+		this.layout = mainLayout;
+
+		textPatternKeyname = TextField();
+		textPatternKeyname.minWidth = 80;
+		textPatternKeyname.string = name.asString;
+		textPatternKeyname.action = { | sender |
+			name = sender.string.asString;
+			if (actionNameChanged.notNil) { actionNameChanged.value(name) };
 			paramController.name = name;
-		});
+		};
 
-		layerBounds = Rect(
-			ScoreWidgetSettings.settings[\xLayers],
-			ScoreWidgetSettings.settings[\chGap],
-			ScoreWidgetSettings.settings[\widthLayers],
-			ScoreWidgetSettings.settings[\chHeight]);
+        mainLayout.add(textPatternKeyname);
 
-		pScript.makeGui(canvas, layerBounds);
+        layoutStackEditingSection = StackLayout();
+        mainLayout.add(layoutStackEditingSection);
 
-		previousLayer = pScript.canvas;
+        scorePatternScriptEditingView = ScorePatternScriptEditingView();
+		layoutStackEditingSection.add(scorePatternScriptEditingView);
 
-		paramController.makeGui(canvas, layerBounds);
+	    pSpec = ScoreControlSpecView();
+		pSpec.action = { |argSpec|
+			"a new controlSpec:".postln;
+			controlSpec = argSpec.postln;
+			"is added".postln;
+		};
 
-		if (currentWidgetType == "Fader" || (currentWidgetType == "Range")) {
-			previousLayer.visible_(false);
-			previousLayer = paramController.canvas.visible_(true);
-			paramController.restoreGui(canvas, layerBounds, currentWidgetType);
-		} { paramController.canvas.visible_(false); };
 
-		pSpec.makeGui(canvas, layerBounds);
-		pSpec.canvas.visible_(false);
+		// TODO ga verder met dit
+	/* Case mag weg. Doe dit gewoon binnen de stack
+		case { objectType == "Fader" } {
+			if (gui.notNil) {
+				gui[\fader] = Slider(canvas, bounds.extent)
+				.value_(model[\fader])
+				.action_({|val|setValueFunction[\fader].value(val.value)});
+				tempDependant = {|theChanger, what, val|
+					if (what == \fader) { { gui[\fader].value = val }.defer;  };
+				};
+				model.addDependant(tempDependant);
+			};
+			if (ezLemurInstance.notNil) {
 
+				ezLemurInstance.makeGui(objectType, model[\fader]);
+				ezLemurInstance.action = {|val| setValueFunction[\fader].value(val.first) };
+				tempLemurDependant = {|theChanger, what, val|
+
+					if (what == \fader) { ezLemurInstance.value = val; };
+				};
+
+				model.addDependant(tempLemurDependant);
+			};
+		} { objectType =="Range" } {
+			if (gui.notNil) {
+				gui[\range] = RangeSlider(canvas, bounds.extent)
+				.lo_(model[\range][0]).hi_(model[\range][1])
+				.action_({|val|setValueFunction[\range].value([val.lo,val.hi])});
+				tempDependant = {|theChanger, what, val|
+					if (what == \range) { { gui[\range].lo_(val[0]).hi_(model[\range][1]) }.defer; };
+				};
+				model.addDependant(tempDependant);
+			};
+			if (ezLemurInstance.notNil) {
+				ezLemurInstance.makeGui(objectType, model[\range]);
+				ezLemurInstance.action_({|val|setValueFunction[\range].value(val)});
+				tempLemurDependant = {|theChanger, what, val|
+					if (what == \range) { ezLemurInstance.value = val };
+				};
+				model.addDependant(tempLemurDependant);
+			};
+			*/
+	    // TODO.
+		//paramController.makeGui(canvas, layerBounds);
+
+
+			/*
+			[Color.red, Color.blue,Color.yellow, Color.black] do: { |color, i|
+			gui = gui.(
+				Button(parent,
+					Rect(i * jumpWidth + bounds.left, bounds.top, jumpWidth - gaps, bounds.height)
+				)
+				.states_([[""] ++ color.dup(2)])
+				.action_({ if (action[i].notNil) { action[i].value }})
+			);
+		};
+			*/
+
+		// TODO
+		//pSpec.makeGui(canvas, layerBounds);
+		//pSpec.canvas.visible_(false);
+        /* Maak hier aparte widgets van. ez4 is niet nodig!
 		ez4Buttons.makeGui(canvas, Rect(
 			ScoreWidgetSettings.settings[\xButtons],
 			ScoreWidgetSettings.settings[\chGap],
 			ScoreWidgetSettings.settings[\widthButtons],
 			ScoreWidgetSettings.settings[\chHeight]), 5);
+		*/
 
-		gui[\remove] = MButtonV(canvas, Rect(
-			ScoreWidgetSettings.settings[\xRemove],
-			ScoreWidgetSettings.settings[\chGap],
-			ScoreWidgetSettings.settings[\widthRemove],
-			ScoreWidgetSettings.settings[\widthRemove]))
-		.action_({ if (removeAction.notNil) { removeAction.value(index) } });
+		buttonDelete = DeleteButton();
+		buttonDelete.fixedSize = 15;
+		buttonDelete.action = { if (actionbuttonDelete.notNil, { actionbuttonDelete.value(this) }) };
+		mainLayout.add(buttonDelete, \topRight);
+
 	}
 
-	closeGui {
-		canvas.remove; gui do: (_.remove); gui = nil;
-		pScript.closeGui;
-		paramController.closeGui;
-		pSpec.closeGui;
+// 	moveLemur { | argxOffset| paramController.moveLemur(argxOffset); } // TODO lemur logica anders toepassen. Bv een redraw op basis van positie veranderingen }
+
+		/* TODO should be scoreId
+	name_  { | name |
+		this.name = name.asString;
+		if (actionNameChanged.notNil) { actionNameChanged.value(name) };
+		paramController.name = name;
 	}
-
-	closeLemur { paramController.closeLemur; }
-
+*/
 	loadState { |aPreset|
 		this.name = aPreset[\name];
-		pSpec.loadState(aPreset[\spec]);
+		pSpec.loadState(aPreset[\controlSpec]);
 		pScript.loadState(aPreset[\script]);
 		paramController.loadState(aPreset[\paramController]);
 		paramController.selectElement(aPreset[\paramControllerCurrentWidget]);
@@ -163,7 +233,7 @@ ScoreParamWidget : ScoreWidgetBase {
 		preset[\script] = pScript.getState;
 		preset[\paramController] = paramController.getState.copy;
 		preset[\paramControllerCurrentWidget] = currentWidgetType.copy;
-		preset[\spec] = pSpec.spec.copy;
+		preset[\controlSpec] = pSpec.controlSpec.copy;
 		^preset;
 	}
 }

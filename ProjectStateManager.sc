@@ -8,6 +8,7 @@
  *
  * AUTHOR: Marinus Klaassen (2012, 2021Q3)
  *
+ * TODO: inherit from View.
  */
 
 ProjectStateManager {

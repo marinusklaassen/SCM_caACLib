@@ -1,89 +1,66 @@
 /*
- * FILENAME: ProjectStateManager
+ * FILENAME: ScoreControl -> TODO rename ScoreEditorView
  *
  * DESCRIPTION:
- *         - Channel mixer usercontrol
- *         - Constructs a usercontrols
- *         - Can be used without GUI.
+ *         - Score Editor View usercontrol
  *
  * AUTHOR: Marinus Klaassen (2012, 2021Q3)
  *
+   ScoreControlView().front();
+
+ TODO // Hier in de score control alle lemur code.
  */
 
-ScoreControl : ScoreWidgetBase {
-	var isOpen, <>lemur, <scorePresetMenu, <controllers, <scoreName, <playingStream, <keyAndPatternPairs;
-	var mixerAmpProxy, eventStreamProxy, <eventStream, controllerProxies, eventParProxy;
-	var <parent, scoreGui, mixerGui, <scoreControlMixerChannelView, >removeAction;
-	var <>index, >closeAction;
+ScoreControlView : View {
+	var <>lemurClient, <presetManagerView, <controllers, <scoreName, <playingStream, <keyAndPatternPairs;
+	var mixerAmpProxy, eventStreamProxy, <eventStream, controllerProxies, eventParProxy, setValueFunction, model, dependants, parentView;
+	var scoreGui, mixerGui, <scoreControlMixerChannelView,layoutMain,layoutHeader,layoutFooter,scrollViewControls,layoutControlHeaderLabels,layoutChannels,textScoreId, buttonPlay, buttonRandomize, presetManagerView, textEnvirFieldView; // TODOP
+	var layoutControlHeaderLabels,labelParamNameControlHeader, labelParamControlScriptOrControllerHeader, labelParamControlSelectorsHeader, labelPatternLayers, numberBoxPatternLayers, buttonAddChannel;
+	var <>index, >closeAction,removeAction, scoreId;
 
 	classvar instanceCounter=0;
 
-	*new { |argLemur, argIndex|
-		^super.newCopyArgs.init(argLemur, argIndex);
+	*new { |parent, bounds, lemurClient|
+		^super.new(parent, bounds).initialize(lemurClient);
 	}
 
-	initProxies {
-		mixerAmpProxy = PatternProxy.new;
-		mixerAmpProxy.source = 1;
-		eventStreamProxy = PatternProxy.new;
-		eventStreamProxy.source = Pbind(\dur, 1);
-		eventParProxy = PatternProxy.new;
-		eventParProxy.source = Ppar([eventStreamProxy]);
-		eventStream = Pmul(\amp, mixerAmpProxy, eventParProxy);
+	initialize { |lemurClient|
 
-	}
-
-	init { |argLemur|
-
-		isOpen = false;
-		lemur = argLemur;
+		this.lemurClient = lemurClient;
 
 		controllerProxies = IdentityDictionary();
 
-		scorePresetMenu = ScorePresetMenuWidget();
-		scorePresetMenu.storeAction = {
-			var preset = Dictionary.new;
-			controllers do: { |channel|
-				preset[channel.name.asSymbol] = channel.paramController.getState;
-			};
-			preset.copy;
-		};
-
-		scorePresetMenu.action = { |aPreset|
-			var nameArray = [];
-			controllers do: { |channel| nameArray = nameArray.add(channel.name.asSymbol); };
-			aPreset.keys do: { |key|
-				var nameIndex = nameArray.indexOf(key);
-				if (nameIndex.notNil) {
-					controllers[nameIndex].paramController.loadState(aPreset[key])
-				};
-			};
-		};
-
-		this.initProxies;
+		mixerAmpProxy = PatternProxy();
+		mixerAmpProxy.source = 1;
+		eventStreamProxy = PatternProxy();
+		eventStreamProxy.source = Pbind(\dur, 1);
+		eventParProxy = PatternProxy();
+		eventParProxy.source = Ppar([eventStreamProxy]);
+		eventStream = Pmul(\amp, mixerAmpProxy, eventParProxy); // In de toekomst via een routing synth. ivm insert, sends etc.
 
 		instanceCounter = instanceCounter + 1;
 
-		scoreName = "Score" ++ instanceCounter;
+		scoreId = "Score" ++ instanceCounter;
 
 		model = (
-			scoreName: scoreName,
-			envirTextField: "",
+			scoreId: scoreId,
+			envirText: "",
 			environment: Environment[],
-			\faderScoreControlVolume: 1,
-			playButton: 0
+			faderScoreControlVolume: 1,
+			buttonPlay: 0
 		);
+
 		dependants = ();
 		setValueFunction = ();
-		[\envirTextField, \faderScoreControlVolume, \scoreName, \playButton] do: { |key|
+		[\envirText, \faderScoreControlVolume, \scoreId, \buttonPlay] do: { |key|
 			setValueFunction[key] = { |inArg|
 				model[key] = inArg;
 				model.changed(key, inArg);
 			};
 		};
 
-		dependants[\interpresetEnvirTextField] = {|theChanger, what, environment|
-			if (what == \envirTextField) {
+		dependants[\interpresetenvirText] = {|theChanger, what, environment|
+			if (what == \envirText) {
 				environment =  "Environment.make({" ++ environment ++ "})".postln;
 				environment = interpret(environment);
 				if (environment.notNil) {
@@ -103,25 +80,27 @@ ScoreControl : ScoreWidgetBase {
 				};
 			};
 		};
-		model.addDependant(dependants[\interpresetEnvirTextField]);
-		dependants[\scoreName] = {|theChanger, what, argScoreName|
-			if (what == \scoreName) {
+		model.addDependant(dependants[\interpresetenvirText]);
+
+		dependants[\scoreId] = {|theChanger, what, argScoreName|
+			if (what == \scoreId) {
 				controllers do: { |i|
 					i.paramController.pagename = argScoreName;
 
 				};
-				lemur.removePage(scoreName);
 				scoreName = argScoreName;
 			}
 		};
-		model.addDependant(dependants[\scoreName]);
-		dependants[\playButton] =  {|theChanger, what, value|
-			if (what == \playButton) {
+
+		model.addDependant(dependants[\scoreId]);
+
+		dependants[\buttonPlay] =  {|theChanger, what, value|
+			if (what == \buttonPlay) {
 				if (value > 0) {
 					playingStream = eventStream.play } { playingStream.stop };
 			};
 		};
-		model.addDependant(dependants[\playButton]);
+		model.addDependant(dependants[\buttonPlay]);
 
 		dependants[\faderScoreControlVolume] =  {|theChanger, what, value|
 			if (what == \faderScoreControlVolume) {
@@ -130,108 +109,170 @@ ScoreControl : ScoreWidgetBase {
 		};
 		model.addDependant(dependants[\faderScoreControlVolume]);
 
-		controllers = Array.new;
+		controllers = Array();
 
-		keyAndPatternPairs = IdentityDictionary.new;
+		keyAndPatternPairs = IdentityDictionary();
+    	this.initializeView();
 
 	}
 
-	makeScoreGui {
+	initializeView {
 
-		isOpen = true;
-		parent = Window.new("", Rect(200,400,700,800))
-		.background_(Color.new255(* ({ 150 }!3 ++ 230)));
+		// This object View (base class) settings
+		this.bounds = 700@800; // TODO
+		this.background = (Color.new255(* ({ 150 }!3 ++ 230)));
+		this.deleteOnClose = false;
 
-		scoreGui = ();
-		scoreGui[\scoreNameField] = TextField(parent, Rect(10,10,110,30))
-		.string_(model[\scoreName])
-		.action_({|v| setValueFunction[\scoreName].value(v.string)});
-		dependants[\scoreNameScoreGui] = {|theChanger, what, argScoreName|
-			if (what == \scoreName) {
-				scoreGui[\scoreNameField].string = argScoreName;
+		layoutMain = VLayout();
+		this.layout = layoutMain;
+
+		// Header controls
+		// Score Id input text field
+		layoutHeader = HLayout();
+		layoutMain.add(layoutHeader);
+
+		textScoreId = TextField();
+		textScoreId.minWidth = 150;
+		textScoreId.string = model[\scoreId];
+		textScoreId.action = { |val| setValueFunction[\scoreId].value(val.string); };
+
+		dependants[\textScoreId] = {|theChanger, what, argScoreName|
+			if (what == \scoreId) {
+				textScoreId.string = argScoreName;
 			}
 		};
-		model.addDependant(dependants[\scoreNameScoreGui]);
 
-		scoreGui[\playButton] = Button(parent, Rect(parent.bounds.width - 62,10,50,30))
-		.value_(model[\playButton])
-		.font_(ScoreWidgetSettings.settings[\font])
-		.states_([["PLAY", Color.red, Color.black],["STOP", Color.black, Color.red]])
-		.action_({|b| setValueFunction[\playButton].value(b.value)});
-		dependants[\playButtonScoreGui] =  {|theChanger, what, value|
-			if (what == \playButton) {
-				scoreGui[\playButton].value = value;
+		model.addDependant(dependants[\textScoreId]);
+
+		layoutHeader.add(textScoreId, align: \left);
+
+		buttonPlay = Button();
+		buttonPlay.value = model[\buttonPlay];
+		buttonPlay.font = ScoreWidgetSettings.settings[\font]; // Rename naar ScoreControlConfiguration. En pas toe voor meerdere defaults.
+		buttonPlay.states = [["PLAY", Color.red, Color.black],["STOP", Color.black, Color.red]];
+		buttonPlay.minWidth = 106;
+		buttonPlay.action_({ |val| setValueFunction[\buttonPlay].value(val.value); });
+
+		buttonRandomize = Button();
+		buttonRandomize.font = ScoreWidgetSettings.settings[\font];
+		buttonRandomize.states = [["RANDOMIZE", Color.red, Color.black]];
+		buttonRandomize.minWidth = 106;
+		buttonRandomize.action = { this.randomize(); };
+
+		layoutHeader.add(nil, stretch: 1.0);
+		layoutHeader.add(buttonRandomize, align: \right);
+
+		dependants[\buttonPlay] =  {|theChanger, what, value|
+			if (what == \buttonPlay) {
+				scoreGui[\buttonPlay].value = value;
 			};
 		};
-		model.addDependant(dependants[\playButtonScoreGui]);
+		model.addDependant(dependants[\buttonPlay]);
 
-		scoreGui[\randomizeButton] = Button(parent, Rect(220,10,80,30))
-		.font_(ScoreWidgetSettings.settings[\font])
-		.states_([["RANDOMIZE", Color.red, Color.black]])
-		.action_({ this.randomize; });
+		layoutHeader.add(buttonPlay, align: \right);
 
+		presetManagerView = PresetManagerView();
+		presetManagerView.storeAction = {
+			var preset = Dictionary();
+			controllers do: { |channel|
+				preset[channel.name.asSymbol] = channel.paramController.getState;
+			};
+			preset.copy;
+		};
 
-		scorePresetMenu.makeGui(parent, Rect(10, 44, parent.bounds.width - 12, 30));
+		presetManagerView.action = { |aPreset|
+			var nameArray = [];
+			controllers do: { |channel| nameArray = nameArray.add(channel.name.asSymbol); };
+			aPreset.keys do: { |key|
+				var nameIndex = nameArray.indexOf(key);
+				if (nameIndex.notNil) {
+					controllers[nameIndex].paramController.loadState(aPreset[key])
+				};
+			};
+		};
 
-		scoreGui[\envirTextField] = TextView(parent, Rect(10, 80, parent.bounds.width - 20, 130))
-		.background_(Color.white.alpha_(0.5))
-		.string_(model[\envirTextField])
-		.keyDownAction_({| ... args|
+		layoutMain.add(presetManagerView);
+
+		textEnvirFieldView = TextView();
+		textEnvirFieldView.minHeight = 150;
+		textEnvirFieldView.maxHeight = 150;
+		textEnvirFieldView.background = Color.white.alpha_(0.5);
+		textEnvirFieldView.string = model[\envirText];
+		textEnvirFieldView.keyDownAction = {| ... args| // maak duidelijker wat hier gebeurt.
 			var bool = args[2] == 524288;
 			bool = args[1].ascii == 13 && bool;
-			if (bool) { setValueFunction[\envirTextField].value(scoreGui[\envirTextField].string) };
-		});
+			if (bool) { setValueFunction[\envirText].value(textEnvirFieldView.string) };
+		};
 
-		dependants[\envirTextFieldScoreGui] = {|theChanger, what, script|
-			if (what == \envirTextField) {
-				scoreGui[\envirTextField].string = script;
+		dependants[\textEnvirFieldView] = {|theChanger, what, script|
+			if (what == \envirText) {
+				textEnvirFieldView.string = script;
 			};
 		};
-		model.addDependant(dependants[\envirTextFieldScoreGui]);
+		model.addDependant(dependants[\textEnvirFieldView]);
 
-		[\nameView, \typeView, \cntrView] do: { |key, i|
-			scoreGui[key] = StaticText(parent,
-				Rect(
-					ScoreWidgetSettings.settings[[\xName, \xLayers, \xButtons][i]],
-					ScoreWidgetSettings.settings[\chOffset] - ScoreWidgetSettings.settings[\chHeight],
-					[70, 180, 70][i],
-					ScoreWidgetSettings.settings[\chHeight])
-			)
-			.font_(ScoreWidgetSettings.settings[\font])
-			.string = ["NAME", "SCRIPT OR WIDGET?", "CONTROLS"][i];
-		};
+		layoutMain.add(textEnvirFieldView);
 
-		controllers do: { |con, i|
-			con.makeGui(
-				parent,
-				Rect(
-					0,
-					i * 42 + ScoreWidgetSettings.settings[\chOffset],
-					parent.bounds.width,
-					40));
-		};
+		layoutControlHeaderLabels = HLayout();
+		layoutControlHeaderLabels.margins = 0!4;
 
-		scoreGui[\addChannelView] = CompositeView(parent, Rect(
-			ScoreWidgetSettings.settings[\xLayers],
-			controllers.size * 40 + ScoreWidgetSettings.settings[\chOffset],
-			40,
-			30)).background_(Color.clear);
+		labelParamNameControlHeader = StaticText();
+		labelParamNameControlHeader.font = ScoreWidgetSettings.settings[\font];
+        labelParamNameControlHeader.string = "NAME";
+		layoutControlHeaderLabels.add(labelParamNameControlHeader, align: \left);
 
-		scoreGui[\addChannelButton] = MButtonP(scoreGui[\addChannelView],scoreGui[\addChannelView].bounds.extent)
-		.action_({ this.addChannel });
+	    labelParamControlScriptOrControllerHeader = StaticText();
+		labelParamControlScriptOrControllerHeader.font = ScoreWidgetSettings.settings[\font];
+        labelParamControlScriptOrControllerHeader.string = "SCRIPT/CONTROLLER";
+		layoutControlHeaderLabels.add(labelParamControlScriptOrControllerHeader, align: \left);
 
+		labelParamControlSelectorsHeader = StaticText();
+		labelParamControlSelectorsHeader.font = ScoreWidgetSettings.settings[\font];
+        labelParamControlSelectorsHeader.string = "SELECTORS";
+	    layoutControlHeaderLabels.add(labelParamControlSelectorsHeader, align: \right);
 
-		scoreGui[\LayerView] = EZNumber(parent,
-				Rect(0, parent.bounds.height - 30, 88, 20),
-				"LAYERS", ControlSpec(1,20, \lin, 1),
-				{ |ez| this.layerAction(ez.value.postln) },
-			1, false, 60);
-		scoreGui[\LayerView].setColors(Color.grey,Color.white);
-		scoreGui[\LayerView].labelView.align_(\center);
+		layoutMain.add(layoutControlHeaderLabels);
 
-		parent.onClose = { this.closeScoreGui; };
-		parent.front;
+		layoutChannels = VLayout([nil, stretch:1, align: \bottom]); // workaround. insert before stretchable space.
+		layoutChannels.margins_([0,0,0,0]);
+		layoutChannels.spacing_(2);
 
+		scrollViewControls = ScrollView();
+		scrollViewControls.canvas = View();
+		scrollViewControls.canvas.layout = layoutChannels;
+		scrollViewControls.canvas.background_(Color.new255(* (150!3 ++ 230)));
+		scrollViewControls.background = Color.new255(* (150!3 ++ 230));
+
+		layoutMain.add(scrollViewControls);
+
+		layoutFooter = HLayout();
+
+		layoutMain.add(layoutFooter);
+
+		labelPatternLayers = StaticText();
+		labelPatternLayers.string = "LAYERS";
+        labelPatternLayers.font = ScoreWidgetSettings.settings[\font];
+		labelPatternLayers.background = Color.clear;
+		labelPatternLayers.stringColor = Color.white;
+
+		layoutFooter.add(labelPatternLayers, align: \left);
+
+		numberBoxPatternLayers = NumberBox();
+		numberBoxPatternLayers.clipLo = 1;
+		numberBoxPatternLayers.clipHi = 20;
+		numberBoxPatternLayers.maxWidth = 25;
+
+		numberBoxPatternLayers.action = { | sender | this.actionChangeLayers(sender.value) };
+
+		layoutFooter.add(numberBoxPatternLayers, align: \left);
+     	layoutFooter.add(nil);
+
+		buttonAddChannel = PlusButton();
+		buttonAddChannel.fixedHeight = 30;
+		buttonAddChannel.fixedWidth = 70;
+		buttonAddChannel.action = { this.addChannel(); };
+
+		layoutFooter.add(buttonAddChannel, align: \right);
 	}
 
 	getMixerChannelControl {
@@ -241,7 +282,7 @@ ScoreControl : ScoreWidgetBase {
 		var layout = HLayout();
 		layout.margins_(0!4);
 		scoreControlMixerChannelView = View()
-		.background_(Color.black.alpha_(0.2));
+		.background_(Color.black.alpha_(0.2)); // TODO static configuration class
 
 		scoreControlMixerChannelView.layout = layout;
 
@@ -264,7 +305,7 @@ ScoreControl : ScoreWidgetBase {
 
 		model.addDependant(dependants[\togglePlayScore]);
 
-		mixerGui[\faderScoreControlVolume] = SCMSlider(controlSpec: \db.asSpec, initVal: 1, labelText: model[\scoreName])
+		mixerGui[\faderScoreControlVolume] = SCMSlider(controlSpec: \db.asSpec, initVal: 1, labelText: model[\scoreId])
 		.value_(model[\faderScoreControlVolume])
 		.action_({ |v| setValueFunction[\faderScoreControlVolume].value(v.value) });
 
@@ -283,7 +324,7 @@ ScoreControl : ScoreWidgetBase {
 		model.addDependant(dependants[\faderScoreControlVolumeGui]);
 
 		dependants[\mixerLabelView] =  {|theChanger, what, value|
-			if (what == \scoreName) {
+			if (what == \scoreId) {
 				mixerGui[\faderScoreControlVolume].labelText = value;
 			};
 		};
@@ -293,11 +334,9 @@ ScoreControl : ScoreWidgetBase {
 		.font_(font)
 		.states_([["SCORE", Color.red.alpha_(0.8), Color.black]])
 	    .minWidth_(50).maxWidth_(45).minHeight_(50)
-		.action_({ if (isOpen) {
-			parent.front
-			} {
-				this.makeScoreGui;
-		}});
+		.action_({
+			this.front();
+		});
 
 		layout.add(mixerGui[\popupScore]);
 
@@ -317,19 +356,19 @@ ScoreControl : ScoreWidgetBase {
 	addChannel {
 		var currentIndex = controllers.size;
 		var paramName = "Param" ++ currentIndex;
-		var paramChannel = ScoreParamWidget.new(
+		var paramChannel = ScoreParamWidget(
 			argName: paramName,
 			argIndex: currentIndex,
-			argLemur: lemur,
+			argLemur: this.lemurClient,
 			argLemurXoffset: currentIndex * 110,
-			argPageName: model[\scoreName],
+			argPageName: model[\scoreId],
 			argObjectReferenceName: "Object" ++ currentIndex
 		);
 
 		paramChannel.controllerProxies = (
-			fader: PatternProxy.new(0),
-			rangeLo: PatternProxy.new(0),
-			rangeHi: PatternProxy.new(1)
+			fader: PatternProxy(0),
+			rangeLo: PatternProxy(0),
+			rangeHi: PatternProxy(1)
 		);
 
 		paramChannel.paramController.rangeAction = { | val |
@@ -341,12 +380,13 @@ ScoreControl : ScoreWidgetBase {
 
 		paramChannel.paramController.faderAction = { | val |
 			paramChannel.controllerProxies[\fader].source = val.postln
+
 		};
 
 		paramChannel.nameAction = { |argName|
 			argName.postln;
-			keyAndPatternPairs = Dictionary.new;
-			if (paramChannel.paramProxy.isNil) { paramChannel.paramProxy = PatternProxy.new(1) };
+			keyAndPatternPairs = Dictionary();
+			if (paramChannel.paramProxy.isNil) { paramChannel.paramProxy = PatternProxy(1) };
 			controllers do: { |aChannel|
 				keyAndPatternPairs[aChannel.name.asSymbol] = aChannel.paramProxy;
 			};
@@ -370,7 +410,7 @@ ScoreControl : ScoreWidgetBase {
 			tempChannel.closeGui;
 			tempChannel.closeLemur;
 			this.positionChannels;
-			keyAndPatternPairs = IdentityDictionary.new;
+			keyAndPatternPairs = IdentityDictionary();
 			controllers do: { |i|
 				keyAndPatternPairs[i.name.asSymbol] = i.paramProxy;
 			};
@@ -383,18 +423,14 @@ ScoreControl : ScoreWidgetBase {
 
 		controllers = controllers.add(paramChannel);
 
-		if (isOpen != false) { paramChannel.makeGui(parent,
-			Rect(
-				0,
-				currentIndex * 42 + ScoreWidgetSettings.settings[\chOffset],
-				parent.bounds.width,
-				40));
-			scoreGui[\addChannelView].moveTo(
-				ScoreWidgetSettings.settings[\xLayers],
-				controllers.size * 42 + ScoreWidgetSettings.settings[\chOffset],
-				40,
-				30);
-		};
+		// Add the view.
+		layoutChannels.insert(NumberBox(), 0);
+		layoutChannels.insert(NumberBox(), 1);
+		layoutChannels.insert(NumberBox(), 2);
+
+		/*
+		   ScoreControlView().front
+		*/
 
 		paramChannel;
 
@@ -406,67 +442,19 @@ ScoreControl : ScoreWidgetBase {
 		}
 	}
 
-	positionChannels {
-		controllers do: { |instance, index|
-			instance.index = index;
-			instance.moveBounds(0,index * 42 + ScoreWidgetSettings.settings[\chOffset]);
-			instance.moveLemur(index * 110);
-
-		};
-		scoreGui[\addChannelView].moveTo(
-			ScoreWidgetSettings.settings[\xLayers],
-			controllers.size * 42 + ScoreWidgetSettings.settings[\chOffset],
-			40,
-			30);
-	}
-
-	layerAction { |argLayers|
+	actionChangeLayers { |argLayers|
 		eventParProxy.source = Ppar({eventStreamProxy}!argLayers);
 		argLayers.postln;
 	}
 
-	close {
-		if (closeAction.notNil) { closeAction.value(this) };
-		this.closeGui;
-		model.dependants do: { |i| model.removeDependant(i) };
-	}
-
-	closeGui {
-		this.closeMixerChannelGui;
-		this.closeScoreGui;
-	}
-
-	closeMixerChannelGui {
-		scoreControlMixerChannelView.remove;
-		mixerGui do: (_.remove);
-		model.removeDependant(dependants[\mixerScorePlay]);
-		model.removeDependant(dependants[\faderScoreControlVolumeGui]);
-		model.removeDependant(dependants[\mixerLabelView]);
-	}
-
-	closeScoreGui {
-		if (parent.notNil, { parent.close; });
-		scoreGui do: (_.remove);
-		isOpen = false;
-		model.removeDependant(dependants[\scoreNameScoreGui]);
-		model.removeDependant(dependants[\envirTextFieldScoreGui]);
-		model.removeDependant(dependants[\playButtonScoreGui]);
-	}
-
-	dispose {
-		this.closeMixerChannelGui();
-		this.closeMixerChannelGui();
-	}
-
-
-	getState {
-		var scoreState = Dictionary.new;
-		scoreState[\scoreName] = model[\scoreName].copy;
-		scoreState[\presetMenu] = scorePresetMenu.getState.postln;
-		scoreState[\envirTextField] = model[\envirTextField].copy;
+    getState {
+		var scoreState = Dictionary();
+		scoreState[\scoreId] = model[\scoreId].copy;
+		scoreState[\presetMenu] = presetManagerView.getState.postln;
+		scoreState[\envirText] = model[\envirText].copy;
 		scoreState[\faderScoreControlVolume] = model[\faderScoreControlVolume].copy;
 
-		scoreState[\controllers] = Dictionary.new;
+		scoreState[\controllers] = Dictionary();
 		controllers do: { |conCh, i|
 			scoreState[\controllers][i.asSymbol] = conCh.getState;
 		};
@@ -474,10 +462,10 @@ ScoreControl : ScoreWidgetBase {
 	}
 
 	loadState { |argPreset|
-		setValueFunction[\envirTextField].value(argPreset[\envirTextField]);
-		setValueFunction[\scoreName].value(argPreset[\scoreName]);
+		setValueFunction[\envirText].value(argPreset[\envirText]);
+		setValueFunction[\scoreId].value(argPreset[\scoreId]);
 		setValueFunction[\faderScoreControlVolume].value(argPreset[\faderScoreControlVolume]);
-		scorePresetMenu.loadState(argPreset[\presetMenu].postln);
+		presetManagerView.loadState(argPreset[\presetMenu].postln);
 		argPreset[\controllers].size do: { |i|
 			if (controllers[i].isNil) { this.addChannel; };
 		};

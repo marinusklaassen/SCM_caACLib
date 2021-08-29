@@ -1,5 +1,5 @@
 /*
- * Marinus Klaassen 2021
+ * Marinus Klaassen 2021 -> Rename ScoreWidgetViewBase -> Is base view wel nodig?
  *
  * Base class for all the score and controller widget objects.
  */
