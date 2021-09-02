@@ -9,7 +9,16 @@
    ScoreControlView().front();
 
  TODO // Hier in de score control alle lemur code.
+s.boot;
+\
+// Wanneer alle nodes vast: Server doctor:
+
+Server.freeAll(evenRemote: false)
+
+
  */
+
+
 
 ScoreControlView : View {
 	var <>lemurClient, <presetManagerView, <controllers, <scoreName, <playingStream, <keyAndPatternPairs;
@@ -54,7 +63,7 @@ ScoreControlView : View {
 		setValueFunction = ();
 		[\envirText, \faderScoreControlVolume, \scoreId, \buttonPlay] do: { |key|
 			setValueFunction[key] = { |inArg|
-				model[key] = inArg;
+				model[key.asSymbol] = inArg;
 				model.changed(key, inArg);
 			};
 		};
@@ -97,7 +106,9 @@ ScoreControlView : View {
 		dependants[\buttonPlay] =  {|theChanger, what, value|
 			if (what == \buttonPlay) {
 				if (value > 0) {
-					playingStream = eventStream.play } { playingStream.stop };
+					playingStream = eventStream.play
+
+				} { playingStream.stop };
 			};
 		};
 		model.addDependant(dependants[\buttonPlay]);
@@ -133,6 +144,7 @@ ScoreControlView : View {
 
 		textScoreId = TextField();
 		textScoreId.minWidth = 150;
+		textScoreId.minHeight = 50;
 		textScoreId.string = model[\scoreId];
 		textScoreId.action = { |val| setValueFunction[\scoreId].value(val.string); };
 
@@ -151,12 +163,14 @@ ScoreControlView : View {
 		buttonPlay.font = ScoreWidgetSettings.settings[\font]; // Rename naar ScoreControlConfiguration. En pas toe voor meerdere defaults.
 		buttonPlay.states = [["PLAY", Color.red, Color.black],["STOP", Color.black, Color.red]];
 		buttonPlay.minWidth = 106;
+		buttonPlay.minHeight = 50;
 		buttonPlay.action_({ |val| setValueFunction[\buttonPlay].value(val.value); });
 
 		buttonRandomize = Button();
 		buttonRandomize.font = ScoreWidgetSettings.settings[\font];
 		buttonRandomize.states = [["RANDOMIZE", Color.red, Color.black]];
 		buttonRandomize.minWidth = 106;
+		buttonRandomize.minHeight = 50;
 		buttonRandomize.action = { this.randomize(); };
 
 		layoutHeader.add(nil, stretch: 1.0);
@@ -164,7 +178,7 @@ ScoreControlView : View {
 
 		dependants[\buttonPlay] =  {|theChanger, what, value|
 			if (what == \buttonPlay) {
-				scoreGui[\buttonPlay].value = value;
+				buttonPlay.value = value;
 			};
 		};
 		model.addDependant(dependants[\buttonPlay]);
@@ -214,20 +228,23 @@ ScoreControlView : View {
 		layoutMain.add(textEnvirFieldView);
 
 		layoutControlHeaderLabels = HLayout();
-		layoutControlHeaderLabels.margins = 0!4;
-
+		layoutControlHeaderLabels.margins = [5, 5, 5, 0];
 		labelParamNameControlHeader = StaticText();
 		labelParamNameControlHeader.font = ScoreWidgetSettings.settings[\font];
         labelParamNameControlHeader.string = "NAME";
+		labelParamNameControlHeader.maxWidth = 93;
+		labelParamNameControlHeader.minWidth = 93;
 		layoutControlHeaderLabels.add(labelParamNameControlHeader, align: \left);
 
 	    labelParamControlScriptOrControllerHeader = StaticText();
 		labelParamControlScriptOrControllerHeader.font = ScoreWidgetSettings.settings[\font];
         labelParamControlScriptOrControllerHeader.string = "SCRIPT/CONTROLLER";
-		layoutControlHeaderLabels.add(labelParamControlScriptOrControllerHeader, align: \left);
+		layoutControlHeaderLabels.add(labelParamControlScriptOrControllerHeader, align: \left, stretch: 1.0);
 
 		labelParamControlSelectorsHeader = StaticText();
 		labelParamControlSelectorsHeader.font = ScoreWidgetSettings.settings[\font];
+		labelParamControlSelectorsHeader.maxWidth = 145;
+		labelParamControlSelectorsHeader.minWidth = 145;
         labelParamControlSelectorsHeader.string = "SELECTORS";
 	    layoutControlHeaderLabels.add(labelParamControlSelectorsHeader, align: \right);
 
@@ -342,7 +359,7 @@ ScoreControlView : View {
 
 		mixerGui[\removeScore] = DeleteButton()
 		.fixedSize_(10)
-		.action_({ this.removeAction(this); }); // Zorg ook dat indien Play aanstaat deze wordt uitgezet.
+		.action_({ this.removeAction.value(this); }); // Zorg ook dat indien Play aanstaat deze wordt uitgezet.
 		// Letop dat close de widgets nog steeds in leven houdt. dus zorg dat de ScoreControl een dispose heeft.
 
 		layout.add(mixerGui[\removeScore], align: \topRight);
@@ -355,16 +372,7 @@ ScoreControlView : View {
 	}
 
 	addChannel {
-		var currentIndex = controllers.size;
-		var paramName = "Param" ++ currentIndex;
-		var paramChannel = ScoreParamWidget(
-			argName: paramName,
-			argIndex: currentIndex,
-			argLemur: this.lemurClient,
-			argLemurXoffset: currentIndex * 110,
-			argPageName: model[\scoreId],
-			argObjectReferenceName: "Object" ++ currentIndex
-		);
+		var paramChannel = ScoreParamView();
 
 		paramChannel.controllerProxies = (
 			fader: PatternProxy(0),
@@ -372,31 +380,30 @@ ScoreControlView : View {
 			rangeHi: PatternProxy(1)
 		);
 
-		paramChannel.paramController.rangeAction = { | val |
-			paramChannel.controllerProxies[\rangeLo].source = val[0].postln;
-			paramChannel.controllerProxies[\rangeHi].source = val[1].postln;
+		paramChannel.rangeSliderAction = { | rangeList |
+			paramChannel.controllerProxies[\rangeLo].source = rangeList[0].postln;
+			paramChannel.controllerProxies[\rangeHi].source = rangeList[1].postln;
 		};
 
 		paramChannel.paramProxy = PatternProxy(1);
 
-		paramChannel.paramController.faderAction = { | val |
+		paramChannel.sliderAction = { | val |
 			paramChannel.controllerProxies[\fader].source = val.postln
-
 		};
 
-		paramChannel.nameAction = { |argName|
-			argName.postln;
+		paramChannel.actionNameChanged = { |sender|
 			keyAndPatternPairs = Dictionary();
 			if (paramChannel.paramProxy.isNil) { paramChannel.paramProxy = PatternProxy(1) };
 			controllers do: { |aChannel|
-				keyAndPatternPairs[aChannel.name.asSymbol] = aChannel.paramProxy;
+				keyAndPatternPairs[aChannel.keyName.asSymbol] = aChannel.paramProxy;
 			};
 			eventStreamProxy.source = Pbind(*keyAndPatternPairs.getPairs.postln);
 		};
 
-		paramChannel.pScript.action = { |code|
-			var func = interpret("{ |fader, rangeLo, rangeHi, env| " ++ code ++ "}");
+		paramChannel.actionPatternScriptChanged = { | sender |
+			var func = interpret("{ |fader, rangeLo, rangeHi, env| " ++ sender.string ++ "}");
 			paramChannel.scriptFunc = func;
+            postln("{ |fader, rangeLo, rangeHi, env| " ++ sender.string ++ "}");
 
 			paramChannel.paramProxy.source = func.value(
 				paramChannel.controllerProxies['fader'],
@@ -406,12 +413,12 @@ ScoreControlView : View {
 			);
 		};
 
-		paramChannel.removeAction = { |index|
-			var tempChannel = controllers.removeAt(index);
-
+		paramChannel.actionButtonDelete = { | sender|
+			var tempChannel = controllers.remove(paramChannel);
+			paramChannel.remove(); // Remove itself from the layout.
 			keyAndPatternPairs = IdentityDictionary();
-			controllers do: { |i|
-				keyAndPatternPairs[i.name.asSymbol] = i.paramProxy;
+			controllers do: { | scoreParamView |
+				keyAndPatternPairs[scoreParamView.keyName.asSymbol] = scoreParamView.paramProxy;
 			};
 			if (keyAndPatternPairs.size >= 2) {
 				eventStreamProxy.source = Pbind(*keyAndPatternPairs.getPairs);
@@ -421,24 +428,13 @@ ScoreControlView : View {
 
 		};
 
+		layoutChannels.insert(paramChannel, controllers.size);
 		controllers = controllers.add(paramChannel);
-
-		// Add the view.
-		layoutChannels.insert(NumberBox(), 0);
-		layoutChannels.insert(NumberBox(), 1);
-		layoutChannels.insert(NumberBox(), 2);
-
-		/*
-		   ScoreControlView().front
-		*/
-
-		paramChannel;
-
 	}
 
 	randomize {
-		controllers do: { |i|
-			i.paramController.loadState((fader: 1.0.rand, range: sort({1.0.rand}!2)))
+		controllers do: { |scoreParamView|
+			scoreParamView.paramController.loadState((fader: 1.0.rand, range: sort({1.0.rand}!2)))
 		}
 	}
 

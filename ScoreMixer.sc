@@ -6,6 +6,7 @@
  *
  * AUTHOR: Marinus Klaassen (2012, 2021Q3)
  *
+ ScoreMixer().gui
  */
 
 ScoreMixer : ScoreWidgetBase {
@@ -41,13 +42,16 @@ ScoreMixer : ScoreWidgetBase {
 	}
 
 	addScoreControl {
-		var newScore = ScoreControlView(lemurClient);
-		newScore.front();
-		newScore.removeAction = { | self |
-			scores.remove(self); // Stop audio indien nodig. En sluit gui. (dispose) en  verwijder controls
+		var scoreView = ScoreControlView(lemurClient);
+		var scoreMixerChannelView = scoreView.getMixerChannelControl();
+		scoreView.front();
+		scoreView.removeAction = { | sender |
+			scoreMixerChannelView.remove();
+			scoreView.close; // By doing this the
+			scores.remove(scoreView); // Stop audio indien nodig. En sluit gui. (dispose) en  verwijder controls
 		};
-		userControl[\layoutMixerChannels].insert(newScore.getMixerChannelControl(), scores.size); // workaround. insert before stretchable space.
-		scores.add(newScore);
+		userControl[\layoutMixerChannels].insert(scoreMixerChannelView, scores.size); // workaround. insert before stretchable space.
+		scores.add(scoreView);
 	}
 
 	gui {

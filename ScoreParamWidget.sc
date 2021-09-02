@@ -68,11 +68,12 @@ ScoreParamView : View {
 	initializeView {
 		this.background = Color.red.alpha_(0.4);
 		mainLayout = HLayout();
+		mainLayout.margins = [5, 5, 20, 5];
 		this.layout = mainLayout;
 
 		textPatternKeyname = TextField();
-		textPatternKeyname.maxWidth = 80;
-		textPatternKeyname.minWidth = 80;
+		textPatternKeyname.maxWidth = 90;
+		textPatternKeyname.minWidth = 90;
 		textPatternKeyname.action = { | sender |
 			keyName = sender.string;
 			actionNameChanged.value(this);
@@ -83,7 +84,7 @@ ScoreParamView : View {
         layoutStackVariableSection = StackLayout();
 		layoutStackVariableSection.margins = 0!4;
 
-        mainLayout.add(layoutStackVariableSection, align: \top);
+        mainLayout.add(layoutStackVariableSection, align: \top, stretch: 1.0);
 
         scorePatternScriptEditingView = ScorePatternScriptEditingView();
 		scorePatternScriptEditingView.action = { | sender |
