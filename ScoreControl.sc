@@ -16,7 +16,7 @@ ScoreControlView : View {
 	var mixerAmpProxy, eventStreamProxy, <eventStream, controllerProxies, eventParProxy, setValueFunction, model, dependants, parentView;
 	var scoreGui, mixerGui, <scoreControlMixerChannelView,layoutMain,layoutHeader,layoutFooter,scrollViewControls,layoutControlHeaderLabels,layoutChannels,textScoreId, buttonPlay, buttonRandomize, presetManagerView, textEnvirFieldView; // TODOP
 	var layoutControlHeaderLabels,labelParamNameControlHeader, labelParamControlScriptOrControllerHeader, labelParamControlSelectorsHeader, labelPatternLayers, numberBoxPatternLayers, buttonAddChannel;
-	var <>index, >closeAction,removeAction, scoreId;
+	var <>index, >closeAction,<>removeAction, scoreId;
 
 	classvar instanceCounter=0;
 
@@ -342,7 +342,8 @@ ScoreControlView : View {
 
 		mixerGui[\removeScore] = DeleteButton()
 		.fixedSize_(10)
-		.action_({ this.close; });
+		.action_({ this.removeAction(this); }); // Zorg ook dat indien Play aanstaat deze wordt uitgezet.
+		// Letop dat close de widgets nog steeds in leven houdt. dus zorg dat de ScoreControl een dispose heeft.
 
 		layout.add(mixerGui[\removeScore], align: \topRight);
 
@@ -407,9 +408,7 @@ ScoreControlView : View {
 
 		paramChannel.removeAction = { |index|
 			var tempChannel = controllers.removeAt(index);
-			tempChannel.closeGui;
-			tempChannel.closeLemur;
-			this.positionChannels;
+
 			keyAndPatternPairs = IdentityDictionary();
 			controllers do: { |i|
 				keyAndPatternPairs[i.name.asSymbol] = i.paramProxy;
@@ -419,6 +418,7 @@ ScoreControlView : View {
 			} {
 				eventStreamProxy.source = Pbind();
 			}
+
 		};
 
 		controllers = controllers.add(paramChannel);

@@ -43,8 +43,8 @@ ScoreMixer : ScoreWidgetBase {
 	addScoreControl {
 		var newScore = ScoreControlView(lemurClient);
 		newScore.front();
-		newScore.closeAction = { | self |
-			scores.remove(self).dispose();
+		newScore.removeAction = { | self |
+			scores.remove(self); // Stop audio indien nodig. En sluit gui. (dispose) en  verwijder controls
 		};
 		userControl[\layoutMixerChannels].insert(newScore.getMixerChannelControl(), scores.size); // workaround. insert before stretchable space.
 		scores.add(newScore);

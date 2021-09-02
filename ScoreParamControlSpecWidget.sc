@@ -37,21 +37,25 @@ ScoreControlSpecView : View {
 		);
 
 		setValueFunction = {| rawSpecAsString|
-			var controlSpec;
+			var interpretSpec; // TODO separate method. InterpretStringAsControlSpec
             // The user can evaluate a valid ControlSpec() or \name.asSpec.
-			controlSpec = rawSpecAsString.interpretPrint;
-
-            if (controlSpec.class == ControlSpec, {
-				labelError.string = "";
-	            labelError.maxHeight = 0;
-				model[\controlSpec] = controlSpec;
-				model.changed(\controlSpec, controlSpec);
+			try {
+			   interpretSpec = rawSpecAsString.interpretPrint;
+			}
+			{ interpretSpec = nil; };
+            if (interpretSpec.class == ControlSpec, {
+				if (labelError.visible == true, {
+			      labelError.visible = false;
+				  labelError.string = "";
+				});
+				model[\controlSpec] = interpretSpec;
+				model.changed(\controlSpec, interpretSpec);
 				model[\rawSpecAsString] = rawSpecAsString;
 				model.changed(\rawSpecAsString, rawSpecAsString);
 
             }, {
+				labelError.visible = true;
 				labelError.string = "Invalid input. Must be a valid ControlSpec..";
-				labelError.maxHeight = 50;
 			});
 		};
 		dependants = ();
@@ -67,6 +71,7 @@ ScoreControlSpecView : View {
 
 	initializeView {
 		mainLayout = VLayout();
+		mainLayout.margins = 0!4;
 		this.layout = mainLayout;
 
 		textInput = TextField();
@@ -85,11 +90,10 @@ ScoreControlSpecView : View {
 		model.addDependant(dependants[\textInput]);
 
 		labelError = StaticText();
-		labelError.stringColor = Color.red;
-		labelError.maxHeight = 0;
+		labelError.stringColor = Color.blue;
+		labelError.visible = false;
 		mainLayout.add(textInput);
 		mainLayout.add(labelError);
-		mainLayout.add(nil, stretch: 1);
 	}
 
 	getState { ^model[\rawSpecAsString]; }
