@@ -73,7 +73,7 @@ ScoreParamView : View {
 		textPatternKeyname.maxWidth = 90;
 		textPatternKeyname.minWidth = 90;
 		textPatternKeyname.action = { | sender |
-			keyName = sender.string;
+			controlSpecEditorView.setSpecByString(sender.string);
 			actionNameChanged.value(this);
 		};
 
@@ -180,6 +180,11 @@ ScoreParamView : View {
 		  if (actionButtonDelete.notNil, { actionButtonDelete.value(this) });
 	    };
 		mainLayout.add(buttonDelete, align: \top);
+	}
+
+	randomize {
+		setValueFunction[\sliderValue].value(1.0.rand);
+		setValueFunction[\rangeSliderValues].value(sort({1.0.rand}!2));
 	}
 
 	loadState { |aPreset|

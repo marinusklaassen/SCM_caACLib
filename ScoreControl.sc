@@ -18,7 +18,7 @@ ScoreControlView : View {
 	var <>lemurClient, <presetManagerView, <controllers, <scoreName, <playingStream, <keyAndPatternPairs;
 	var mixerAmpProxy, eventStreamProxy, <eventStream, controllerProxies, eventParProxy, setValueFunction, model, dependants, parentView;
 	var scoreGui, mixerGui, <scoreControlMixerChannelView,layoutMain,layoutHeader,layoutFooter,scrollViewControls,layoutControlHeaderLabels,layoutChannels,textScoreId, buttonPlay, buttonRandomize, presetManagerView, textEnvirFieldView; // TODOP
-	var layoutControlHeaderLabels,labelParamNameControlHeader, labelParamControlScriptOrControllerHeader, labelParamControlSelectorsHeader, labelPatternLayers, numberBoxPatternLayers, buttonAddChannel;
+	var layoutControlHeaderLabels,labelParamNameControlHeader, errorLabelEnvirFieldView, labelParamControlScriptOrControllerHeader, labelParamControlSelectorsHeader, labelPatternLayers, numberBoxPatternLayers, buttonAddChannel;
 	var <>index, >closeAction,<>removeAction, scoreId;
 
 	classvar instanceCounter=0;
@@ -64,10 +64,15 @@ ScoreControlView : View {
 
 		dependants[\interpresetenvirText] = {|theChanger, what, environment|
 			if (what == \envirText) {
+
+				errorLabelEnvirFieldView.visible = false;
 				environment =  "Environment.make({" ++ environment ++ "})".postln;
-				environment = interpret(environment);
+
+				try {
+				 environment = interpret(environment);
+				} { environment = nil; };
+
 				if (environment.notNil) {
-					///////////////////////////////////////// TEXTFIELD ENVIRONMENT DEPEDANT FUNCTION <- I have no glue why I wrote this back in the day haha!
 					model[\environment] = environment.postln;
 
 					controllers do: { |aCon|
@@ -79,10 +84,11 @@ ScoreControlView : View {
 						)
 					};
 				} {
-					"Debug envirField!!".postln;
-				};
+					errorLabelEnvirFieldView.visible = true; // Show error.
+ 				};
 			};
 		};
+
 		model.addDependant(dependants[\interpresetenvirText]);
 
 		dependants[\scoreId] = {|theChanger, what, argScoreName|
@@ -220,6 +226,13 @@ ScoreControlView : View {
 		model.addDependant(dependants[\textEnvirFieldView]);
 
 		layoutMain.add(textEnvirFieldView);
+
+		errorLabelEnvirFieldView = StaticText();
+		errorLabelEnvirFieldView.visible = false;
+		errorLabelEnvirFieldView.string = "Invalid input.";
+		errorLabelEnvirFieldView.stringColor = Color.red;
+
+	    layoutMain.add(errorLabelEnvirFieldView, align: \right);
 
 		layoutControlHeaderLabels = HLayout();
 		layoutControlHeaderLabels.margins = [5, 5, 5, 0];
@@ -395,16 +408,22 @@ ScoreControlView : View {
 		};
 
 		paramChannel.actionPatternScriptChanged = { | sender |
-			var func = interpret("{ |fader, rangeLo, rangeHi, env| " ++ sender.string ++ "}");
-			paramChannel.scriptFunc = func;
-            postln("{ |fader, rangeLo, rangeHi, env| " ++ sender.string ++ "}");
+			var func = nil;
+			sender.clearError();
+			try {
+			   func = interpret("{ |fader, rangeLo, rangeHi, env| " ++ sender.string ++ "}");
+			};
 
-			paramChannel.paramProxy.source = func.value(
+			if (func.notNil) {
+			  paramChannel.scriptFunc = func;
+			  paramChannel.paramProxy.source = func.value(
 				paramChannel.controllerProxies['fader'],
 				paramChannel.controllerProxies['rangeLo'],
 				paramChannel.controllerProxies['rangeHi'],
-				model[\environment]
-			);
+				model[\environment]);
+			} {
+				sender.setErrorText("Invalid input.");
+			};
 		};
 
 		paramChannel.actionButtonDelete = { | sender|
@@ -428,7 +447,7 @@ ScoreControlView : View {
 
 	randomize {
 		controllers do: { |scoreParamView|
-			scoreParamView.paramController.loadState((fader: 1.0.rand, range: sort({1.0.rand}!2)))
+			scoreParamView.randomize();
 		}
 	}
 

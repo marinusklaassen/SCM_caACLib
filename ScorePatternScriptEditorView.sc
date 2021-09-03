@@ -1,16 +1,12 @@
 /*
- * FILENAME: ScorePatternScriptEditingView -> TODO rename ScoreEditingView
- *
- * DESCRIPTION:
- *     - Input text + window dialog to editing pattern (code-first).
- *
- * AUTHOR: Marinus Klaassen (2012, 2021Q3)
- *
- *
+FILENAME: ScorePatternScriptEditingView
+
+DESCRIPTION: Input text + window dialog to editing pattern (code-first).
+
+AUTHOR: Marinus Klaassen (2012, 2021Q3)
+
+EXAMPLE:
 ScorePatternScriptEditingView(bounds:400@200).front().showPopup().action = { | sender | sender.string.postln; }
-
-
-
 */
 
 
@@ -110,7 +106,6 @@ ScorePatternScriptEditingView : View {
 				textSeparateEditing.string = value;
 			};
 			windowPopup.layout.add(textSeparateEditing);
-			// TODO error label ook in de popup toevoegen.
         });
 		windowPopup.front;
 	}
@@ -120,7 +115,7 @@ ScorePatternScriptEditingView : View {
 		labelError.string = errorText;
 	}
 
-	clearErrorText {
+	clearError {
 	    labelError.visible = false;
 		labelError.string = "";
 	}

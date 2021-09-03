@@ -1,14 +1,14 @@
 /*
- * FILENAME: ScoreControlSpecView
- *
- * DESCRIPTION:
- *         - Enter a control spec name or new instance by code. This view component takes care of the interpretation.
-           - The model is updated when a controlspec string is succesfully interpreted.
- *
- * AUTHOR: Marinus Klaassen (2012, 2021Q3)
- *
+* FILENAME: ScoreControlSpecView
+*
+* DESCRIPTION:
+*         - Enter a control spec name or new instance by code. This view component takes care of the interpretation.
+- The model is updated when a controlspec string is succesfully interpreted.
+*
+* AUTHOR: Marinus Klaassen (2012, 2021Q3)
+*
 ScoreControlSpecView(bounds:400@20).front().action = { |sender| sender.controlSpec.postln; sender.getState().postln; };
- */
+*/
 
 ScoreControlSpecView : View {
 	var controlSpec, mainLayout, textInput, labelError, model,dependants,setValueFunction;
@@ -38,24 +38,24 @@ ScoreControlSpecView : View {
 
 		setValueFunction = {| rawSpecAsString|
 			var interpretSpec; // TODO separate method. InterpretStringAsControlSpec
-            // The user can evaluate a valid ControlSpec() or \name.asSpec.
+			// The user can evaluate a valid ControlSpec() or \name.asSpec.
 			try {
-			   interpretSpec = rawSpecAsString.interpretPrint;
+				interpretSpec = rawSpecAsString.interpretPrint;
 			}
 			{ interpretSpec = nil; };
-            if (interpretSpec.class == ControlSpec, {
+			if (interpretSpec.class == ControlSpec, {
 				if (labelError.visible == true, {
-			      labelError.visible = false;
-				  labelError.string = "";
+					labelError.visible = false;
+					labelError.string = "";
 				});
 				model[\controlSpec] = interpretSpec;
 				model.changed(\controlSpec, interpretSpec);
 				model[\rawSpecAsString] = rawSpecAsString;
 				model.changed(\rawSpecAsString, rawSpecAsString);
 
-            }, {
+			}, {
 				labelError.visible = true;
-				labelError.string = "Invalid input. Must be a valid ControlSpec..";
+				labelError.string = "Invalid input. Must be a valid ControlSpec.";
 			});
 		};
 		dependants = ();
@@ -72,6 +72,7 @@ ScoreControlSpecView : View {
 	initializeView {
 		mainLayout = VLayout();
 		mainLayout.margins = 0!4;
+		mainLayout.spacing = 0;
 		this.layout = mainLayout;
 
 		textInput = TextField();
@@ -80,6 +81,7 @@ ScoreControlSpecView : View {
 		textInput.action = { | sender |
 			setValueFunction.value(sender.string);
 		};
+		mainLayout.add(textInput);
 
 		dependants[\textInput] = {|theChanger, what, val|
 			if(what == \rawSpecAsString, {
@@ -92,8 +94,8 @@ ScoreControlSpecView : View {
 		labelError = StaticText();
 		labelError.stringColor = Color.blue;
 		labelError.visible = false;
-		mainLayout.add(textInput);
-		mainLayout.add(labelError);
+
+		mainLayout.add(labelError, stretch: 1.0);
 	}
 
 	getState { ^model[\rawSpecAsString]; }
@@ -101,5 +103,16 @@ ScoreControlSpecView : View {
 	loadState { | specAsString |
 		// Update model
 		setValueFunction.value(specAsString)
+	}
+
+	setSpecByString { | specAsString |
+		var spec = specAsString.asSymbol.asSpec;
+		// Only update a valid conversion of default spec like \freq.asSymbol
+		if(spec.notNil, {
+			model[\controlSpec] =  spec;
+			model[\rawSpecAsString] = format("%%.asSpec", $\\, specAsString);
+			model.changed(\controlSpec, model[\controlSpec]);
+			model.changed(\rawSpecAsString, model[\rawSpecAsString]);
+		});
 	}
 }
