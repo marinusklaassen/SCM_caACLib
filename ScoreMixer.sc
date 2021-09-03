@@ -1,93 +1,109 @@
 /*
- * FILENAME: ScoreMixer -> ScoreMixerView
- *
- * DESCRIPTION:
- *         Add, remove en mixer pattern score channels.
- *
- * AUTHOR: Marinus Klaassen (2012, 2021Q3)
- *
- ScoreMixer().gui
- */
+FILENAME: ScoreProjectView
 
-ScoreMixer : ScoreWidgetBase {
-	var <scores, lemurClient, projectStateManager, userControl, <window;
+DESCRIPTION:
+         - Score Project View lists all the scores, project save en read capabilities via its view.
+         - Main entry point.
+         - Simple maintainance tasks like add, delete, open score view, volume control and play sections.
 
-	*new { |lemurClient|
-		^super.newCopyArgs.init(lemurClient);
+AUTHOR: Marinus Klaassen (2012, 2021Q3)
+
+EXAMPLE:
+s.boot;
+m = ScoreProjectView(bounds:400@700).front();
+*/
+
+ScoreProjectView : View {
+	var <scores, lemurClient, mainLayout, projectSaveAndLoadView, layoutMixerChannels, scrollViewMixerChannels, buttonAddScore, <eventAddScore;
+
+	*new { |parent, bounds, lemurClient|
+		^super.new(parent, bounds).initialize(lemurClient);
 	}
 
-	init { |lemurClient|
+	initialize { |lemurClient|
 		scores = List();
-		projectStateManager = ProjectStateManager();
-		projectStateManager.storeAction = { this.getProjectState(); };
-		projectStateManager.loadAction = { |projectState| this.loadProjectState(projectState); };
 		lemurClient = lemurClient;
+		this.initializeEvents();
+		this.initializeView();
+		this.registerEventHandlers();
 	}
 
-	getProjectState {
+	initializeView {
+		this.name = "Score Project";
+		this.background = Color.new255(136, 172, 224); // light petrol blue
+		this.alwaysOnTop_(true);
+		this.deleteOnClose = false;
+
+		mainLayout = VLayout();
+		this.layout = mainLayout;
+
+		projectSaveAndLoadView = ProjectSaveAndLoadView();
+		projectSaveAndLoadView.mainLayout.margins = 0!4;
+		mainLayout.add(projectSaveAndLoadView);
+
+		layoutMixerChannels = VLayout([nil, stretch:1, align: \bottom]); // workaround. insert before stretchable space.
+		layoutMixerChannels.margins = 0!4;
+		layoutMixerChannels.spacing = 2;
+
+		scrollViewMixerChannels = ScrollView();
+		scrollViewMixerChannels.canvas = View();
+		scrollViewMixerChannels.canvas.layout = layoutMixerChannels;
+		scrollViewMixerChannels.canvas.background = this.background;
+		mainLayout.add(scrollViewMixerChannels);
+
+		buttonAddScore = PlusButton();
+		buttonAddScore.fixedHeight = 30;
+		buttonAddScore.fixedWidth = 70;
+		buttonAddScore.action = { this.invokeEvent(this.eventAddScore); };
+		mainLayout.add(buttonAddScore,  align: \bottomRight);
+	}
+
+	invokeEvent { |event|
+		event.changed(this);
+	}
+
+	initializeEvents {
+		eventAddScore = ();
+	}
+
+	registerEventHandlers {
+		eventAddScore.addDependant({
+			this.addScore();
+		});
+		projectSaveAndLoadView.eventLoadProject.addDependant({  | event, sender |
+			sender.projectSettings = this.getProjectSettings();
+		});
+		projectSaveAndLoadView.eventSaveProject.addDependant({  | event, sender |
+			this.loadProjectSettings(sender.projectSettings);
+		});
+	}
+
+	getProjectSettings {
 		^scores.collect({ |score| score.getState(); });
 	}
 
-	loadProjectState { |projectState|
-		projectState do: { |scoreState, position|
-			var newScore;
+	loadProjectSettings { |projectSettings|
+		var scoreView;
+		projectSettings do: { |scoreSetting, position|
 			if (scores[position].isNil) {
-				newScore = ScoreControlView(lemurClient, position);
-				userControl[\layoutMixerChannels].insert(newScore.getMixerChannelControl(), scores.size); // workaround. insert before stretchable space.
-				scores.add(newScore);
+				scoreView = this.addScore();
 			} {
-				scores[position].loadState(scoreState);
+				scoreView = scores[position];
 			};
+			scoreView.loadState(scoreSetting);
 		};
 	}
 
-	addScoreControl {
+	addScore {
 		var scoreView = ScoreControlView(lemurClient);
 		var scoreMixerChannelView = scoreView.getMixerChannelControl();
-		scoreView.front();
 		scoreView.removeAction = { | sender |
 			scoreMixerChannelView.remove();
-			scoreView.close; // By doing this the
-			scores.remove(scoreView); // Stop audio indien nodig. En sluit gui. (dispose) en  verwijder controls
+			scoreView.dispose();
+			scores.remove(scoreView);
 		};
-		userControl[\layoutMixerChannels].insert(scoreMixerChannelView, scores.size); // workaround. insert before stretchable space.
+		layoutMixerChannels.insert(scoreMixerChannelView, scores.size); // workaround. insert before stretchable space.
 		scores.add(scoreView);
-	}
-
-	gui {
-		window = Window("Score Mixer", Rect(1000, 300, 426.0, 600));
-		window.background_(Color.new255(* (150!3 ++ 230)));
-		window.alwaysOnTop_(true);
-
-		// layouts
-	    userControl = ();
-	    userControl[\layoutMain] = VLayout();
-        userControl[\layoutMixerChannels] = VLayout([nil, stretch:1, align: \bottom]); // workaround. insert before stretchable space.
-		userControl[\layoutMixerChannels].margins_([0,0,0,0]);
-		userControl[\layoutMixerChannels].spacing_(2);
-
-		// controls;
-		userControl[\projectStateManagerUserControl] = projectStateManager.userControl;
-		userControl[\buttonAdd] = PlusButton()
-		.fixedHeight_(30)
-		.fixedWidth_(70)
-		.action_({ this.addScoreControl(); })
-		.refresh();
-
-		userControl[\mixerChannelsScrollView] = ScrollView();
-		userControl[\mixerChannelsScrollView].canvas = View();
-		userControl[\mixerChannelsScrollView].canvas.layout = userControl[\layoutMixerChannels];
-		userControl[\mixerChannelsScrollView].canvas.background_(Color.new255(* (150!3 ++ 230)));
-
-		// Configure main layout.
-		userControl[\layoutMain].add(userControl[\projectStateManagerUserControl], align: \top);
-		userControl[\layoutMain].add(userControl[\mixerChannelsScrollView]);
-		userControl[\layoutMain].add(userControl[\buttonAdd], align: \bottomRight);
-
-		// Add mixer channels to mixer channel layout.
-		scores do: { |score, position| userControl[\layoutMixerChannels].insert(score.getMixerChannelControl(), position); }; // workaround. insert before stretchable space.
-
-	    window.layout = userControl[\layoutMain];
-		window.front;
+		^scoreView;
 	}
 }

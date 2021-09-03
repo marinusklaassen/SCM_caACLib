@@ -1,52 +1,66 @@
 /*
- * FILENAME: ProjectStateManager
- *
- * DESCRIPTION:
- *         ProjectStateManager store and load SC objects as archive files
- *         - Constructs a usercontrols
- *         - Can be used without GUI.
- *
- * AUTHOR: Marinus Klaassen (2012, 2021Q3)
- *
- * TODO: inherit from View.
- */
+FILENAME: ProjectSaveAndLoadView
 
-ProjectStateManager {
-	var <userControl, >loadAction, <>storeAction;
+DESCRIPTION: ProjectSaveAndLoadView save and load SC objects as archive files
 
-	*new {
-		^super.new.init();
+AUTHOR: Marinus Klaassen (2012, 2021Q3)
+
+EXAMPLE:
+ProjectSaveAndLoadView(bounds:400@50).front()
+*/
+
+
+ProjectSaveAndLoadView : View {
+	var <eventLoadProject, <eventSaveProject, <buttonLoad, <buttonSave, <mainLayout, <>projectSettings;
+
+	*new { |parent, bounds|
+		^super.new(parent, bounds).initialize();
 	}
 
-	init {
-		userControl = HLayout();
-		userControl.add(Button()
-			.states_([["open project", Color.black, Color.red]])
-			.action_({ this.load(); })
-			.font_(Font("Menlo",12)));
-
-		userControl.add(Button()
-			.states_([["save project", Color.black, Color.red]])
-			.action_({ this.store(); })
-			.font_(Font("Menlo",12)));
+	initialize {
+		this.intializeView();
+	    this.initializeEvents();
 	}
 
-	store {
-		Dialog.savePanel({ arg path; var temp;
-			"The project state is saved to file.".postln;
-			if (storeAction.notNil) {
-				temp = storeAction.value;
-				temp.writeArchive(path.postln);
-		}},{ "cancelled".postln; });
+	intializeView {
+		mainLayout = HLayout();
+		this.layout = mainLayout;
+
+		buttonLoad = Button()
+		.states_([["load project", Color.black, Color.red.alpha_(0.8)]])
+		.action_({ this.load(); })
+		.font_(Font("Menlo",14));
+		this.layout.add(buttonLoad);
+
+		buttonSave = Button()
+		.states_([["save project", Color.black, Color.red.alpha_(0.8)]])
+		.action_({ this.save(); })
+		.font_(Font("Menlo",14));
+		this.layout.add(buttonSave);
+	}
+
+	initializeEvents {
+		eventLoadProject = ();
+		eventSaveProject = ();
+	}
+
+	invokeEvent { |event|
+		event.changed(this);
+	}
+
+	save {
+		Dialog.savePanel({ |path|
+			this.invokeEvent(this.eventSaveProject);
+			this.projectSettings.writeArchive(path);
+			"project saved".postln;
+		},{ "cancelled".postln; });
 	}
 
 	load {
-	    Dialog.getPaths({ arg paths;
-		    paths do: { arg p;
-			if (loadAction.notNil) {
-				var temp = Object.readArchive(p.value.postln);
-				loadAction.value(temp);
-			}
-		}},{ "cancelled".postln; });
+		Dialog.loadPanel({ |filepath|
+			this.projectSettings = Object.readArchive(filepath.value);
+			this.invokeEvent(this.eventLoadProject);
+			"project is loaded".postln;
+		},{ "cancelled".postln; });
 	}
 }

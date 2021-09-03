@@ -1,24 +1,18 @@
 /*
- * FILENAME: ScoreControl -> TODO rename ScoreEditorView
- *
- * DESCRIPTION:
- *         - Score Editor View usercontrol
- *
- * AUTHOR: Marinus Klaassen (2012, 2021Q3)
- *
-   ScoreControlView().front();
+FILENAME: ScoreControl -> TODO rename ScoreEditorView
 
- TODO // Hier in de score control alle lemur code.
+DESCRIPTION: Score Editor View
+
+AUTHOR: Marinus Klaassen (2012, 2021Q3)
+
+EXAMPLE:
 s.boot;
-\
-// Wanneer alle nodes vast: Server doctor:
-
+ScoreControlView().front();
 Server.freeAll(evenRemote: false)
 
-
- */
-
-
+TODO:
+Needs some propper cleanup and reformatting.
+*/
 
 ScoreControlView : View {
 	var <>lemurClient, <presetManagerView, <controllers, <scoreName, <playingStream, <keyAndPatternPairs;
@@ -131,7 +125,7 @@ ScoreControlView : View {
 
 		// This object View (base class) settings
 		this.bounds = 700@800; // TODO
-		this.background = (Color.new255(* ({ 150 }!3 ++ 230)));
+		this.background = Color.new255(136, 172, 224); // medium petrol blue
 		this.deleteOnClose = false;
 
 		layoutMain = VLayout();
@@ -160,14 +154,14 @@ ScoreControlView : View {
 
 		buttonPlay = Button();
 		buttonPlay.value = model[\buttonPlay];
-		buttonPlay.font = ScoreWidgetSettings.settings[\font]; // Rename naar ScoreControlConfiguration. En pas toe voor meerdere defaults.
+		buttonPlay.font = Font("Menlo", 14);  // scoreprojectviewsettings  Font("Menlo", 14);  Rename naar ScoreControlConfiguration. En pas toe voor meerdere defaults.
 		buttonPlay.states = [["PLAY", Color.red, Color.black],["STOP", Color.black, Color.red]];
 		buttonPlay.minWidth = 106;
 		buttonPlay.minHeight = 50;
 		buttonPlay.action_({ |val| setValueFunction[\buttonPlay].value(val.value); });
 
 		buttonRandomize = Button();
-		buttonRandomize.font = ScoreWidgetSettings.settings[\font];
+		buttonRandomize.font = Font("Menlo", 14);  // scoreprojectviewsettings  Font("Menlo", 14);
 		buttonRandomize.states = [["RANDOMIZE", Color.red, Color.black]];
 		buttonRandomize.minWidth = 106;
 		buttonRandomize.minHeight = 50;
@@ -257,8 +251,8 @@ ScoreControlView : View {
 		scrollViewControls = ScrollView();
 		scrollViewControls.canvas = View();
 		scrollViewControls.canvas.layout = layoutChannels;
-		scrollViewControls.canvas.background_(Color.new255(* (150!3 ++ 230)));
-		scrollViewControls.background = Color.new255(* (150!3 ++ 230));
+		scrollViewControls.canvas.background = this.background;
+		scrollViewControls.background = this.background;
 
 		layoutMain.add(scrollViewControls);
 
@@ -310,10 +304,10 @@ ScoreControlView : View {
 		.states_([
 			["PLAY", Color.red.alpha_(0.8), Color.black],
 			["STOP", Color.black,Color.red.alpha_(0.8)]])
-		.action_({|b| setValueFunction[\togglePlayScore].value(b.value)});
+		.action_({|b| setValueFunction[\buttonPlay].value(b.value)});
 
 		dependants[\togglePlayScore] =  {|theChanger, what, value|
-			if (what == \togglePlayScore) {
+			if (what == \buttonPlay) {
 				mixerGui[\togglePlayScore].value = value;
 			};
 		};
@@ -467,6 +461,14 @@ ScoreControlView : View {
 		};
 		controllers do: { |aScore,i |
 			aScore.loadState(argPreset[\controllers][i.asSymbol])
-		};
+	 };
+	}
+
+	dispose {
+		this.deleteOnClose = true;
+		this.close();
+		this.remove(); // removes itselfs from the layout
+		if (playingStream.notNil, { playingStream.stop(); });
+		playingStream = nil;
 	}
 }

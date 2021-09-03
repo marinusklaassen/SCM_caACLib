@@ -1,20 +1,18 @@
 /*
- * FILENAME: ScoreParamView
- *
- * DESCRIPTION:
- *         - Container that contains all the widgets to editor and assign controls for patterns to a synth arguments/event key.
- *
- * AUTHOR: Marinus Klaassen (2012, 2021Q3)
- *
+FILENAME: ScoreParamView
 
-// TODO implementeer dit in de ScoreControl
+DESCRIPTION: View to compose patterns and assign view controls to synth arguments/event keys.
+
+AUTHOR: Marinus Klaassen (2012, 2021Q3)
+
+EXAMPLE:
 (
 w = View(bounds:500@700).front;
 l = VLayout([nil, stretch:1, align: \bottom]);
 w.layout = l;
 10 do: { | position| l.insert(ScoreParamView().actionButtonDelete_({ | sender | "delete".postln; }).actionNameChanged_({ | sender | sender.keyName.postln; }).actionPatternScriptChanged_({ |sender| sender.string.postln; }), position) };
 )
- */
+*/
 
 ScoreParamView : View {
 	var buttonDelete, scorePatternScriptEditingView, controlSpec, model, setValueFunction, dependants, <paramController, <controlSpecEditorView, ez4Buttons, <name, <>currentLayerIndex, <>currentWidgetType, <>currentWidgetIndex, previousLayer;
