@@ -45,9 +45,9 @@ ScoreParamView : View {
 			model[\sliderValue] = value;
 			model.changed(\sliderValue, value);
 		};
-		setValueFunction[\rangeSliderValue] = { |value|
-			model[\rangeSliderValue] = value;
-			model.changed(\rangeSliderValue, value);
+		setValueFunction[\rangeSliderValues] = { |value|
+			model[\rangeSliderValues] = value;
+			model.changed(\rangeSliderValues, value);
 		};
 
 		model.addDependant({|theChanger, what, val|
@@ -57,7 +57,7 @@ ScoreParamView : View {
 		});
 
 		model.addDependant({|theChanger, what, val|
-			if (what == \rangeSliderValue) {
+			if (what == \rangeSliderValues) {
 				if (rangeSliderAction.notNil) { rangeSliderAction.value(controlSpec.map(val)); };
 			};
 		});
@@ -93,6 +93,8 @@ ScoreParamView : View {
 	    controlSpecEditorView = ScoreControlSpecView();
 		controlSpecEditorView.action = { | sender |
 			controlSpec = sender.controlSpec;
+			model.changed(\sliderValue, model[\sliderValue]);
+			model.changed(\rangeSliderValues, model[\rangeSliderValues]);
 		};
 
 		layoutStackVariableSection.add(controlSpecEditorView);
@@ -130,9 +132,11 @@ ScoreParamView : View {
 		    setValueFunction[\rangeSliderValues].value([val.lo,val.hi])
         };
 
-        model.addDependant({|theChanger, what, val|
+        model.addDependant({|theChanger, what, range |
 		    if (what == \rangeSliderValues, {
-		      { controlRangeSlider.lo_(val[0]).hi_(controlRangeSlider[1]) }.defer; // fire async
+		      {
+					controlRangeSlider.lo_(range[0]).hi_(range[1]);
+				}.defer; // fire async
             });
 		});
         layoutStackControlSection.add(controlRangeSlider);
