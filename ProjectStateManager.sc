@@ -11,7 +11,7 @@ ProjectSaveAndLoadView(bounds:400@50).front()
 
 
 ProjectSaveAndLoadView : View {
-	var <eventLoadProject, <eventSaveProject, <buttonLoad, <buttonSave, <mainLayout, <>projectSettings;
+	var <eventLoadProject, <eventSaveProject, <buttonLoad, <buttonSave, <mainLayout, <>projectData;
 
 	*new { |parent, bounds|
 		^super.new(parent, bounds).initialize();
@@ -51,14 +51,14 @@ ProjectSaveAndLoadView : View {
 	save {
 		Dialog.savePanel({ |path|
 			this.invokeEvent(this.eventSaveProject);
-			this.projectSettings.writeArchive(path);
+			this.projectData.writeArchive(path);
 			"project saved".postln;
 		},{ "cancelled".postln; });
 	}
 
 	load {
-		Dialog.loadPanel({ |filepath|
-			this.projectSettings = Object.readArchive(filepath.value);
+		Dialog.openPanel({ |filepath|
+			this.projectData = Object.readArchive(filepath.value);
 			this.invokeEvent(this.eventLoadProject);
 			"project is loaded".postln;
 		},{ "cancelled".postln; });

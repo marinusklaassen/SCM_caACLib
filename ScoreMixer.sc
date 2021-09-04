@@ -2,15 +2,17 @@
 FILENAME: ScoreProjectView
 
 DESCRIPTION:
-         - Score Project View lists all the scores, project save en read capabilities via its view.
-         - Main entry point.
-         - Simple maintainance tasks like add, delete, open score view, volume control and play sections.
+- Score Project View lists all the scores, project save en read capabilities via its view.
+- Main entry point.
+- Simple maintainance tasks like add, delete, open score view, volume control and play sections.
 
 AUTHOR: Marinus Klaassen (2012, 2021Q3)
 
 EXAMPLE:
 s.boot;
 m = ScoreProjectView(bounds:400@700).front();
+a = m.getState()
+m.loadState(a);
 */
 
 ScoreProjectView : View {
@@ -71,27 +73,11 @@ ScoreProjectView : View {
 			this.addScore();
 		});
 		projectSaveAndLoadView.eventLoadProject.addDependant({  | event, sender |
-			sender.projectSettings = this.getProjectSettings();
+			this.loadState(sender.projectData);
 		});
 		projectSaveAndLoadView.eventSaveProject.addDependant({  | event, sender |
-			this.loadProjectSettings(sender.projectSettings);
+			sender.projectData = this.getState();
 		});
-	}
-
-	getProjectSettings {
-		^scores.collect({ |score| score.getState(); });
-	}
-
-	loadProjectSettings { |projectSettings|
-		var scoreView;
-		projectSettings do: { |scoreSetting, position|
-			if (scores[position].isNil) {
-				scoreView = this.addScore();
-			} {
-				scoreView = scores[position];
-			};
-			scoreView.loadState(scoreSetting);
-		};
 	}
 
 	addScore {
@@ -105,5 +91,39 @@ ScoreProjectView : View {
 		layoutMixerChannels.insert(scoreMixerChannelView, scores.size); // workaround. insert before stretchable space.
 		scores.add(scoreView);
 		^scoreView;
+	}
+
+	getState {
+		var scoreStates = scores.collect({ |score|
+			var scoreState = Dictionary();
+			scoreState[\type] = "scoreview";
+			scoreState[\settings] = score.getState();
+		});
+		var projectState = Dictionary();
+		projectState[\type] = "scoreprojectview";
+		projectState[\scoreStates] = scoreStates;
+		^projectState;
+	}
+
+	loadState{ |projectState|
+		var scoreView;
+		if (projectState.isKindOf(Dictionary) && projectState[\type] == "scoreprojectview",
+			{
+				// Remove the scores that are to many.
+				if (projectState[\scoreStates].size	< scores.size, {
+					var amountToMany = scores.size - projectState[\scoreStates].size;
+					amountToMany do: {
+						scores.pop().removeAction.value();
+					};
+				});
+				projectState[\scoreStates] do: { |scoreState, position|
+					if (scores[position].isNil, {
+						scoreView = this.addScore();
+					}, {
+						scoreView = scores[position];
+					});
+					scoreView.loadState(scoreState);
+				};
+		});
 	}
 }

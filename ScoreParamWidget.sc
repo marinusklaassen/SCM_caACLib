@@ -74,6 +74,7 @@ ScoreParamView : View {
 		textPatternKeyname.minWidth = 90;
 		textPatternKeyname.action = { | sender |
 			controlSpecEditorView.setSpecByString(sender.string);
+			keyName = sender.string;
 			actionNameChanged.value(this);
 		};
 

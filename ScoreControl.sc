@@ -10,7 +10,7 @@ s.boot;
 ScoreControlView().front();
 Server.freeAll(evenRemote: false)
 
-TODO:
+TODO:≥
 Needs some propper cleanup and reformatting.
 */
 
@@ -402,6 +402,8 @@ ScoreControlView : View {
 			keyAndPatternPairs = Dictionary();
 			if (paramChannel.paramProxy.isNil) { paramChannel.paramProxy = PatternProxy(1) };
 			controllers do: { |aChannel|
+				aChannel.postln;
+				aChannel.keyName.postln;
 				keyAndPatternPairs[aChannel.keyName.asSymbol] = aChannel.paramProxy;
 			};
 			eventStreamProxy.source = Pbind(*keyAndPatternPairs.getPairs.postln);
@@ -457,6 +459,8 @@ ScoreControlView : View {
 	}
 
     getState {
+		^"TODO";
+		/*
 		var scoreState = Dictionary();
 		scoreState[\scoreId] = model[\scoreId].copy;
 		scoreState[\presetMenu] = presetManagerView.getState.postln;
@@ -468,9 +472,11 @@ ScoreControlView : View {
 			scoreState[\controllers][i.asSymbol] = conCh.getState;
 		};
 		^scoreState;
+		*/
 	}
 
 	loadState { |argPreset|
+		/*
 		setValueFunction[\envirText].value(argPreset[\envirText]);
 		setValueFunction[\scoreId].value(argPreset[\scoreId]);
 		setValueFunction[\faderScoreControlVolume].value(argPreset[\faderScoreControlVolume]);
@@ -480,7 +486,7 @@ ScoreControlView : View {
 		};
 		controllers do: { |aScore,i |
 			aScore.loadState(argPreset[\controllers][i.asSymbol])
-	 };
+	 };*/
 	}
 
 	dispose {
