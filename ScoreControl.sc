@@ -24,7 +24,7 @@ ScoreControlView : View {
     var mixerAmpProxy, eventStreamProxy, <eventStream, controllerProxies, eventParProxy, setValueFunction, <model, dependants, parentView;
     var scoreGui, mixerGui, <scoreControlMixerChannelView,layoutMain,layoutHeader,layoutFooter,scrollViewControls,layoutControlHeaderLabels,layoutChannels,textScoreId, buttonPlay, buttonRandomize, presetManagerView, textEnvirFieldView; // TODOP
     var layoutControlHeaderLabels,labelParamNameControlHeader, errorLabelEnvirFieldView, labelParamControlScriptOrControllerHeader, labelParamControlSelectorsHeader, labelPatternLayers, numberBoxPatternLayers, buttonAddChannel;
-    var <>index, >closeAction,<>removeAction, scoreId;
+    var <>index, >closeAction,<>removeAction, scoreId, commandPeriodHandler;
 
     classvar instanceCounter=0;
 
@@ -124,6 +124,10 @@ ScoreControlView : View {
             };
         };
         model.addDependant(dependants[\faderScoreControlVolume]);
+
+		commandPeriodHandler = { setValueFunction[\buttonPlay].value(0); };
+
+	    CmdPeriod.add(commandPeriodHandler);
 
         controllers = Array();
 
@@ -507,5 +511,6 @@ ScoreControlView : View {
         this.remove(); // removes itselfs from the layout
         if (playingStream.notNil, { playingStream.stop(); });
         playingStream = nil;
+        CmdPeriod.remove(commandPeriodHandler);
     }
 }
