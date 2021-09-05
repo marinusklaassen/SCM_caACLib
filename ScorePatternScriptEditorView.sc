@@ -126,8 +126,15 @@ ScorePatternScriptEditingView : View {
          textEditing.maxHeight = Font.defaultSerifFace.size * 1.45 * lineCount;
 	}
 
-	// State behaviors
-	loadState { |preset| this.string = preset[\script].asString }
+	getState {
+		var state = Dictionary();
+        state[\type] = "CodeEditorView";
+		state[\code] = model[\script];
+		^state;
+	}
 
-	getState { ^model[\script].clone(); }
+	// State behaviors
+	loadState { | state |
+		this.string = state[\code];
+	}
 }

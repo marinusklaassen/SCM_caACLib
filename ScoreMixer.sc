@@ -95,9 +95,7 @@ ScoreProjectView : View {
 
 	getState {
 		var scoreStates = scores.collect({ |score|
-			var scoreState = Dictionary();
-			scoreState[\type] = "scoreview";
-			scoreState[\settings] = score.getState();
+			score.getState();
 		});
 		var projectState = Dictionary();
 		projectState[\type] = "scoreprojectview";
@@ -122,6 +120,7 @@ ScoreProjectView : View {
 					}, {
 						scoreView = scores[position];
 					});
+					[\loadState, scoreState].postln;
 					scoreView.loadState(scoreState);
 				};
 		});

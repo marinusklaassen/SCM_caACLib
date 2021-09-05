@@ -98,14 +98,7 @@ ScoreControlSpecView : View {
 		mainLayout.add(labelError, stretch: 1.0);
 	}
 
-	getState { ^model[\rawSpecAsString]; }
-
-	loadState { | specAsString |
-		// Update model
-		setValueFunction.value(specAsString)
-	}
-
-	setSpecByString { | specAsString |
+    setSpecByString { | specAsString |
 		var spec = specAsString.asSymbol.asSpec;
 		// Only update a valid conversion of default spec like \freq.asSymbol
 		if(spec.notNil, {
@@ -114,5 +107,17 @@ ScoreControlSpecView : View {
 			model.changed(\controlSpec, model[\controlSpec]);
 			model.changed(\rawSpecAsString, model[\rawSpecAsString]);
 		});
+	}
+
+	getState {
+		var state = Dictionary();
+        state[\type] = "ControlSpecView";
+		state[\rawSpecAsString] = model[\rawSpecAsString];
+		^state;
+	}
+
+	loadState { | state |
+		model[\rawSpecAsString] = state[\rawSpecAsString];
+		setValueFunction.value(state[\rawSpecAsString]);
 	}
 }

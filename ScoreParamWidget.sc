@@ -12,6 +12,10 @@ l = VLayout([nil, stretch:1, align: \bottom]);
 w.layout = l;
 10 do: { | position| l.insert(ScoreParamView().actionButtonDelete_({ | sender | "delete".postln; }).actionNameChanged_({ | sender | sender.keyName.postln; }).actionPatternScriptChanged_({ |sender| sender.string.postln; }), position) };
 )
+TODO:
+Slider en range value hernoemen naar gewoon value & range (KISS).
+
+a = ScoreParamView().front;
 */
 
 ScoreParamView : View {
@@ -25,7 +29,7 @@ ScoreParamView : View {
 	}
 
 	keyName_ { | string |
-		textPatternKeyname.string = keyName;
+		textPatternKeyname.string = string;
 		keyName = string;
 	}
 
@@ -74,7 +78,7 @@ ScoreParamView : View {
 		textPatternKeyname.minWidth = 90;
 		textPatternKeyname.action = { | sender |
 			controlSpecEditorView.setSpecByString(sender.string);
-			keyName = sender.string;
+			this.keyName = sender.string;
 			actionNameChanged.value(this);
 		};
 
@@ -184,21 +188,37 @@ ScoreParamView : View {
 	}
 
 	randomize {
-		setValueFunction[\sliderValue].value(1.0.rand);
+		setValueFunction[\sliderValue].value(1.0.rand); // setValue moet gewoon een setValue, setRange, setControlSpec method word. En deze method invoke een event.
 		setValueFunction[\rangeSliderValues].value(sort({1.0.rand}!2));
 	}
 
-	loadState { |aPreset|
-		controlSpecEditorView.loadState(aPreset[\controlSpec]);
-		scorePatternScriptEditorView.loadState(aPreset[\script]);
+	getState {
+		var state = Dictionary();
+        state[\type] = "PatternBoxParam";
+		state[\layoutStackVariableSectionIndex] = layoutStackVariableSection.index;
+		state[\layoutStackControlSectionIndex] = layoutStackControlSection.index;
+		state[\paramName] = keyName;
+		state[\value] = model[\sliderValue];
+		state[\range] = model[\rangeSliderValues];
+		state[\scriptView] = scorePatternScriptEditingView.getState();
+		state[\controlSpecView] = controlSpecEditorView.getState();
+		^state;
 	}
 
-	getState {
-		var preset = Dictionary.new;
-		preset[\paramController] = paramController.getState.copy;
-		preset[\paramControllerCurrentWidget] = currentWidgetType.copy;
-		preset[\controlSpec] = controlSpecEditorView.controlSpec.copy;
-		^preset;
+	loadState { |state|
+		controlSpecEditorView.setSpecByString(state[\paramName]);
+		this.keyName = state[\paramName];
+		actionNameChanged.value(this);
+		controlSpecEditorView.loadState(state[\controlSpecView]); // TODO Call method SetControlSpec
+		setValueFunction[\sliderValue].value(state[\value]); // Call TODO method SetValue
+		setValueFunction[\rangeSliderValues].value(state[\range]); // TODO Call method SetRange
+		scorePatternScriptEditingView.loadState(state[\scriptView]);  // TODO Call method SetScript
+		layoutStackVariableSection.index = state[\layoutStackVariableSectionIndex];
+		layoutStackControlSection.index = state[\layoutStackControlSectionIndex];
+	}
+
+	dispose {
+		this.remove();
 	}
 }
 

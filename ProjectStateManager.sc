@@ -9,7 +9,6 @@ EXAMPLE:
 ProjectSaveAndLoadView(bounds:400@50).front()
 */
 
-
 ProjectSaveAndLoadView : View {
 	var <eventLoadProject, <eventSaveProject, <buttonLoad, <buttonSave, <mainLayout, <>projectData;
 
