@@ -49,7 +49,7 @@ ScoreControlView : View {
         instanceCounter = instanceCounter + 1;
 
         scoreId = "Score" ++ instanceCounter;
-
+		this.name = "PatternBox: " ++ scoreId;
         model = (
             scoreId: scoreId,
             envirText: "",
@@ -103,6 +103,8 @@ ScoreControlView : View {
         dependants[\scoreId] = {|theChanger, what, argScoreName|
             if (what == \scoreId) {
                 scoreName = argScoreName;
+				this.name = "PatternBox: " ++ scoreName;
+				this.name.postln;
             }
         };
 

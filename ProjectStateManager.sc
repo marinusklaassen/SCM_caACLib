@@ -7,6 +7,10 @@ AUTHOR: Marinus Klaassen (2012, 2021Q3)
 
 EXAMPLE:
 ProjectSaveAndLoadView(bounds:400@50).front()
+
+TODO:
+SaveAndLoadView naartoe renamen
+projectData -> naar data renamen
 */
 
 ProjectSaveAndLoadView : View {
@@ -26,13 +30,13 @@ ProjectSaveAndLoadView : View {
 		this.layout = mainLayout;
 
 		buttonLoad = Button()
-		.states_([["load project", Color.black, Color.red.alpha_(0.8)]])
+		.states_([["load", Color.red, Color.black]])
 		.action_({ this.load(); })
 		.font_(Font("Menlo",14));
 		this.layout.add(buttonLoad);
 
 		buttonSave = Button()
-		.states_([["save project", Color.black, Color.red.alpha_(0.8)]])
+		.states_([["save", Color.red, Color.black]])
 		.action_({ this.save(); })
 		.font_(Font("Menlo",14));
 		this.layout.add(buttonSave);

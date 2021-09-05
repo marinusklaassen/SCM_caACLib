@@ -16,7 +16,7 @@ m.loadState(a);
 */
 
 ScoreProjectView : View {
-	var <scores, lemurClient, mainLayout, projectSaveAndLoadView, layoutMixerChannels, scrollViewMixerChannels, buttonAddScore, <eventAddScore;
+	var <scores, lemurClient, mainLayout, projectSaveAndLoadView, layoutMixerChannels, scrollViewMixerChannels, buttonAddScore, <eventAddScore, layoutHeader, buttonPanic, buttonServerNodes, buttonServerMeter,buttonServerBoot;
 
 	*new { |parent, bounds, lemurClient|
 		^super.new(parent, bounds).initialize(lemurClient);
@@ -31,9 +31,8 @@ ScoreProjectView : View {
 	}
 
 	initializeView {
-		this.name = "Score Project";
+		this.name = "PatternBox Project";
 		this.background = Color.new255(136, 172, 224); // light petrol blue
-		this.alwaysOnTop_(true);
 		this.deleteOnClose = false;
 
 		mainLayout = VLayout();
@@ -42,6 +41,48 @@ ScoreProjectView : View {
 		projectSaveAndLoadView = ProjectSaveAndLoadView();
 		projectSaveAndLoadView.mainLayout.margins = 0!4;
 		mainLayout.add(projectSaveAndLoadView);
+
+		layoutHeader = HLayout();
+		layoutHeader.margins = 0!4;
+		mainLayout.add(layoutHeader);
+
+		buttonPanic = Button();
+	    buttonPanic.font = Font("Menlo", 14);  // scoreprojectviewsettings  Font("Menlo", 14);  Rename naar ScoreControlConfiguration. En pas toe voor meerdere defaults.
+        buttonPanic.states = [["PANIC", Color.red, Color.black]];
+		buttonPanic.minHeight = 40;
+		buttonPanic.action = {
+			CmdPeriod.run;
+            Server.freeAll(evenRemote: false);
+		};
+		layoutHeader.add(buttonPanic);
+
+		buttonServerNodes = Button();
+	    buttonServerNodes.font = Font("Menlo", 14);  // scoreprojectviewsettings  Font("Menlo", 14);  Rename naar ScoreControlConfiguration. En pas toe voor meerdere defaults.
+        buttonServerNodes.states = [["SERVER\nNODES", Color.red, Color.black]];
+		buttonServerNodes.minHeight = 40;
+		buttonServerNodes.action = {
+			Server.default.plotTree();
+		};
+		layoutHeader.add(buttonServerNodes);
+
+		buttonServerMeter = Button();
+	    buttonServerMeter.font = Font("Menlo", 14);  // scoreprojectviewsettings  Font("Menlo", 14);  Rename naar ScoreControlConfiguration. En pas toe voor meerdere defaults.
+        buttonServerMeter.states = [["SERVER\nMETER", Color.red, Color.black]];
+		buttonServerMeter.minHeight = 40;
+		buttonServerMeter.action = {
+			Server.default.meter();
+		};
+		layoutHeader.add(buttonServerMeter);
+
+		buttonServerBoot = Button();
+	    buttonServerBoot.font = Font("Menlo", 14);  // scoreprojectviewsettings  Font("Menlo", 14);  Rename naar ScoreControlConfiguration. En pas toe voor meerdere defaults.
+        buttonServerBoot.states = [["SERVER\nBOOT", Color.red, Color.black]];
+		buttonServerBoot.minHeight = 40;
+		buttonServerBoot.action = {
+			Server.default.reboot();
+		};
+		layoutHeader.add(buttonServerBoot);
+
 
 		layoutMixerChannels = VLayout([nil, stretch:1, align: \bottom]); // workaround. insert before stretchable space.
 		layoutMixerChannels.margins = 0!4;
