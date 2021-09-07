@@ -1,3 +1,5 @@
+// SynthBoxView
+
 EmbedGui {
 
 	// Control Elements is an array with only the control elements!

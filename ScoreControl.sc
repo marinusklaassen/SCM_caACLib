@@ -7,6 +7,8 @@ AUTHOR: Marinus Klaassen (2012, 2021Q3)
 ~test
 EXAMPLE:
 s.boot;
+PatternBoxProjectView().front;
+
 m = ScoreControlView().front();
 a = m.getState()
 m.loadState(a);
@@ -20,9 +22,9 @@ Needs some propper cleanup and reformatting.
 */
 
 ScoreControlView : View {
-    var <>lemurClient, <presetManagerView, <controllers, <scoreName, <playingStream, <keyAndPatternPairs;
+    var <>lemurClient, <presetView, <controllers, <scoreName, <playingStream, <keyAndPatternPairs;
     var mixerAmpProxy, eventStreamProxy, <eventStream, controllerProxies, eventParProxy, setValueFunction, <model, dependants, parentView;
-    var scoreGui, mixerGui, <scoreControlMixerChannelView,layoutMain,layoutHeader,layoutFooter,scrollViewControls,layoutControlHeaderLabels,layoutChannels,textScoreId, buttonPlay, buttonRandomize, presetManagerView, textEnvirFieldView; // TODOP
+    var scoreGui, mixerGui, <scoreControlMixerChannelView,layoutMain,layoutHeader,layoutFooter,scrollViewControls,layoutControlHeaderLabels,layoutChannels,textScoreId, buttonPlay, buttonRandomize, presetView, textEnvirFieldView; // TODOP
     var layoutControlHeaderLabels,labelParamNameControlHeader, errorLabelEnvirFieldView, labelParamControlScriptOrControllerHeader, labelParamControlSelectorsHeader, labelPatternLayers, numberBoxPatternLayers, buttonAddChannel;
     var <>index, >closeAction,<>removeAction, scoreId, commandPeriodHandler;
 
@@ -196,27 +198,15 @@ ScoreControlView : View {
 
         layoutHeader.add(buttonPlay, align: \right);
 
-        presetManagerView = PresetManagerView();
-        presetManagerView.storeAction = {
-            var preset = Dictionary();
-            controllers do: { |channel|
-                preset[channel.name.asSymbol] = channel.paramController.getState;
-            };
-            preset.copy;
-        };
+		presetView = PresetView(contextId: "PatternBoxView");
+		presetView.actionFetchPreset = {
+			this.getState();
+		};
+		presetView.actionLoadPreset = { |preset|
+			this.loadState(preset);
+		};
 
-        presetManagerView.action = { |aPreset|
-            var nameArray = [];
-            controllers do: { |channel| nameArray = nameArray.add(channel.name.asSymbol); };
-            aPreset.keys do: { |key|
-                var nameIndex = nameArray.indexOf(key);
-                if (nameIndex.notNil) {
-                    controllers[nameIndex].paramController.loadState(aPreset[key])
-                };
-            };
-        };
-
-        layoutMain.add(presetManagerView);
+        layoutMain.add(presetView);
 
         textEnvirFieldView = TextView();
         textEnvirFieldView.minHeight = 150;

@@ -1,8 +1,8 @@
 /*
-FILENAME: ScoreProjectView
+FILENAME: PatternBoxProjectView
 
 DESCRIPTION:
-- Score Project View lists all the scores, project save en read capabilities via its view.
+- PatternBoxProjectView lists all the scores, project save en read capabilities via its view.
 - Main entry point.
 - Simple maintainance tasks like add, delete, open score view, volume control and play sections.
 
@@ -10,12 +10,12 @@ AUTHOR: Marinus Klaassen (2012, 2021Q3)
 
 EXAMPLE:
 s.boot;
-m = ScoreProjectView(bounds:400@700).front();
+m = PatternBoxProjectView(bounds:400@700).front();
 a = m.getState()
 m.loadState(a);
 */
 
-ScoreProjectView : View {
+PatternBoxProjectView : View {
 	var <scores, lemurClient, mainLayout, projectSaveAndLoadView, layoutMixerChannels, scrollViewMixerChannels, buttonAddScore, <eventAddScore, layoutHeader, buttonPanic, buttonServerNodes, buttonServerMeter,buttonServerBoot;
 
 	*new { |parent, bounds, lemurClient|
