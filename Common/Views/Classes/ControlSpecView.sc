@@ -1,16 +1,15 @@
 /*
-* FILENAME: ScoreControlSpecView
-*
-* DESCRIPTION:
-*         - Enter a control spec name or new instance by code. This view component takes care of the interpretation.
+FILENAME: ControlSpecView
+
+DESCRIPTION: Enter a control spec name or new instance by code. This view component takes care of the interpretation.
 - The model is updated when a controlspec string is succesfully interpreted.
-*
-* AUTHOR: Marinus Klaassen (2012, 2021Q3)
-*
-ScoreControlSpecView(bounds:400@20).front().action = { |sender| sender.controlSpec.postln; sender.getState().postln; };
+
+AUTHOR: Marinus Klaassen (2012, 2021Q3)
+
+ControlSpecView(bounds:400@20).front().action = { |sender| sender.controlSpec.postln; sender.getState().postln; };
 */
 
-ScoreControlSpecView : View {
+ControlSpecView : View {
 	var controlSpec, mainLayout, textInput, labelError, model,dependants,setValueFunction;
 
 	// Constructor

@@ -1,6 +1,15 @@
-// SynthBoxView
+/*
+FILENAME: SyntBoxView
 
-EmbedGui {
+DESCRIPTION: SynthBoxView is a dedicated reponsive Synth control UI based on SynthDef metadata to assign controls to synth control parameters.
+
+AUTHOR: Marinus Klaassen (2012, 2021Q3)
+
+EXAMPLE:
+SynthBoxView(\default).front
+*/
+
+SynthBoxView {
 
 	// Control Elements is an array with only the control elements!
 	var <controlElements, <synthDefName, synthDesc, <>controlPanel, canvas, tempNames, tempToggleSynth, <>index, <>widthOffset;
@@ -16,10 +25,10 @@ EmbedGui {
 
 		widthOffset = 0;
 
-		controlPanel = MBControlPanel.new(synthDesc.metadata, synthDefName);
+		controlPanel = SynthBoxControlPanelView(synthDesc.metadata, synthDefName);
 		controlPanel.randomAction = {
 			controlElements do: { |element|
-				if (element.isKindOf(MBFader)) { element.value_(1.0.rand) }
+				if (element.isKindOf(SynthBoxSliderView)) { element.value_(1.0.rand) }
 			}
 		};
 		controlPanel.playTrigger = { this.oneShotPlay };
@@ -56,9 +65,9 @@ EmbedGui {
 				spec = key.asSpec;
 			});
 			if (spec.isKindOf(ControlSpec), {
-				controlElements.add(MBFader.new(key, spec));
+				controlElements.add(SynthBoxSliderView.new(key, spec));
 			}, {
-				controlElements.add(MBNumberBox.new(key));
+				controlElements.add(SynthBoxNumberBoxView.new(key));
 			});
 			controlElements.last.name = key;
 		};
@@ -87,7 +96,7 @@ EmbedGui {
 		controlElements do: { |obj|
 			paramValuesArray = paramValuesArray.add(obj.name.asSymbol);
 			paramValuesArray = paramValuesArray.add(
-				if(obj.isKindOf(MBFader)) {
+				if(obj.isKindOf(SynthBoxSliderView)) {
 					obj.spec.map(obj.value)
 				} {
 					obj.value;

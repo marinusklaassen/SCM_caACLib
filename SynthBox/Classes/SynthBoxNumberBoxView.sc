@@ -1,4 +1,4 @@
-MBNumberBox {
+SynthBoxNumberView {
 	var gui, <name, <>action, <value;
 
 	*new { ^super.newCopyArgs.init; }

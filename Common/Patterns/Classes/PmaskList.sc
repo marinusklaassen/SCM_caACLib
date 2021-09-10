@@ -1,5 +1,15 @@
 /*
-Mask a list pattern: 2013 Marinus Klaassen
+FILENAME: PmaskList
+
+DESCRIPTION: Mask the list indices range by a external shape.
+
+AUTHOR: Marinus Klaassen (2012, 2021Q3)
+
+TODO: The index pattern is a fixed beta pattern generator. This needs to be made configurable.
+
+EXAMPLE:
+a = PmaskList((0,2..12),Pwhite(0,1.0),Pwhite(0,1.0),1,1).asStream;
+a.nextT;
 */
 
 PmaskList : ListPattern {
@@ -36,8 +46,3 @@ PmaskList : ListPattern {
 
 	storeArgs { ^[list,lo,hi,a,b,length] }
 }
-
-/*
-a = PmaskList((0,2..12),Pwhite(0,1.0),Pwhite(0,1.0),1,1).asStream;
-a.next;
-*/

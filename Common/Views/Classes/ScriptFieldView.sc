@@ -1,16 +1,15 @@
 /*
-FILENAME: ScorePatternScriptEditingView
+FILENAME: ScriptFieldView
 
 DESCRIPTION: Input text + window dialog to editing pattern (code-first).
 
 AUTHOR: Marinus Klaassen (2012, 2021Q3)
 
 EXAMPLE:
-ScorePatternScriptEditingView(bounds:400@200).front().showPopup().action = { | sender | sender.string.postln; }
+ScriptFieldView(bounds:400@200).front().showPopup().action = { | sender | sender.string.postln; }
 */
 
-
-ScorePatternScriptEditingView : View {
+ScriptFieldView : View {
 	var model, dependants, setValueFunction, textSeparateEditing, string;
 	var <mainLayout, <textEditing, windowPopup, labelError;
 
@@ -85,7 +84,7 @@ ScorePatternScriptEditingView : View {
 		if (windowPopup.isNil, {
 			windowPopup = View(bounds:400@200);
 			windowPopup.alwaysOnTop = true;
-			windowPopup.name = "Pattern Script Editor";
+			windowPopup.name = "";
 			windowPopup.onClose = {
 				model.removeDependant(dependants[\separateEditingView]);
 				windowPopup = nil;
@@ -128,7 +127,7 @@ ScorePatternScriptEditingView : View {
 
 	getState {
 		var state = Dictionary();
-        state[\type] = "CodeEditorView";
+        state[\type] = "ScriptFieldView";
 		state[\code] = model[\script];
 		^state;
 	}

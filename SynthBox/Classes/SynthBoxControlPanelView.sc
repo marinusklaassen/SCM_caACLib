@@ -1,4 +1,4 @@
-MBControlPanel {
+SynthBoxControlPanelView {
 	var <>metaData, <gui, defName, <currentPresetIndex, <currentBankIndex, <>randomAction, <>playTrigger, <>playToggle, <>getPreset, <>loadPreset, <>fileAction;
 
 	*new { |argMetaData, argDefName|

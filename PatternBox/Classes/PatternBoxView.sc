@@ -1,30 +1,26 @@
 /*
-FILENAME: ScoreControl -> TODO rename ScoreEditorView
+FILENAME: PatternBox
 
-DESCRIPTION: Score Editor View
+DESCRIPTION: PatternBox is a dedicated reponsive editor to build patterns and assign controls to parameters.
 
 AUTHOR: Marinus Klaassen (2012, 2021Q3)
-~test
+
 EXAMPLE:
 s.boot;
 PatternBoxProjectView().front;
 
+s.boot;
 m = ScoreControlView().front();
 a = m.getState()
 m.loadState(a);
 m.model[\envirText]
-m.model
 a.keys do: { |key| a[key.postln].postln }
-Server.freeAll(evenRemote: false)
-a[\controllerStates] do: { |state| state.postln; }
-s.boot;
-Needs some propper cleanup and reformatting.
 */
 
-ScoreControlView : View {
+PatternBoxView : View {
     var <>lemurClient, <presetView, <controllers, <scoreName, <playingStream, <keyAndPatternPairs;
     var mixerAmpProxy, eventStreamProxy, <eventStream, controllerProxies, eventParProxy, setValueFunction, <model, dependants, parentView;
-    var scoreGui, mixerGui, <scoreControlMixerChannelView,layoutMain,layoutHeader,layoutFooter,scrollViewControls,layoutControlHeaderLabels,layoutChannels,textScoreId, buttonPlay, buttonRandomize, presetView, textEnvirFieldView; // TODOP
+    var scoreGui, mixerGui, <scoreControlMixerChannelView,layoutMain,layoutHeader,layoutFooter,scrollViewControls,layoutControlHeaderLabels,layoutChannels,textScoreId, buttonPlay, buttonRandomize, presetView, textEnvirFieldView;
     var layoutControlHeaderLabels,labelParamNameControlHeader, errorLabelEnvirFieldView, labelParamControlScriptOrControllerHeader, labelParamControlSelectorsHeader, labelPatternLayers, numberBoxPatternLayers, buttonAddChannel;
     var <>index, >closeAction,<>removeAction, scoreId, commandPeriodHandler;
 
@@ -50,7 +46,7 @@ ScoreControlView : View {
 
         instanceCounter = instanceCounter + 1;
 
-        scoreId = "Score" ++ instanceCounter;
+        scoreId = "Box" + instanceCounter;
 		this.name = "PatternBox: " ++ scoreId;
         model = (
             scoreId: scoreId,
@@ -143,7 +139,7 @@ ScoreControlView : View {
     initializeView {
 
         // This object View (base class) settings
-        this.bounds = 700@800; // TODO
+        this.bounds = 700@800;
         this.background = Color.new255(136, 172, 224); // medium petrol blue
         this.deleteOnClose = false;
 
@@ -296,7 +292,7 @@ ScoreControlView : View {
         buttonAddChannel = PlusButton();
         buttonAddChannel.fixedHeight = 30;
         buttonAddChannel.fixedWidth = 70;
-        buttonAddChannel.action = { this.addChannel(); };
+        buttonAddChannel.action = { this.addParamView(); };
 
         layoutFooter.add(buttonAddChannel, align: \right);
     }
@@ -308,7 +304,7 @@ ScoreControlView : View {
         var layout = HLayout();
         layout.margins_(0!4);
         scoreControlMixerChannelView = View()
-        .background_(Color.black.alpha_(0.2)); // TODO static configuration class
+        .background_(Color.black.alpha_(0.2));
 
         scoreControlMixerChannelView.layout = layout;
 
@@ -331,7 +327,7 @@ ScoreControlView : View {
 
         model.addDependant(dependants[\togglePlayScore]);
 
-        mixerGui[\faderScoreControlVolume] = SCMSlider(controlSpec: \db.asSpec, initVal: 1, labelText: model[\scoreId])
+        mixerGui[\faderScoreControlVolume] = SliderView(controlSpec: \db.asSpec, initVal: 1, labelText: model[\scoreId])
         .value_(model[\faderScoreControlVolume])
         .action_({ |v| setValueFunction[\faderScoreControlVolume].value(v.value) });
 
@@ -380,7 +376,7 @@ ScoreControlView : View {
         ^scoreControlMixerChannelView;
     }
 
-    addChannel {
+    addParamView {
         var paramChannel = ScoreParamView();
 
         paramChannel.controllerProxies = (
@@ -473,9 +469,7 @@ ScoreControlView : View {
 
     loadState { |state|
         setValueFunction[\scoreId].value(state[\scoreId]);
-		state[\envirText].postln;
         setValueFunction[\envirText].value(state[\envirText]);
-		[\scorecontrol, state[\envirText]].postln;
         // Remove the scores that are to many.
         if (state[\controllerStates].size < controllers.size, {
             var amountToMany = controllers.size - state[\controllerStates].size;
@@ -486,7 +480,7 @@ ScoreControlView : View {
         state[\controllerStates] do: { |patternBoxParamState, position|
             var patternBoxParamView;
             if (controllers[position].isNil, {
-                patternBoxParamView = this.addChannel();
+                patternBoxParamView = this.addParamView();
             }, {
                 patternBoxParamView = controllers[position];
             });

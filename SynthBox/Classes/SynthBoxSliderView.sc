@@ -1,4 +1,4 @@
-MBFader {
+SynthBoxSliderView {
 	var gui, model, depedants, <>spec, <name, <>action, midiResp, midiFlag, <>bMidiInvert;
 
 	*new { |argName, argSpec|

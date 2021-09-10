@@ -19,7 +19,7 @@ a = ScoreParamView().front;
 */
 
 ScoreParamView : View {
-	var buttonDelete, scorePatternScriptEditingView, controlSpec, model, setValueFunction, dependants, <paramController, <controlSpecEditorView, ez4Buttons, <name, <>currentLayerIndex, <>currentWidgetType, <>currentWidgetIndex, previousLayer;
+	var buttonDelete, scriptFieldView, controlSpec, model, setValueFunction, dependants, <paramController, <controlSpecView, ez4Buttons, <name, <>currentLayerIndex, <>currentWidgetType, <>currentWidgetIndex, previousLayer;
 	var <>actionNameChanged, <>removeAction, <>index, <>paramProxy, <>controllerProxies, <>scriptFunc, <>actionButtonDelete, <>rangeSliderAction, <>sliderAction, <>actionPatternScriptChanged;
 	var layoutStackControlSection, controlNoControl, controlSlider, controlRangeSlider, <keyName, mainLayout, textPatternKeyname, layoutStackVariableSection, scorePatternScriptEditorView;
     var buttonOpenParamControlScriptPopup, buttonSelectScriptOrSpecOpControlStack, buttonShowSpecEditor, buttonSelectControlType;
@@ -77,7 +77,7 @@ ScoreParamView : View {
 		textPatternKeyname.maxWidth = 90;
 		textPatternKeyname.minWidth = 90;
 		textPatternKeyname.action = { | sender |
-			controlSpecEditorView.setSpecByString(sender.string);
+			controlSpecView.setSpecByString(sender.string);
 			this.keyName = sender.string;
 			actionNameChanged.value(this);
 		};
@@ -89,20 +89,20 @@ ScoreParamView : View {
 
         mainLayout.add(layoutStackVariableSection, align: \top, stretch: 1.0);
 
-        scorePatternScriptEditingView = ScorePatternScriptEditingView();
-		scorePatternScriptEditingView.action = { | sender |
+        scriptFieldView = ScriptFieldView();
+		scriptFieldView.action = { | sender |
 			this.actionPatternScriptChanged.value(sender);
 		};
-		layoutStackVariableSection.add(scorePatternScriptEditingView);
+		layoutStackVariableSection.add(scriptFieldView);
 
-	    controlSpecEditorView = ScoreControlSpecView();
-		controlSpecEditorView.action = { | sender |
+	    controlSpecView = ControlSpecView();
+		controlSpecView.action = { | sender |
 			controlSpec = sender.controlSpec;
 			model.changed(\sliderValue, model[\sliderValue]);
 			model.changed(\rangeSliderValues, model[\rangeSliderValues]);
 		};
 
-		layoutStackVariableSection.add(controlSpecEditorView);
+		layoutStackVariableSection.add(controlSpecView);
 
 		// Controls within a separate stacklayout.
 		layoutStackControlSection = StackLayout();
@@ -150,7 +150,7 @@ ScoreParamView : View {
 	    buttonOpenParamControlScriptPopup.maxWidth = 24;
 		buttonOpenParamControlScriptPopup.states = [[""] ++ Color.red.dup(2)];
 	    buttonOpenParamControlScriptPopup.action = {
-		   scorePatternScriptEditingView.showPopup();
+		   scriptFieldView.showPopup();
 	    };
         mainLayout.add(buttonOpenParamControlScriptPopup, align: \top);
 
@@ -200,19 +200,19 @@ ScoreParamView : View {
 		state[\paramName] = keyName;
 		state[\value] = model[\sliderValue];
 		state[\range] = model[\rangeSliderValues];
-		state[\scriptView] = scorePatternScriptEditingView.getState();
-		state[\controlSpecView] = controlSpecEditorView.getState();
+		state[\scriptView] = scriptFieldView.getState();
+		state[\controlSpecView] = controlSpecView.getState();
 		^state;
 	}
 
 	loadState { |state|
-		controlSpecEditorView.setSpecByString(state[\paramName]);
+		controlSpecView.setSpecByString(state[\paramName]);
 		this.keyName = state[\paramName];
 		actionNameChanged.value(this);
-		controlSpecEditorView.loadState(state[\controlSpecView]); // TODO Call method SetControlSpec
+		controlSpecView.loadState(state[\controlSpecView]); // TODO Call method SetControlSpec
 		setValueFunction[\sliderValue].value(state[\value]); // Call TODO method SetValue
 		setValueFunction[\rangeSliderValues].value(state[\range]); // TODO Call method SetRange
-		scorePatternScriptEditingView.loadState(state[\scriptView]);  // TODO Call method SetScript
+		scriptFieldView.loadState(state[\scriptView]);  // TODO Call method SetScript
 		layoutStackVariableSection.index = state[\layoutStackVariableSectionIndex];
 		layoutStackControlSection.index = state[\layoutStackControlSectionIndex];
 	}

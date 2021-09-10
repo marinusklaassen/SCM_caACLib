@@ -1,17 +1,13 @@
 /*
- * FILENAME: PlusButton
- *
- * DESCRIPTION:
- *         A tap control widget swith a plus sign.
- *
- *         w = Window().front; a = PlusButton(w,Rect(0,0,80,80)).action_({ "release function".postln; });
- *
- * NICE TO HAVE:
- *         set strokocolor an redraw.
- *
- * AUTHOR: Marinus Klaassen (2012, 2021Q3)
- *
- */
+FILENAME: PlusButton
+
+DESCRIPTION: A tap control widget swith a plus sign.
+
+AUTHOR: Marinus Klaassen (2012, 2021Q3)
+
+EXAMPLE:
+w = Window().front; a = PlusButton(w,Rect(0,0,80,80)).action_({ "release function".postln; });
+*/
 
 PlusButton : UserView {
 	var pressed=false;

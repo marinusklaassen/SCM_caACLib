@@ -1,14 +1,11 @@
 /*
-* FILENAME: PresetManagerView
-*
-* DESCRIPTION:
-*         Reusable PresetManagerView.
-*         - store, read presets with file IO
-*         - multiple layout possibilities
-*
-* AUTHOR: Marinus Klaassen (2012, 2021Q3)
-*
+FILENAME: PresetView
 
+DESCRIPTION: Preset management view, CRUD with immediate automatic file storage.
+
+AUTHOR: Marinus Klaassen (2012, 2021Q3)
+
+EXAMPLE:
 PresetView(bounds:500@50, contextId: "mycontext").front().actionFetchPreset_({ 1000.rand.postln; }).actionLoadPreset_({ |preset| preset.postln });
 */
 
@@ -19,6 +16,9 @@ PresetView : View {
     var <>actionFetchPreset, <>actionLoadPreset, <>contextId, <>name, presetPersistanceFile, eventHandlerPresetsChanged;
 
     *new { | parent, bounds, contextId |
+		if (contextId.isNil) {
+            Error("Constructor argument contextId is mandatory").throw();
+        };
         ^super.new(parent, bounds).initialize(contextId);
     }
 
@@ -33,10 +33,6 @@ PresetView : View {
     }
 
     initialize { |contextId|
-
-        if (contextId.isNil) {
-            Error("Constructor argument contextId is mandatory").throw();
-        };
         this.contextId = contextId;
         if (presets[this.contextId].isNil) {
             this.initalizeContext();

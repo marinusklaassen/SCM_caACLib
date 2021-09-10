@@ -1,16 +1,16 @@
 /*
- * FILENAME: SCMSlider
+ * FILENAME: SliderView
  *
  * DESCRIPTION:
  *         Based on the sclang EZSlider, however it's a child of View and the child views are organised by a layout, so it can scale.
  *
- *         SCMSlider(nil, 400@100, \db.asSpec, 0.5, "test").front().action_({ |v| v.postln; }).labelText_("Label test").value_(1.0.rand).value.postln;
- *         SCMSlider()
+ *         SliderView(nil, 400@100, \db.asSpec, 0.5, "test").front().action_({ |v| v.postln; }).labelText_("Label test").value_(1.0.rand).value.postln;
+ *         SliderView()
  *
  * AUTHOR: Marinus Klaassen (2012, 2021Q3)
  */
 
-SCMSlider : View {
+SliderView : View {
 	var <>controlSpec, <labelText, <value;
 	var <mainLayoutView, <sliderView, <labelView, <numberBoxView, unitView;
 
