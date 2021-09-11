@@ -1,31 +1,60 @@
-SynthBoxNumberView {
-	var gui, <name, <>action, <value;
+/*
+FILENAME: SynthBoxNumberView
 
-	*new { ^super.newCopyArgs.init; }
+DESCRIPTION: Simple numberbox with a lable
 
-	init {
-		name = "default";
+AUTHOR: Marinus Klaassen (2012, 2021Q3)
+
+EXAMPLE:
+SynthBoxNumberView(bounds:400@50).front().action_({ |sender| sender.postln });
+*/
+
+SynthBoxNumberView : View {
+	var <name, <value;
+	var <mainLayout, <labelName, <numberBox;
+
+	*new { |name, parent, bounds|
+		^super.new(parent,bounds).initialize(name);
+	}
+
+	initialize { |argName|
+		this.initializeView();
+		this.name = argName;
 		value = 0;
 	}
 
-	makeGui { |parent,bounds|
-		var boxWidth = bounds.asRect.width - 180;
-		bounds = bounds.asRect;
-		gui = Dictionary.new;
-		gui[\canvas] = CompositeView(parent,bounds);
-		gui[\numberBox] = NumberBox.new(gui[\canvas],Rect(60,0,boxWidth,bounds.height));
-		gui[\numberBox].action_({ |num| if (action.notNil) { action.value(num.value); value = num.value } });
-		gui[\numberBox].value = value;
-		gui[\nameView] = StaticText.new(gui[\canvas],Rect(4,0,54,bounds.height));
-		gui[\nameView].string_(name);
+	initializeView {
+		mainLayout = HLayout();
+		this.layout = mainLayout;
+		labelName = StaticText();
+		labelName.string_(name);
+		mainLayout.add(labelName);
+
+		numberBox = NumberBox();
+		numberBox.action_({ |num| if (action.notNil) { action.value(this); value = num.value;  } });
+		mainLayout.add(numberBox, stretch: 1);
 	}
 
 	value_ {|argValue|
-		gui[\numberBox].value = argValue;
+		numberBox.value = argValue;
+		value = argValue;
+		if (action.notNil) { action.value(this); };
 	}
 
 	name_ {|argName|
 		name = argName;
-		if (gui.notNil) { gui[\nameView].string_(name); };
+		labelName.string_(name);
+	}
+
+	getState  {
+		var state = Dictionary();
+		state[\name] = this.name;
+		state[\value] = this.value;
+		^state;
+	}
+
+	loadState { |state|
+		this.name = state[\name];
+		this.value = state[\value];
 	}
 }

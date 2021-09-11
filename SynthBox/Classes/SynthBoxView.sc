@@ -6,58 +6,59 @@ DESCRIPTION: SynthBoxView is a dedicated reponsive Synth control UI based on Syn
 AUTHOR: Marinus Klaassen (2012, 2021Q3)
 
 EXAMPLE:
-SynthBoxView(\default).front
+
+s.boot; SynthBoxView(\PmGrain1, bounds: 700@400).front
 */
 
-SynthBoxView {
+SynthBoxView : View {
+	var <mainLayout, <layoutControls, <controlViews, <synthDefName, synthDesc, <>controlPanel, presetView, tempNames, tempToggleSynth;
 
-	// Control Elements is an array with only the control elements!
-	var <controlElements, <synthDefName, synthDesc, <>controlPanel, canvas, tempNames, tempToggleSynth, <>index, <>widthOffset;
-
-	// first inialization and creation of a new instance
-	*new { |argSynthDefName|
-		^super.newCopyArgs.init(argSynthDefName);
+	*new { |argSynthDefName, parent, bounds|
+		^super.new(parent, bounds).initialize(argSynthDefName);
 	}
-	// init all nescessary value
-	init { |argSynthDefName|
+
+	initialize { |argSynthDefName|
+		var labelWidthHint = 0;
 		synthDefName = argSynthDefName;
 		synthDesc = SynthDesc.readDef(synthDefName);
+		this.background_(Color.grey);
+        this.deleteOnClose = false;
+		mainLayout = VLayout();
+		this.layout = mainLayout;
+		this.name = synthDefName;
+		presetView = PresetView(contextId: (\SynthBoxView ++ argSynthDefName));
+		presetView.actionLoadPreset = { |state| this.loadState(state); };
+		presetView.actionFetchPreset = { this.getState(); };
 
-		widthOffset = 0;
+		mainLayout.add(presetView);
 
-		controlPanel = SynthBoxControlPanelView(synthDesc.metadata, synthDefName);
+		controlPanel = SynthBoxControlPanelView(synthDefName);
+		controlPanel.mainLayout.margins = 0!4;
 		controlPanel.randomAction = {
-			controlElements do: { |element|
+			controlViews do: { |element|
 				if (element.isKindOf(SynthBoxSliderView)) { element.value_(1.0.rand) }
 			}
 		};
-		controlPanel.playTrigger = { this.oneShotPlay };
+
+		controlPanel.playTrigger = { this.oneShotPlay(); };
 		controlPanel.playToggle = { |value| this.togglePlay(value) };
-		controlPanel.getPreset = { var preset = ();
-			preset[\volgorde] = Array.new;
-			controlElements do: { |element|
-				preset[\volgorde] = preset[\volgorde].add(element.name);
-				preset[preset[\volgorde].last] = element.value;
-			};
-			preset.copy;
-		};
-		controlPanel.loadPreset = { |preset|
-			var volgorde = preset[\volgorde].copy;
-			preset[\volgorde] = nil;
 
-			volgorde do: { |key, i| controlElements[i].value_(preset[key]) }; // maybe a value action in elements
-		};
+		mainLayout.add(controlPanel);
 
-		controlPanel.fileAction = { |toStoreMetaData| SynthDesc.storeMetaData(synthDefName, toStoreMetaData); };
-
-		controlElements = List.new;
+	    controlViews = Dictionary();
 		tempNames = synthDesc.controlNames;
 
 		synthDesc.metadata[\noGui] do: { |key| tempNames.removeAt(tempNames.indexOfEqual(key)) };
 		// Collects controls
 
+		layoutControls = VLayout();
+		layoutControls.spacing = 0;
+		layoutControls.margins = 0!4;
+		mainLayout.add(layoutControls);
+
 		tempNames do: { | key |
 			var spec = synthDesc.metadata[\specs][key];
+			var newView;
 			// Check for an controlspec override. Else try a default.
 			if (spec.notNil, {
 				spec = spec.asSpec; // When the ControlSpec is defined as an array.
@@ -65,41 +66,39 @@ SynthBoxView {
 				spec = key.asSpec;
 			});
 			if (spec.isKindOf(ControlSpec), {
-				controlElements.add(SynthBoxSliderView.new(key, spec));
+				newView = SynthBoxSliderView(key, spec);
+				newView.action = { |sender|   if(tempToggleSynth.notNil, { tempToggleSynth.set(sender.name.asSymbol, sender.mappedValue); }); };
 			}, {
-				controlElements.add(SynthBoxNumberBoxView.new(key));
+				newView = SynthBoxNumberView(key);
+				 newView.action = { |sender|  if(tempToggleSynth.notNil, { tempToggleSynth.set(sender.name.asSymbol, sender.value); }); };
+
 			});
-			controlElements.last.name = key;
+			newView.mainLayout.margins = 0!4;
+			if (newView.labelName.sizeHint.width > labelWidthHint, {
+				labelWidthHint = newView.labelName.sizeHint.width;
+			});
+
+			controlViews[key] = newView;
+			layoutControls.add(newView);
+
+
+			layoutControls.add(CompositeView().minHeight_(2).background_(Color.rand));
 		};
+		controlViews do: { |controlView| controlView.labelName.minWidth = labelWidthHint; };
+	    mainLayout.add(nil, stretch:1, align: \bottom);
+
 	}
-
-	gui { |argParent|
-		var parent;
-		if (argParent.isNil) { parent = Window.new(); parent.front; } { parent = argParent };
-
-		canvas = CompositeView(parent,parent.bounds.width - widthOffset@(tempNames.size * 28 + 32));
-		canvas.addFlowLayout(0@0, 0@2);
-		canvas.background_(Color.grey);
-
-		controlPanel.makeGui(canvas,canvas.bounds.width@30);
-
-		controlElements do: { |element|
-			element.makeGui(canvas, canvas.bounds.width @ 22);
-			CompositeView(canvas,canvas.bounds.width@2).background_(Color.rand);
-		};
-	}
-
-	closeGui { canvas.remove }
 
 	getParamValuesArray {
 		var paramValuesArray = Array.new;
-		controlElements do: { |obj|
-			paramValuesArray = paramValuesArray.add(obj.name.asSymbol);
-			paramValuesArray = paramValuesArray.add(
-				if(obj.isKindOf(SynthBoxSliderView)) {
-					obj.spec.map(obj.value)
+		controlViews do: { |key|
+			var controlView = controlViews[key];
+			paramValuesArray.add(key.asSymbol);
+			paramValuesArray.add(
+				if(controlView.isKindOf(SynthBoxSliderView)) {
+					controlView.spec.map(controlViews.value)
 				} {
-					obj.value;
+					controlView.value;
 				}
 			)
 		};
@@ -125,12 +124,26 @@ SynthBoxView {
 		var paramsValues = this.getParamValuesArray;
 
 		if (toggle > 0) {
-			controlElements do: { |element| element.action = { |value| tempToggleSynth.set(element.name, value) } };
+
 			if (tempToggleSynth.notNil) { tempToggleSynth.release; tempToggleSynth = nil };
 			tempToggleSynth = Synth(synthDefName, paramsValues);
 		} {
 			tempToggleSynth.set(\gate, 0); tempToggleSynth = nil;
-			controlElements do: { |element| element.action = nil; };
+		};
+	}
+
+	getState  {
+		var state = Dictionary();
+		state[\controllerStates] = Dictionary();
+		controlViews collect: { |element|
+			state[\controllerStates][element.name] = element.getState();
+		};
+		^state;
+	}
+
+	loadState { |state|
+		state[\controllerStates].keys do: { |name|
+			controlViews[name].loadState(state[\controllerStates][name]);
 		};
 	}
 }

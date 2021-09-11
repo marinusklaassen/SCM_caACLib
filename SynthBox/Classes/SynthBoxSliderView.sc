@@ -1,13 +1,24 @@
-SynthBoxSliderView {
-	var gui, model, depedants, <>spec, <name, <>action, midiResp, midiFlag, <>bMidiInvert;
+/*
+FILENAME: SynthBoxSliderView
 
-	*new { |argName, argSpec|
-		^super.newCopyArgs.init(argName,argSpec);
+DESCRIPTION: Slider, spec en midi learn in one class.
+
+AUTHOR: Marinus Klaassen (2012, 2021Q3)
+
+EXAMPLE:
+SynthBoxSliderView(bounds:400@50).front();
+*/
+
+SynthBoxSliderView : View {
+	var model, dependants, <>spec, <name, midiResp, midiFlag, <>bMidiInvert;
+    var <mainLayout, <labelName, <sliderView, <numberBoxValue, <toggleMidiLearn, <toggleMidiInvert, <mappedValue;
+
+	*new { |argName, argSpec, parent, bounds|
+		^super.new(parent, bounds).initialize(argName,argSpec);
 	}
 
-
-	init { |argName, argSpec|
-		if (argSpec.isNil) { argSpec = \amp.asSpec };
+	initialize { |argName, argSpec|
+		if (argSpec.isNil) { argSpec = ControlSpec(); };
 		if (argName.isNil) { argName = \default };
 		spec = argSpec;
 		name = argName;
@@ -16,116 +27,109 @@ SynthBoxSliderView {
 		model = (value: 0.0);
 		model[\setValueFunction] = { |value|
 			model[\value] = value;
+			mappedValue = spec.map(value);
+			[mappedValue, value].postln;
 			model.changed(\value, value);
+
 		};
-		depedants = ();
-		depedants[\actionFunc] = {|theChanger, what, val|
-			if (action.notNil) { action.value(spec.map(val)) };
+		dependants = ();
+		dependants[\actionFunc] = {|theChanger, what, val|
+			if (action.notNil) { action.value(this) };
 		};
-		model.addDependant(depedants[\actionFunc]);
+		model.addDependant(dependants[\actionFunc]);
+		this.initializeView();
 	}
 
+	initializeView {
 
-	makeGui { |parent, bounds|
-		var sliderWidth = bounds.asRect.width - 180;
-		bounds = bounds.asRect;
-		gui = Dictionary.new;
-		gui[\canvas] = CompositeView(parent,bounds);
-		gui[\nameView] = StaticText.new(gui[\canvas], Rect(4,0,54,bounds.height));
-		gui[\nameView].string_(name);
-		gui[\sliderView] = Slider(gui[\canvas], Rect(60,0,sliderWidth-2,bounds.height));
-		gui[\sliderView].value_(model[\value]);
-		gui[\sliderView].action_({ |sl| model[\setValueFunction].value(sl.value) });
-		gui[\boxView] = NumberBox(gui[\canvas], Rect(60+sliderWidth,0,68,bounds.height));
-		gui[\boxView].value_(model[\value]);
-		gui[\boxView].minDecimals_(1);
-		gui[\boxView].action_({ |sl| model[\setValueFunction].value(spec.unmap(sl.value)) });
-		gui[\midiView] = Button(gui[\canvas], Rect(130+sliderWidth,0,28,bounds.height))
-		.states_([["OFF", Color.red, Color.black],
-			["ON", Color.black, Color.red]])
-		.action_({ arg butt;
-			if (butt.value == 1) { this.midiLearn; } { this.midiUnlearn; };
-		})
-		.value_(midiFlag);
+		mainLayout = HLayout();
+		this.layout = mainLayout;
 
-		gui[\btnMidiInvert] = Button(gui[\canvas], Rect(160+sliderWidth,0,16,16))
-		.states_([["ø", Color.red, Color.black],
-			["ø", Color.black, Color.red]])
-		.action_({ arg butt;
+		labelName = StaticText();
+		labelName.string = name;
+		mainLayout.add(labelName);
 
-			bMidiInvert = butt.value == 1;
-		})
-		.value_(\bMidiInvert);
+		sliderView = Slider();
+		sliderView.orientation = \horizontal;
+		sliderView.action = { |sender| model[\setValueFunction].value(sender.value) };
+		mainLayout.add(sliderView, stretch: 1);
 
-		depedants[\updateView] = {|theChanger, what, val|
-			gui[\sliderView].value_(val);
-			gui[\boxView].value_(spec.map(val));
+		numberBoxValue = NumberBox();
+		numberBoxValue.minDecimals = 1;
+		numberBoxValue.maxWidth = 80;
+		numberBoxValue.action = { |sender| model[\setValueFunction].value(spec.unmap(sender.value)) };
+	    mainLayout.add(numberBoxValue);
+
+		toggleMidiLearn = Button();
+		toggleMidiLearn.maxWidth = 30;
+		toggleMidiLearn.states = [["OFF", Color.red, Color.black], ["ON", Color.black, Color.red]];
+		toggleMidiLearn.action = { |sender|
+			if (sender.value == 1) { this.midiLearn; } { this.midiUnlearn; };
 		};
-		model.addDependant(depedants[\updateView]);
-		model[\setValueFunction].value(model[\value]);
+		mainLayout.add(toggleMidiLearn);
+
+		toggleMidiInvert  = Button();
+		toggleMidiInvert.fixedSize = 16;
+		toggleMidiInvert.states = [["ø", Color.red, Color.black], ["ø", Color.black, Color.red]];
+		toggleMidiInvert.action = { arg sender; bMidiInvert = sender.value == 1; };
+
+		mainLayout.add(toggleMidiInvert, align: \top);
+
+		dependants[\updateView] = {|theChanger, what, val|
+			sliderView.value_(val);
+			numberBoxValue.value_(spec.map(val));
+		};
+		model.addDependant(dependants[\updateView]);
 	}
 
-
-	midiStart {
-
-		arg iControlChannel;
-
+	midiStart { |iControlChannel|
 		if (midiResp.notNil) { midiResp.remove; };
-
 		midiResp = CCResponder({
-
 			arg src, chan, num, value;
-
 			if (bMidiInvert) { value = 127 - value; };
-
 			{ model[\setValueFunction].value(value / 127); }.defer;
-
-			}
-			,chan: iControlChannel
-		);
-
-	} /* midiStart */
-
+			}, chan: iControlChannel);
+	}
 
 	midiLearn {
-
+		"hi".postln;
 		if (midiResp.notNil) { midiResp.remove; };
-
 		midiResp = CCResponder({ |src,chan,num,value|
-
+			[src, chan, num, value].postln;
 			if (bMidiInvert) { value = 127 - value; };
-
 				{ model[\setValueFunction].value(value / 127); }.defer;
-
 		});
-
 		midiResp.learn; // wait for the first controller
 		midiFlag = 1;
 	}
-
 
 	midiUnlearn {
 		midiResp.remove; midiResp = nil; midiFlag = 0;
 	}
 
-
 	value_ {|argValue|
 		model[\setValueFunction].value(argValue)
 	}
-
 
 	value {
 		^model[\value]
 	}
 
-
 	name_ {|argName|
 		name = argName;
-		if (gui.notNil) { gui[\nameView].string_(name); };
+		labelName.string_(name);
 	}
 
+	getState  {
+		var state = Dictionary();
+		state[\name] = this.name;
+		state[\value] = this.value;
+		^state;
+	}
 
-	closeGui {
-	model.removeDependant(depedants[\updateView]);
-        }
+	loadState { |state|
+		this.name = state[\name];
+		this.value = state[\value];
+	}
+
 }
