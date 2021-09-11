@@ -1,78 +1,36 @@
-**caAC-MLib 0.42**
----
-**Computer Aided Algorithmic Composition Library 0.42 [Deprecated]**
+**SCM_caACLib - Computer Aided Algorithmic Composition Library (SuperCollider)**
 ---
 
-**[Deprecated]**
----
-Most of the sclang code doesn't compile anymore using the newest SuperCollider releases. The idea of one big extension library containing al the good stuf isn't  from this time anymore. So I have decided to split some of the functionality into new repositories. 
-
-The first one is in the oven: 
-- https://github.com/marinusklaassen/SCLemurLib
-
-**About:**
+**About**
 ---
 
-A library with various SuperCollider classes and UGens extensions to perform algorithmic composition and digital sound synthesis, according to concepts and approaches towards flexible models and user interfaces. The most important aspect is the development of a flexible UI frontend progammed in SuperCollider, that works with patterns and tactile controllers, such as the Lemur app, in a model-view-controller paradigm, in order to achieve bi-directional control between SuperCollider and the Lemur applications, and furthermore to perform realtime CAAC and digital sound synthesis.    
+SCM_caACLib is a library with various classes perform to algorithmic composition and digital sound synthesis, according to concepts and approaches towards flexible models and user interfaces. The most important aspect is the development of a flexible UI frontends progammed in sclang, to program and compose with patterns easy linking to external controllers, such as the Lemur app or MIDI. I have added project and/or preset management support for the PatternBox & SynthBox. 
 
+In the .sc class source I added some examples. In the near future I am going to provide better examples, help documentation and tutorials. Meanwhile feel free to contact me via LinkedIn or GitHub if you need help or have any questions about this library.
 
-
-**Contents:**
+**Contents**
 ---
  
-- Various GUI elements  
-- Various (Demand) UGens  
-- Various Pattern classes   
-- MLemurGui  
-- Score & Controller interface (prototype) 
-- PresetInterface (prototype) 
+- PatternBox 
+- SynthBox
+- Common patterns
+- Common views
+- Class extensions
 
-
-
-**Example code:**  
+**Dependencies**
 ---
-    
-    /*Add 30 faders to the Lemur interface:*/
-    
-    ~lm = MLemurGui.new; 
-     
-    ~lm.connect("192.10.1.2",8002,8000);    
+  - SCLemurLib (optional) - Lemur autogui support will be added again during the next development phase.
 
-    ~lm.set_osctarget(0,"192.10.1.16", NetAddr.langPort);   
-    ~lm.resetAll;
-    
-    30 do: {|i|~lm.fader("klang",\sine++i,i%15*65+25,asInt(i/15%2,1)*350,65,350,Color.rand)};
-    30 do: {|i|~lm.oscaddr.sendMsg('/sine'++i++'/x',1.0.linrand)}; 
- 
-    OSCFunc.trace(true);
-
-    30 do: {|i|~lm.removeFader("klang",\sine++i)}; 
-
-    ~lm.disconnect;
-    ~lm.removeSwitches;
-
-
-
-<img src="/Lemur/HelpSource/Classes/lpict.png" alt="Build Interface" width="400" height="300">
-
-
-
-**The Score & Controller Interface:**
+**Screenshot**
 ---
-An important tool in this library is a flexible interface: the Score & Controller Interface to embed script-based composition into an OSC-controller setup. This interface is going to be released in September. A prototype can be found here. 
 
-<img src="ScoreMixerOverview.png" alt="score & mixer overview" >
-
-
-
-
-[This is the link to a crappy video demonstration of the prototype version on Vimeo.](https://vimeo.com/68702753/) 
-
+<img src="Images/Overview.png" alt="SCM_caACLIb Overview">
 
 
 **Status**
 ---
-This library is deprecated.
+
+This library is under active development (again).
 
 
 
