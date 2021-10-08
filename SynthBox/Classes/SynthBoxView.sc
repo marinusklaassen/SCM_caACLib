@@ -57,11 +57,11 @@ SynthBoxView : View {
 		mainLayout.add(layoutControls);
 
 		tempNames do: { | key |
-			var spec = synthDesc.metadata[\specs][key];
-			var newView;
+			var newView, spec, specOverride;
+			specOverride = synthDesc.metadata[\specs][key];
 			// Check for an controlspec override. Else try a default.
-			if (spec.notNil, {
-				spec = spec.asSpec; // When the ControlSpec is defined as an array.
+			if (specOverride.notNil, {
+				spec = specOverride.asSpec; // When the ControlSpec is defined as an array.
 			}, {
 				spec = key.asSpec;
 			});
