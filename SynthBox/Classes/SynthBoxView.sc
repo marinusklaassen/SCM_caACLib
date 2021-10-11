@@ -48,7 +48,7 @@ SynthBoxView : View {
 	    controlViews = Dictionary();
 		tempNames = synthDesc.controlNames;
 
-		synthDesc.metadata[\noGui] do: { |key| tempNames.removeAt(tempNames.indexOfEqual(key)) };
+		synthDesc.metadata[\hideUI] do: { |key| tempNames.removeAt(tempNames.indexOfEqual(key)) };
 		// Collects controls
 
 		layoutControls = VLayout();
@@ -77,38 +77,33 @@ SynthBoxView : View {
 			if (newView.labelName.sizeHint.width > labelWidthHint, {
 				labelWidthHint = newView.labelName.sizeHint.width;
 			});
-
 			controlViews[key] = newView;
 			layoutControls.add(newView);
-
-
 			layoutControls.add(CompositeView().minHeight_(2).background_(Color.rand));
 		};
 		controlViews do: { |controlView| controlView.labelName.minWidth = labelWidthHint; };
 	    mainLayout.add(nil, stretch:1, align: \bottom);
-
 	}
 
 	getParamValuesArray {
-		var paramValuesArray = Array.new;
-		controlViews do: { |key|
-			var controlView = controlViews[key];
-			paramValuesArray.add(key.asSymbol);
-			paramValuesArray.add(
-				if(controlView.isKindOf(SynthBoxSliderView)) {
-					controlView.spec.map(controlViews.value)
+		var paramValuesArray = List(), paramValue;
+		controlViews do: { |controlView|
+			if(controlView.isKindOf(SynthBoxSliderView)) {
+				paramValue = controlView.mappedValue;
 				} {
-					controlView.value;
-				}
-			)
-		};
-		^paramValuesArray
+				paramValue = controlView.value;
+			};
+    		paramValuesArray.add(controlView.name);
+			paramValuesArray.add(paramValue);
+			};
+		^paramValuesArray.asArray;
 	}
 
 	oneShotPlay {
 		fork {
-			var tempSynth, indexOf, paramsValues = this.getParamValuesArray;
+			var tempSynth, indexOf, paramsValues;
 			if (tempSynth.notNil) { tempSynth.release; tempSynth = nil };
+			paramsValues = this.getParamValuesArray();
 			tempSynth = Synth(synthDefName, paramsValues);
 			Server.default.sync;
 			indexOf = paramsValues.indexOf(\atk);
@@ -127,6 +122,9 @@ SynthBoxView : View {
 
 			if (tempToggleSynth.notNil) { tempToggleSynth.release; tempToggleSynth = nil };
 			tempToggleSynth = Synth(synthDefName, paramsValues);
+
+
+
 		} {
 			tempToggleSynth.set(\gate, 0); tempToggleSynth = nil;
 		};

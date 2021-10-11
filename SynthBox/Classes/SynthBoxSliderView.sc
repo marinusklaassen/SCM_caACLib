@@ -28,7 +28,6 @@ SynthBoxSliderView : View {
 		model[\setValueFunction] = { |value|
 			model[\value] = value;
 			mappedValue = spec.map(value);
-			[mappedValue, value].postln;
 			model.changed(\value, value);
 
 		};
@@ -38,6 +37,7 @@ SynthBoxSliderView : View {
 		};
 		model.addDependant(dependants[\actionFunc]);
 		this.initializeView();
+		this.value = 0;
 	}
 
 	initializeView {
@@ -92,10 +92,8 @@ SynthBoxSliderView : View {
 	}
 
 	midiLearn {
-		"hi".postln;
 		if (midiResp.notNil) { midiResp.remove; };
 		midiResp = CCResponder({ |src,chan,num,value|
-			[src, chan, num, value].postln;
 			if (bMidiInvert) { value = 127 - value; };
 				{ model[\setValueFunction].value(value / 127); }.defer;
 		});

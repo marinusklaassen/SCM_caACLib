@@ -77,8 +77,10 @@ ScoreParamView : View {
 		textPatternKeyname.maxWidth = 90;
 		textPatternKeyname.minWidth = 90;
 		textPatternKeyname.action = { | sender |
-			controlSpecView.setSpecByString(sender.string);
-			this.keyName = sender.string;
+			var keyNameStripped = sender.string.stripWhiteSpace();
+			controlSpecView.setSpecByString(keyNameStripped);
+			this.keyName = keyNameStripped;
+			textPatternKeyname.string = keyNameStripped;
 			actionNameChanged.value(this);
 		};
 
