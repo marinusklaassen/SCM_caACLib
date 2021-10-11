@@ -48,7 +48,7 @@ SynthBoxView : View {
 	    controlViews = Dictionary();
 		tempNames = synthDesc.controlNames;
 
-		synthDesc.metadata[\noGui] do: { |key| tempNames.removeAt(tempNames.indexOfEqual(key)) };
+		synthDesc.metadata[\hideUI] do: { |key| tempNames.removeAt(tempNames.indexOfEqual(key)) };
 		// Collects controls
 
 		layoutControls = VLayout();
