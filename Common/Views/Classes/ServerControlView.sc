@@ -10,8 +10,8 @@ ServerControlView(bounds:400@50).front();
 */
 
 ServerControlView : View {
-	classvar cockpitStatePersistanceFile, cockpitStatePersistanceDir;
-	var <mainLayout,<selectAudioDevices,<buttonReboot, currentDevice;
+	classvar cockpitStatePersistanceFile, cockpitStatePersistanceDir, currentDevice;
+	var <mainLayout, selectAudioDevices,buttonReboot, buttonShowServerNodeGraph, buttonShowMeter, buttonPanic;
 
 	*new { |parent, bounds|
 		^super.new(parent, bounds).initialize();
@@ -34,12 +34,14 @@ ServerControlView : View {
 	initializeView {
 
 		mainLayout = HLayout();
-		this.deleteOnClose = false;
 		this.layout = mainLayout;
+
+		this.deleteOnClose = false;
+		this.name = "SC Server & Runtime Control";
 
 		selectAudioDevices = PopUpMenu();
 		selectAudioDevices.items = ServerOptions.devices;
-		selectAudioDevices.action = { |sender| this.onDeviceSelected(sender); };
+		selectAudioDevices.action = { |sender| this.onPopupAction_DeviceSelection(sender); };
 		ServerOptions.devices do: { |device, index| if (device == currentDevice, { selectAudioDevices.value = index; }); };
 
 		mainLayout.add(selectAudioDevices);
@@ -49,9 +51,40 @@ ServerControlView : View {
 		buttonReboot.action = { this.onDeviceReboot(); };
 
 		mainLayout.add(buttonReboot);
+
+		buttonShowServerNodeGraph = Button();
+		buttonShowServerNodeGraph.string = "node graph";
+		buttonShowServerNodeGraph.action = { this.onButtonAction_ShowServerNodeGraph(); };
+
+		mainLayout.add(buttonShowServerNodeGraph);
+
+		buttonShowMeter = Button();
+		buttonShowMeter.string = "meter";
+		buttonShowMeter.action = { this.onButtonAction_ShowMeter(); };
+
+		mainLayout.add(buttonShowMeter);
+
+		buttonPanic = Button();
+		buttonPanic.string = "panic";
+		buttonPanic.action = { this.onButtonAction_Panic(); };
+
+		mainLayout.add(buttonPanic);
 	}
 
-	onDeviceSelected { |sender|
+    onButtonAction_Panic {
+		CmdPeriod.run;
+        Server.freeAll(evenRemote: false);
+    }
+
+	onButtonAction_ShowMeter {
+		Server.local.meter();
+	}
+
+	onButtonAction_ShowServerNodeGraph {
+		Server.local.plotTree();
+	}
+
+	onPopupAction_DeviceSelection { |sender|
 		Server.local.options.device = sender.item;
 		Server.local.reboot;
 		currentDevice = sender.item;
