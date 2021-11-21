@@ -43,17 +43,13 @@ ControlSpecView : View {
 			}
 			{ interpretSpec = nil; };
 			if (interpretSpec.class == ControlSpec, {
-				if (labelError.visible == true, {
-					labelError.visible = false;
-					labelError.string = "";
-				});
+				labelError.clear();
 				model[\controlSpec] = interpretSpec;
 				model.changed(\controlSpec, interpretSpec);
 				model[\rawSpecAsString] = rawSpecAsString;
 				model.changed(\rawSpecAsString, rawSpecAsString);
 
 			}, {
-				labelError.visible = true;
 				labelError.string = "Invalid input. Must be a valid ControlSpec.";
 			});
 		};
@@ -74,9 +70,8 @@ ControlSpecView : View {
 		mainLayout.spacing = 0;
 		this.layout = mainLayout;
 
-		textInput = TextField();
+		textInput = TextFieldFactory.createInstance(this, "text-controlspec");
 		textInput.string = model[\rawSpecAsString];
-		textInput.background = Color.yellow.alpha_(0.7);
 		textInput.action = { | sender |
 			setValueFunction.value(sender.string);
 		};
@@ -90,9 +85,7 @@ ControlSpecView : View {
 
 		model.addDependant(dependants[\textInput]);
 
-		labelError = StaticText();
-		labelError.stringColor = Color.blue;
-		labelError.visible = false;
+		labelError = MessageLabelViewFactory.createInstance(this, class: "message-error");
 
 		mainLayout.add(labelError, stretch: 1.0);
 	}
@@ -110,7 +103,7 @@ ControlSpecView : View {
 
 	getState {
 		var state = Dictionary();
-        state[\type] = "ControlSpecView";
+        state[\type] = this.class.asString;
 		state[\rawSpecAsString] = model[\rawSpecAsString];
 		^state;
 	}
@@ -120,3 +113,4 @@ ControlSpecView : View {
 		setValueFunction.value(state[\rawSpecAsString]);
 	}
 }
+

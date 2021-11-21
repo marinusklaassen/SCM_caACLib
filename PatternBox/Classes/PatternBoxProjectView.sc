@@ -11,15 +11,15 @@ PatternBoxProjectView(bounds:400@700).front();
 */
 
 PatternBoxProjectView : View {
-	var <patternBoxViews, lemurClient, <eventAddPatternBox;
-	var mainLayout, projectSaveAndLoadView, layoutMixerChannels, scrollViewMixerChannels, layoutHeader, buttonAddPatternBox, buttonPanic, buttonServerNodes, buttonServerMeter, buttonServerBoot;
+	var patternBoxProjectItemViews, lemurClient, <eventAddPatternBox;
+	var mainLayout, footerLayout, projectSaveAndLoadView, layoutPatternBoxItems, scrollViewPatternBoxItems, buttonAddPatternBox, layoutHeader, serverControlView, tempoClockView;
 
 	*new { |parent, bounds, lemurClient|
 		^super.new(parent, bounds).initialize(lemurClient);
 	}
 
 	initialize { |lemurClient|
-		patternBoxViews = List();
+		patternBoxProjectItemViews = List();
 		lemurClient = lemurClient;
 		this.initializeEvents();
 		this.initializeView();
@@ -28,72 +28,37 @@ PatternBoxProjectView : View {
 
 	initializeView {
 		this.name = "PatternBox Project";
-		this.background = Color.new255(136, 172, 224); // light petrol blue
 		this.deleteOnClose = false;
 
 		mainLayout = VLayout();
 		this.layout = mainLayout;
 
-		projectSaveAndLoadView = ProjectSaveAndLoadView();
-		projectSaveAndLoadView.mainLayout.margins = 0!4;
+		projectSaveAndLoadView = ProjectPersistanceViewFactory.createInstance(this);
 		mainLayout.add(projectSaveAndLoadView);
 
-		layoutHeader = HLayout();
-		layoutHeader.margins = 0!4;
-		mainLayout.add(layoutHeader);
+		serverControlView = ServerControlViewFactory.createInstance(this);
+		mainLayout.add(serverControlView);
 
-		buttonPanic = Button();
-	    buttonPanic.font = Font("Menlo", 14);
-        buttonPanic.states = [["PANIC", Color.red, Color.black]];
-		buttonPanic.minHeight = 40;
-		buttonPanic.action = {
-			CmdPeriod.run;
-            Server.freeAll(evenRemote: false);
-		};
-		layoutHeader.add(buttonPanic);
+		layoutPatternBoxItems = VLayout([nil, stretch:1, align: \bottom]); // workaround. insert before stretchable space.
+		layoutPatternBoxItems.margins = 0!4;
+		layoutPatternBoxItems.spacing = 2;
 
-		buttonServerNodes = Button();
-	    buttonServerNodes.font = Font("Menlo", 14);
-        buttonServerNodes.states = [["SERVER\nNODES", Color.red, Color.black]];
-		buttonServerNodes.minHeight = 40;
-		buttonServerNodes.action = {
-			Server.default.plotTree();
-		};
-		layoutHeader.add(buttonServerNodes);
+		scrollViewPatternBoxItems = ScrollViewFactory.createInstance(this);
+		scrollViewPatternBoxItems.canvas.layout = layoutPatternBoxItems;
+		mainLayout.add(scrollViewPatternBoxItems);
 
-		buttonServerMeter = Button();
-	    buttonServerMeter.font = Font("Menlo", 14);
-        buttonServerMeter.states = [["SERVER\nMETER", Color.red, Color.black]];
-		buttonServerMeter.minHeight = 40;
-		buttonServerMeter.action = {
-			Server.default.meter();
-		};
-		layoutHeader.add(buttonServerMeter);
+		footerLayout = HLayout();
+		footerLayout.margins = 0!4;
 
-		buttonServerBoot = Button();
-	    buttonServerBoot.font = Font("Menlo", 14);
-        buttonServerBoot.states = [["SERVER\nBOOT", Color.red, Color.black]];
-		buttonServerBoot.minHeight = 40;
-		buttonServerBoot.action = {
-			Server.default.reboot();
-		};
-		layoutHeader.add(buttonServerBoot);
+		tempoClockView = TempoClockViewFactory.createInstance(this);
+		footerLayout.add(tempoClockView,  align: \left);
 
-		layoutMixerChannels = VLayout([nil, stretch:1, align: \bottom]); // workaround. insert before stretchable space.
-		layoutMixerChannels.margins = 0!4;
-		layoutMixerChannels.spacing = 2;
-
-		scrollViewMixerChannels = ScrollView();
-		scrollViewMixerChannels.canvas = View();
-		scrollViewMixerChannels.canvas.layout = layoutMixerChannels;
-		scrollViewMixerChannels.canvas.background = this.background;
-		mainLayout.add(scrollViewMixerChannels);
-
-		buttonAddPatternBox = PlusButton();
-		buttonAddPatternBox.fixedHeight = 30;
-		buttonAddPatternBox.fixedWidth = 70;
+		buttonAddPatternBox = ButtonFactory.createInstance(this, "btn-add");
 		buttonAddPatternBox.action = { this.invokeEvent(this.eventAddPatternBox); };
-		mainLayout.add(buttonAddPatternBox,  align: \bottomRight);
+
+		footerLayout.add(buttonAddPatternBox,  align: \right);
+
+		mainLayout.add(footerLayout);
 	}
 
 	invokeEvent { |event|
@@ -117,44 +82,41 @@ PatternBoxProjectView : View {
 	}
 
 	addPatternBox {
-		var patternBoxView = PatternBoxView(lemurClient);
-		var patternBoxProjectEntryView = patternBoxView.getMixerChannelControl();
-		patternBoxView.removeAction = { | sender |
-			patternBoxProjectEntryView.remove();
-			patternBoxView.dispose();
-			patternBoxViews.remove(patternBoxView);
+		var patternBoxProjectItemView = PatternBoxProjectItemView(lemurClient);
+		patternBoxProjectItemView.actionRemove = { | sender |
+			patternBoxProjectItemViews.remove(patternBoxProjectItemView);
 		};
-		layoutMixerChannels.insert(patternBoxProjectEntryView, patternBoxViews.size); // workaround. insert before stretchable space.
-		patternBoxViews.add(patternBoxView);
-		^patternBoxView;
+		layoutPatternBoxItems.insert(patternBoxProjectItemView, patternBoxProjectItemViews.size); // workaround. insert before stretchable space.
+		patternBoxProjectItemViews.add(patternBoxProjectItemView);
+		^patternBoxProjectItemView;
 	}
 
 	getState {
 		var state = Dictionary();
 		state[\type] = "PatternBoxProjectView";
-		state[\patternBoxStates] = patternBoxViews.collect({ |patternBoxView| patternBoxView.getState(); });
+		state[\patternBoxProjectItemViewsStates] = patternBoxProjectItemViews.collect({ |patternBoxProjectItemView| patternBoxProjectItemView.getState(); });
 		^state;
 	}
 
 	loadState{ |state|
-		var patternBoxView;
+		var patternBoxProjectItemView;
 		if (state.isKindOf(Dictionary) && state[\type] == "PatternBoxProjectView",
 			{
 				// Remove the patternBoxViews that are to many.
-				if (state[\patternBoxStates].size	< patternBoxViews.size, {
-					var amountToMany = patternBoxViews.size - state[\patternBoxStates].size;
+				if (state[\patternBoxProjectItemViewsStates].size < patternBoxProjectItemViews.size, {
+					var amountToMany = patternBoxProjectItemViews.size - state[\patternBoxProjectItemViewsStates].size;
 					amountToMany do: {
-						patternBoxViews.pop().removeAction.value();
+						patternBoxProjectItemViews.pop().dispose();
 					};
 				});
 				// Reuse existing patternBoxViews or add a new PatternBox.
-				state[\patternBoxStates] do: { |state, position|
-					if (patternBoxViews[position].isNil, {
-						patternBoxView = this.addPatternBox();
+				state[\patternBoxProjectItemViewsStates] do: { |state, position|
+					if (patternBoxProjectItemViews[position].isNil, {
+						patternBoxProjectItemView = this.addPatternBox();
 					}, {
-						patternBoxView = patternBoxViews[position];
+						patternBoxProjectItemView = patternBoxProjectItemViews[position];
 					});
-					patternBoxView.loadState(state);
+					patternBoxProjectItemView.loadState(state);
 				};
 		});
 	}

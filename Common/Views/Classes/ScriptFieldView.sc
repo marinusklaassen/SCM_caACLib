@@ -51,7 +51,7 @@ ScriptFieldView : View {
 
 		this.layout = mainLayout;
 
-		textEditing = TextView();
+		textEditing = TextViewFactory.createInstance(this, class: "script-editor");
 		textEditing.string = model[\script];
 		textEditing.keyUpAction = {| ... args| // Zoek uit of de ook via sender, etc. etc. Dus meer named arguments
 			this.prSetTextFieldHeightByText(textEditing.string);
@@ -64,10 +64,7 @@ ScriptFieldView : View {
 
 		mainLayout.add(textEditing);
 
-		labelError = StaticText();
-		labelError.stringColor = Color.blue;
-		labelError.visible = false;
-
+		labelError = MessageLabelViewFactory.createInstance(this, class: "message-error");
 		mainLayout.add(labelError, stretch: 1.0);
 
 		this.prSetTextFieldHeightByText("");
@@ -92,7 +89,7 @@ ScriptFieldView : View {
 			};
 			windowPopup.layout = VLayout();
 			windowPopup.layout.margins = 0!4;
-			textSeparateEditing = TextView();
+			textSeparateEditing = TextViewFactory.createInstance(this, class: "script-editor");
 			textSeparateEditing.string = textEditing.string;
 			textSeparateEditing.keyUpAction = {| ... args|
 				textEditing.string = textSeparateEditing.string;
@@ -109,14 +106,12 @@ ScriptFieldView : View {
 		windowPopup.front;
 	}
 
-	setErrorText { |errorText|
-		labelError.visible = true;
-		labelError.string = errorText;
+	setError { |errorString|
+		labelError.string = errorString;
 	}
 
 	clearError {
-	    labelError.visible = false;
-		labelError.string = "";
+		labelError.clear();
 	}
 
 	prSetTextFieldHeightByText { |text|

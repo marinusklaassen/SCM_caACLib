@@ -26,11 +26,7 @@ SynthBoxNumberView : View {
 	initializeView {
 		mainLayout = HLayout();
 		this.layout = mainLayout;
-		labelName = StaticText();
-		labelName.string_(name);
-		mainLayout.add(labelName);
-
-		numberBox = NumberBox();
+		numberBox = NumberBoxFactory.createInstance(this, class: "numberbox-synthbox-wholenumber");
 		numberBox.action_({ |num| if (action.notNil) { action.value(this); value = num.value;  } });
 		mainLayout.add(numberBox, stretch: 1);
 	}
@@ -43,7 +39,6 @@ SynthBoxNumberView : View {
 
 	name_ {|argName|
 		name = argName;
-		labelName.string_(name);
 	}
 
 	getState  {

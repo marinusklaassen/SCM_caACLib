@@ -11,11 +11,11 @@
  *
  * AUTHOR: Marinus Klaassen (2012, 2021Q3)
  *
- * TODO make een single press base voor delete and plus button
+ * TODO make een single press base SCMUserView voor delete and plus button
  */
 
 DeleteButton : UserView {
-	var pressed=false;
+	var pressed=false, strokeColor, highLightColor;
 
 	*new { |parent, bounds|
 		^super.new(parent, bounds).init();
@@ -23,6 +23,9 @@ DeleteButton : UserView {
 
 	init {
 		this.background = Color.white;
+		strokeColor = Color.black;
+		highLightColor = Color.black;
+
 		this.drawFunc = {
 			var radius = min(this.bounds.width, this.bounds.height) * 0.7;
 			var widthLine = min(this.bounds.width, this.bounds.height) * 0.1;
@@ -34,6 +37,7 @@ DeleteButton : UserView {
 			];
 
 			Pen.smoothing = true;
+			Pen.strokeColor = strokeColor;
 			Pen.translate(this.bounds.width * 0.5, this.bounds.height * 0.5);
 			Pen.width = widthLine;
 			// draw cross.
@@ -44,7 +48,7 @@ DeleteButton : UserView {
 			if (pressed, {
 				Pen.translate(neg(this.bounds.width * 0.5),neg(this.bounds.height * 0.5));
 				Pen.width = widthLine * 0.5;
-				Pen.strokeColor = Color.red;
+				Pen.strokeColor = highLightColor;
 				Pen.moveTo(0@0);
 				Pen.lineTo(0@this.bounds.height);
 				Pen.lineTo(this.bounds.width@this.bounds.height);
@@ -64,5 +68,23 @@ DeleteButton : UserView {
 			this.refresh();
 			if (this.action.notNil(), { this.action.value(); })
 		};
+	}
+
+	strokeColor_ {  |color|
+		strokeColor = color;
+		this.refresh();
+	}
+
+	strokeColors {
+		^strokeColor;
+	}
+
+	highLightColor_ {  |color|
+		highLightColor = color;
+		this.refresh();
+	}
+
+	highLightColor {
+		^highLightColor;
 	}
 }

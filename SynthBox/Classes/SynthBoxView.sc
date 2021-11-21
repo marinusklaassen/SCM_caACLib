@@ -7,7 +7,7 @@ AUTHOR: Marinus Klaassen (2012, 2021Q3)
 
 EXAMPLE:
 
-s.boot; SynthBoxView(\PmGrain1, bounds: 700@400).front
+SynthBoxView(\PmGrain1, bounds: 700@400).front
 */
 
 SynthBoxView : View {
@@ -21,18 +21,18 @@ SynthBoxView : View {
 		var labelWidthHint = 0;
 		synthDefName = argSynthDefName;
 		synthDesc = SynthDesc.readDef(synthDefName);
-		this.background_(Color.grey);
+
         this.deleteOnClose = false;
 		mainLayout = VLayout();
 		this.layout = mainLayout;
-		this.name = synthDefName;
+		this.name = "SYNTHBOX:" + synthDefName;
 		presetView = PresetView(contextId: (\SynthBoxView ++ argSynthDefName));
 		presetView.actionLoadPreset = { |state| this.loadState(state); };
 		presetView.actionFetchPreset = { this.getState(); };
 
 		mainLayout.add(presetView);
 
-		controlPanel = SynthBoxControlPanelView(synthDefName);
+		controlPanel = SynthBoxControlPanelView();
 		controlPanel.mainLayout.margins = 0!4;
 		controlPanel.randomAction = {
 			controlViews do: { |element|
@@ -49,14 +49,14 @@ SynthBoxView : View {
 		tempNames = synthDesc.controlNames;
 
 		synthDesc.metadata[\hideUI] do: { |key| tempNames.removeAt(tempNames.indexOfEqual(key)) };
-		// Collects controls
 
-		layoutControls = VLayout();
-		layoutControls.spacing = 0;
+		// Collects controls
+		layoutControls = GridLayout();
+		layoutControls.spacing = 2;
 		layoutControls.margins = 0!4;
 		mainLayout.add(layoutControls);
 
-		tempNames do: { | key |
+		tempNames do: { | key, row |
 			var newView, spec, specOverride;
 			specOverride = synthDesc.metadata[\specs][key];
 			// Check for an controlspec override. Else try a default.
@@ -74,15 +74,13 @@ SynthBoxView : View {
 
 			});
 			newView.mainLayout.margins = 0!4;
-			if (newView.labelName.sizeHint.width > labelWidthHint, {
-				labelWidthHint = newView.labelName.sizeHint.width;
-			});
 			controlViews[key] = newView;
-			layoutControls.add(newView);
-			layoutControls.add(CompositeView().minHeight_(2).background_(Color.rand));
+			layoutControls.add(StaticTextFactory.createInstance(this, class: "label-form").string_(key ++ ":"), row, 0);
+			layoutControls.add(newView, row, 1);
 		};
-		controlViews do: { |controlView| controlView.labelName.minWidth = labelWidthHint; };
 	    mainLayout.add(nil, stretch:1, align: \bottom);
+
+		CmdPeriod.add({ controlPanel.togglePlay.value = 0; tempToggleSynth = nil; });
 	}
 
 	getParamValuesArray {

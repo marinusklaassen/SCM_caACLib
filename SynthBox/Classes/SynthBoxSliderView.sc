@@ -45,32 +45,21 @@ SynthBoxSliderView : View {
 		mainLayout = HLayout();
 		this.layout = mainLayout;
 
-		labelName = StaticText();
-		labelName.string = name;
-		mainLayout.add(labelName);
-
-		sliderView = Slider();
-		sliderView.orientation = \horizontal;
+		sliderView = SliderFactory.createInstance(this, class: "slider-horizontal");
 		sliderView.action = { |sender| model[\setValueFunction].value(sender.value) };
 		mainLayout.add(sliderView, stretch: 1);
 
-		numberBoxValue = NumberBox();
-		numberBoxValue.minDecimals = 1;
-		numberBoxValue.maxWidth = 80;
+		numberBoxValue = NumberBoxFactory.createInstance(this, class: "numberbox-synthbox-mapped-value");
 		numberBoxValue.action = { |sender| model[\setValueFunction].value(spec.unmap(sender.value)) };
 	    mainLayout.add(numberBoxValue);
 
-		toggleMidiLearn = Button();
-		toggleMidiLearn.maxWidth = 30;
-		toggleMidiLearn.states = [["OFF", Color.red, Color.black], ["ON", Color.black, Color.red]];
+		toggleMidiLearn = ButtonFactory.createInstance(this, class: "btn-toggle-midiswitch", buttonString1: "ON", buttonString2: "OFF");
 		toggleMidiLearn.action = { |sender|
 			if (sender.value == 1) { this.midiLearn; } { this.midiUnlearn; };
 		};
 		mainLayout.add(toggleMidiLearn);
 
-		toggleMidiInvert  = Button();
-		toggleMidiInvert.fixedSize = 16;
-		toggleMidiInvert.states = [["ø", Color.red, Color.black], ["ø", Color.black, Color.red]];
+		toggleMidiInvert  = ButtonFactory.createInstance(this, class: "btn-toggle-midiinvert", buttonString1: "ø", buttonString2: "ø");
 		toggleMidiInvert.action = { arg sender; bMidiInvert = sender.value == 1; };
 
 		mainLayout.add(toggleMidiInvert, align: \top);
@@ -115,7 +104,6 @@ SynthBoxSliderView : View {
 
 	name_ {|argName|
 		name = argName;
-		labelName.string_(name);
 	}
 
 	getState  {
