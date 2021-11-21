@@ -1,23 +1,25 @@
 /*
-FILENAME: PlusButton
+FILENAME: AddButton
 
 DESCRIPTION: A tap control widget swith a plus sign.
 
 AUTHOR: Marinus Klaassen (2012, 2021Q3)
 
 EXAMPLE:
-w = Window().front; a = PlusButton(w,Rect(0,0,80,80)).action_({ "release function".postln; });
+w = Window().front; a = AddButton(w,Rect(0,0,80,80)).action_({ "release function".postln; });
 */
 
-PlusButton : UserView {
-	var pressed=false;
+
+AddButton : UserView {
+	var pressed=false, strokeColor, highLightColor;
 
 	*new { |parent, bounds|
 		^super.new(parent, bounds).init();
 	}
 
 	init {
-		this.background = Color.new(0.8,0.8,0.8);
+		strokeColor = Color.black;
+		highLightColor = Color.black;
 		this.drawFunc = {
 			var radius = min(this.bounds.width, this.bounds.height) * 0.75;
 			var widthLine = min(this.bounds.width, this.bounds.height) * 0.1;
@@ -28,7 +30,7 @@ PlusButton : UserView {
 				0 @(radius * 0.5).neg
 			];
 
-			Pen.strokeColor = Color.new(0.2,0.2,0.2);
+			Pen.strokeColor = strokeColor;
 			Pen.smoothing = true;
 			Pen.translate(this.bounds.width * 0.5, this.bounds.height * 0.5);
 			Pen.width = widthLine;
@@ -40,7 +42,7 @@ PlusButton : UserView {
 			if (pressed, {
 				Pen.translate(neg(this.bounds.width * 0.5),neg(this.bounds.height * 0.5));
 				Pen.width = widthLine * 0.5;
-				Pen.strokeColor = Color.red;
+				Pen.strokeColor = highLightColor;
 				Pen.moveTo(0@ 0);
 				Pen.lineTo(0@ this.bounds.height);
 				Pen.lineTo(this.bounds.width @ this.bounds.height);
@@ -51,6 +53,7 @@ PlusButton : UserView {
 		};
 
 		this.refresh();
+
 		this.mouseDownAction = {
 			pressed = true;
 			this.refresh();
@@ -60,5 +63,23 @@ PlusButton : UserView {
 			this.refresh();
 			if (this.action.notNil, { this.action.value(); })
 		};
+	}
+
+	strokeColor_ {  |color|
+		strokeColor = color;
+		this.refresh();
+	}
+
+	strokeColors {
+		^strokeColor;
+	}
+
+	highLightColor_ {  |color|
+		highLightColor = color;
+		this.refresh();
+	}
+
+	highLightColor {
+		^highLightColor;
 	}
 }

@@ -1,7 +1,7 @@
 /*
-FILENAME: PatternBox
+FILENAME: PatternBoxView
 
-DESCRIPTION: PatternBox is a dedicated reponsive editor to build patterns and assign controls to parameters.
+DESCRIPTION: THe PatternBoxView is a dedicated reponsive editor to build patterns and assign controls to parameters.
 
 AUTHOR: Marinus Klaassen (2012, 2021Q3)
 
@@ -10,7 +10,7 @@ s.boot;
 PatternBoxProjectView().front;
 
 s.boot;
-m = ScoreControlView().front();
+m = PatternBoxView().front();
 a = m.getState()
 m.loadState(a);
 m.model[\envirText]
@@ -18,11 +18,11 @@ a.keys do: { |key| a[key.postln].postln }
 */
 
 PatternBoxView : View {
-    var <>lemurClient, <presetView, <controllers, <scoreName, <playingStream, <keyAndPatternPairs;
+    var <>lemurClient, <presetView, <controllers, <playingStream, <keyAndPatternPairs;
     var mixerAmpProxy, eventStreamProxy, <eventStream, controllerProxies, eventParProxy, setValueFunction, <model, dependants, parentView;
-    var scoreGui, mixerGui, <scoreControlMixerChannelView,layoutMain,layoutHeader,layoutFooter,scrollViewControls,layoutControlHeaderLabels,layoutChannels,textScoreId, buttonPlay, buttonRandomize, presetView, textEnvirFieldView;
-    var layoutControlHeaderLabels,labelParamNameControlHeader, errorLabelEnvirFieldView, labelParamControlScriptOrControllerHeader, labelParamControlSelectorsHeader, labelPatternLayers, numberBoxPatternLayers, buttonAddChannel;
-    var <>index, >closeAction,<>removeAction, scoreId, commandPeriodHandler;
+    var scoreGui, mixerGui, <scoreControlMixerChannelView,layoutMain,layoutHeader,layoutFooter,scrollViewControls,layoutControlHeaderLabels,layoutChannels,textpatternBoxName, buttonPlay, buttonRandomize, presetView, textEnvirFieldView;
+    var layoutControlHeaderLabels,labelParamNameControlHeader, errorLabelEnvirFieldView, buttonSpawnCopy, buttonClear, buttonShowProject, labelParamControlScriptOrControllerHeader, labelParamControlSelectorsHeader, labelPatternLayers, numberBoxPatternLayers, buttonAddChannel;
+	var <>index, <playState, >closeAction,<>removeAction, <patternBoxName, commandPeriodHandler, <>actionPlayStateChanged, <>actionNameChanged, <>actionVolumeChanged, <volume;
 
     classvar instanceCounter=0;
 
@@ -46,31 +46,38 @@ PatternBoxView : View {
 
         instanceCounter = instanceCounter + 1;
 
-        scoreId = "Box" + instanceCounter;
-		this.name = "PatternBox: " ++ scoreId;
-        model = (
-            scoreId: scoreId,
+        patternBoxName = "Box" + instanceCounter;
+		this.name = "PatternBox: " ++ patternBoxName;
+
+		model = (
+            patternBoxName: patternBoxName,
             envirText: "",
             environment: Environment[],
-            faderScoreControlVolume: 1,
+            volume: 1,
             buttonPlay: 0
         );
 
         dependants = ();
         setValueFunction = ();
-        [\envirText, \faderScoreControlVolume, \scoreId, \buttonPlay] do: { |key|
-            setValueFunction[key] = { |inArg|
 
-                model[key.asSymbol] = inArg;
+        [\envirText, \patternBoxName, \buttonPlay] do: { |key|
+            setValueFunction[key] = { |inArg|
+                model[key] = inArg;
                 model.changed(key, inArg);
             };
         };
+
+		setValueFunction [\volume] = { |volume|
+			mixerAmpProxy.source = volume;
+			model[\volume] = volume;
+            model.changed(\volume, volume);
+		};
 
         dependants[\interpresetenvirText] = {|theChanger, what, environmentCode|
             var environment;
 			if (what == \envirText) {
 
-                errorLabelEnvirFieldView.visible = false;
+				errorLabelEnvirFieldView.clear();
                 environment =  "Environment.make({" ++ environmentCode ++ "})";
 
                 try {
@@ -91,39 +98,35 @@ PatternBoxView : View {
                     };
 
                 } {
-                    errorLabelEnvirFieldView.visible = true; // Show error.
+					errorLabelEnvirFieldView.string = "Invalid input."
                 };
             };
         };
 
         model.addDependant(dependants[\interpresetenvirText]);
 
-        dependants[\scoreId] = {|theChanger, what, argScoreName|
-            if (what == \scoreId) {
-                scoreName = argScoreName;
-				this.name = "PatternBox: " ++ scoreName;
-				this.name.postln;
+        dependants[\patternBoxName] = {|theChanger, what, argpatternBoxName|
+            if (what == \patternBoxName) {
+                patternBoxName = argpatternBoxName;
+				this.name = "PatternBox: " ++ patternBoxName;
+				this.actionNameChanged.value(this);
             }
         };
 
-        model.addDependant(dependants[\scoreId]);
+        model.addDependant(dependants[\patternBoxName]);
 
         dependants[\buttonPlay] =  {|theChanger, what, value|
             if (what == \buttonPlay) {
                 if (value > 0) {
-                    playingStream = eventStream.play
+					playingStream = eventStream.play(quant: 1);
 
                 } { playingStream.stop };
             };
+			playState = value;
+			this.actionPlayStateChanged.value(this);
         };
-        model.addDependant(dependants[\buttonPlay]);
 
-        dependants[\faderScoreControlVolume] =  {|theChanger, what, value|
-            if (what == \faderScoreControlVolume) {
-                mixerAmpProxy.source = value;
-            };
-        };
-        model.addDependant(dependants[\faderScoreControlVolume]);
+		model.addDependant(dependants[\buttonPlay]);
 
 		commandPeriodHandler = { setValueFunction[\buttonPlay].value(0); };
 
@@ -138,76 +141,57 @@ PatternBoxView : View {
 
     initializeView {
 
-        // This object View (base class) settings
-        this.bounds = 700@800;
-        this.background = Color.new255(136, 172, 224); // medium petrol blue
-        this.deleteOnClose = false;
-
         layoutMain = VLayout();
         this.layout = layoutMain;
+        this.deleteOnClose = false;
 
-        // Header controls
+        textpatternBoxName = TextFieldFactory.createInstance(this);
+        textpatternBoxName.string = model[\patternBoxName];
+        textpatternBoxName.action = { |val| setValueFunction[\patternBoxName].value(val.string); };
+        dependants[\textpatternBoxName] = {|theChanger, what, argpatternBoxName|
+            if (what == \patternBoxName) {
+                textpatternBoxName.string = argpatternBoxName;
+            }
+        };
+
+        model.addDependant(dependants[\textpatternBoxName]);
+
+        layoutMain.add(textpatternBoxName);
+
+		 // Header controls
         // Score Id input text field
         layoutHeader = HLayout();
         layoutMain.add(layoutHeader);
 
-        textScoreId = TextField();
-        textScoreId.minWidth = 150;
-        textScoreId.minHeight = 50;
-        textScoreId.string = model[\scoreId];
-        textScoreId.action = { |val| setValueFunction[\scoreId].value(val.string); };
-
-        dependants[\textScoreId] = {|theChanger, what, argScoreName|
-            if (what == \scoreId) {
-                textScoreId.string = argScoreName;
-            }
-        };
-
-        model.addDependant(dependants[\textScoreId]);
-
-        layoutHeader.add(textScoreId, align: \left);
-
-        buttonPlay = Button();
-        buttonPlay.value = model[\buttonPlay];
-        buttonPlay.font = Font("Menlo", 14);  // scoreprojectviewsettings  Font("Menlo", 14);  Rename naar ScoreControlConfiguration. En pas toe voor meerdere defaults.
-        buttonPlay.states = [["PLAY", Color.red, Color.black],["STOP", Color.black, Color.red]];
-        buttonPlay.minWidth = 106;
-        buttonPlay.minHeight = 50;
+		buttonPlay = ButtonFactory.createInstance(this, class: "btn-toggle btn-large", buttonString1: "PLAY", buttonString2: "STOP");
         buttonPlay.action_({ |val| setValueFunction[\buttonPlay].value(val.value); });
 
-        buttonRandomize = Button();
-        buttonRandomize.font = Font("Menlo", 14);  // scoreprojectviewsettings  Font("Menlo", 14);
-        buttonRandomize.states = [["RANDOMIZE", Color.red, Color.black]];
-        buttonRandomize.minWidth = 106;
-        buttonRandomize.minHeight = 50;
+		buttonRandomize = ButtonFactory.createInstance(this, class: "btn-large btn-random", buttonString1: "RANDOMIZE");
         buttonRandomize.action = { this.randomize(); };
-
-        layoutHeader.add(nil, stretch: 1.0);
-        layoutHeader.add(buttonRandomize, align: \right);
 
         dependants[\buttonPlay] =  {|theChanger, what, value|
             if (what == \buttonPlay) {
                 buttonPlay.value = value;
             };
         };
+
         model.addDependant(dependants[\buttonPlay]);
 
-        layoutHeader.add(buttonPlay, align: \right);
+		layoutHeader.add(buttonPlay);
+        layoutHeader.add(buttonRandomize);
 
-		presetView = PresetView(contextId: "PatternBoxView");
+		presetView = PresetViewFactory.createInstance(this);
 		presetView.actionFetchPreset = {
-			this.getState();
+			this.getState(skipProjectStuf: true);
 		};
 		presetView.actionLoadPreset = { |preset|
-			this.loadState(preset);
+			this.loadState(preset, skipProject: true);
 		};
 
         layoutMain.add(presetView);
 
-        textEnvirFieldView = TextView();
-        textEnvirFieldView.minHeight = 150;
-        textEnvirFieldView.maxHeight = 150;
-        textEnvirFieldView.background = Color.white.alpha_(0.5);
+		textEnvirFieldView = TextViewFactory.createInstance(this, class: "text-patternbox-environment-script");
+
         textEnvirFieldView.string = model[\envirText];
         textEnvirFieldView.keyDownAction = {| ... args| // maak duidelijker wat hier gebeurt.
             var bool = args[2] == 524288;
@@ -225,33 +209,20 @@ PatternBoxView : View {
 
         layoutMain.add(textEnvirFieldView);
 
-        errorLabelEnvirFieldView = StaticText();
-        errorLabelEnvirFieldView.visible = false;
-        errorLabelEnvirFieldView.string = "Invalid input.";
-        errorLabelEnvirFieldView.stringColor = Color.red;
-
+		errorLabelEnvirFieldView = MessageLabelViewFactory.createInstance(this, class: "message-error");
         layoutMain.add(errorLabelEnvirFieldView, align: \right);
 
         layoutControlHeaderLabels = HLayout();
         layoutControlHeaderLabels.margins = [5, 5, 5, 0];
-        labelParamNameControlHeader = StaticText();
-        labelParamNameControlHeader.font = ScoreWidgetSettings.settings[\font];
-        labelParamNameControlHeader.string = "NAME";
-        labelParamNameControlHeader.maxWidth = 93;
-        labelParamNameControlHeader.minWidth = 93;
+
+		labelParamNameControlHeader = StaticTextFactory.createInstance(this, class: "columnlabel-patternbox", labelText: "NAME");
         layoutControlHeaderLabels.add(labelParamNameControlHeader, align: \left);
 
-        labelParamControlScriptOrControllerHeader = StaticText();
-        labelParamControlScriptOrControllerHeader.font = ScoreWidgetSettings.settings[\font];
-        labelParamControlScriptOrControllerHeader.string = "SCRIPT/CONTROLLER";
+        labelParamControlScriptOrControllerHeader = StaticTextFactory.createInstance(this, class: "columnlabel-patternbox", labelText: "SCRIPT/CONTROLLER");
         layoutControlHeaderLabels.add(labelParamControlScriptOrControllerHeader, align: \left, stretch: 1.0);
 
-        labelParamControlSelectorsHeader = StaticText();
-        labelParamControlSelectorsHeader.font = ScoreWidgetSettings.settings[\font];
-        labelParamControlSelectorsHeader.maxWidth = 145;
-        labelParamControlSelectorsHeader.minWidth = 145;
-        labelParamControlSelectorsHeader.string = "SELECTORS";
-        layoutControlHeaderLabels.add(labelParamControlSelectorsHeader, align: \right);
+		labelParamControlSelectorsHeader =  StaticTextFactory.createInstance(this, class: "columnlabel-patternbox", labelText: "SELECTORS");
+      	layoutControlHeaderLabels.add(labelParamControlSelectorsHeader, align: \right);
 
         layoutMain.add(layoutControlHeaderLabels);
 
@@ -259,125 +230,33 @@ PatternBoxView : View {
         layoutChannels.margins_([0,0,0,0]);
         layoutChannels.spacing_(2);
 
-        scrollViewControls = ScrollView();
-        scrollViewControls.canvas = View();
+        scrollViewControls = ScrollViewFactory.createInstance(this);
         scrollViewControls.canvas.layout = layoutChannels;
-        scrollViewControls.canvas.background = this.background;
-        scrollViewControls.background = this.background;
-
         layoutMain.add(scrollViewControls);
 
         layoutFooter = HLayout();
 
         layoutMain.add(layoutFooter);
 
-        labelPatternLayers = StaticText();
-        labelPatternLayers.string = "LAYERS";
-        labelPatternLayers.font = ScoreWidgetSettings.settings[\font];
-        labelPatternLayers.background = Color.clear;
-        labelPatternLayers.stringColor = Color.white;
+		labelPatternLayers = StaticTextFactory.createInstance(this, labelText: "layers:");
 
         layoutFooter.add(labelPatternLayers, align: \left);
 
-        numberBoxPatternLayers = NumberBox();
-        numberBoxPatternLayers.clipLo = 1;
-        numberBoxPatternLayers.clipHi = 20;
-        numberBoxPatternLayers.maxWidth = 25;
+		numberBoxPatternLayers = NumberBoxFactory.createInstance(this, class: "numberbox-patternbox-layers");
 
         numberBoxPatternLayers.action = { | sender | this.actionChangeLayers(sender.value) };
 
         layoutFooter.add(numberBoxPatternLayers, align: \left);
         layoutFooter.add(nil);
 
-        buttonAddChannel = PlusButton();
-        buttonAddChannel.fixedHeight = 30;
-        buttonAddChannel.fixedWidth = 70;
+		buttonAddChannel = ButtonFactory.createInstance(this, class: "btn-add");
         buttonAddChannel.action = { this.addParamView(); };
 
         layoutFooter.add(buttonAddChannel, align: \right);
     }
 
-    getMixerChannelControl {
-
-        var font = Font("Menlo", 14); // Aanpassen. In een generieke settings object ofzo
-
-        var layout = HLayout();
-        layout.margins_(0!4);
-        scoreControlMixerChannelView = View()
-        .background_(Color.black.alpha_(0.2));
-
-        scoreControlMixerChannelView.layout = layout;
-
-        mixerGui = ();
-        mixerGui[\togglePlayScore] = Button()
-        .font_(font)
-        .minWidth_(50).maxWidth_(45).minHeight_(50)
-        .states_([
-            ["PLAY", Color.red.alpha_(0.8), Color.black],
-            ["STOP", Color.black,Color.red.alpha_(0.8)]])
-        .action_({|b| setValueFunction[\buttonPlay].value(b.value)});
-
-        dependants[\togglePlayScore] =  {|theChanger, what, value|
-            if (what == \buttonPlay) {
-                mixerGui[\togglePlayScore].value = value;
-            };
-        };
-
-        layout.add(mixerGui[\togglePlayScore], align: \left);
-
-        model.addDependant(dependants[\togglePlayScore]);
-
-        mixerGui[\faderScoreControlVolume] = SliderView(controlSpec: \db.asSpec, initVal: 1, labelText: model[\scoreId])
-        .value_(model[\faderScoreControlVolume])
-        .action_({ |v| setValueFunction[\faderScoreControlVolume].value(v.value) });
-
-        mixerGui[\faderScoreControlVolume].numberBoxView
-        .background_(Color.white.alpha_(0.5))
-        .maxWidth_(60).minWidth_(60);
-
-        layout.add(mixerGui[\faderScoreControlVolume], stretch: 1);
-
-        dependants[\faderScoreControlVolumeGui] =  {|theChanger, what, value|
-            if (what == \faderScoreControlVolume) {
-                mixerGui[\faderScoreControlVolume].value = value;
-            };
-        };
-
-        model.addDependant(dependants[\faderScoreControlVolumeGui]);
-
-        dependants[\mixerLabelView] =  {|theChanger, what, value|
-            if (what == \scoreId) {
-                mixerGui[\faderScoreControlVolume].labelText = value;
-            };
-        };
-        model.addDependant(dependants[\mixerLabelView]);
-
-        mixerGui[\popupScore] = Button()
-        .font_(font)
-        .states_([["SCORE", Color.red.alpha_(0.8), Color.black]])
-        .minWidth_(50).maxWidth_(45).minHeight_(50)
-        .action_({
-            this.front();
-        });
-
-        layout.add(mixerGui[\popupScore]);
-
-        mixerGui[\removeScore] = DeleteButton()
-        .fixedSize_(10)
-        .action_({ this.removeAction.value(this); }); // Zorg ook dat indien Play aanstaat deze wordt uitgezet.
-        // Letop dat close de widgets nog steeds in leven houdt. dus zorg dat de ScoreControl een dispose heeft.
-
-        layout.add(mixerGui[\removeScore], align: \topRight);
-
-        mixerGui[\colorSection] = UserView().maxWidth_(15).minWidth_(15);
-
-        mixerGui[\colorSection].background_(Color.black.alpha_(0.1));
-        layout.add(mixerGui[\colorSection]);
-        ^scoreControlMixerChannelView;
-    }
-
     addParamView {
-        var paramChannel = ScoreParamView();
+        var paramChannel = PatternBoxParamView();
 
         paramChannel.controllerProxies = (
             fader: PatternProxy(0),
@@ -450,26 +329,44 @@ PatternBoxView : View {
         }
     }
 
+	volume_ { |volume|
+		setValueFunction.value(\volume, volume);
+	}
+
     actionChangeLayers { |argLayers|
         eventParProxy.source = Ppar({eventStreamProxy}!argLayers);
     }
 
-    getState {
+	play {
+			setValueFunction[\buttonPlay].value(1);
+	}
+
+	stop {
+			setValueFunction[\buttonPlay].value(0);
+	}
+
+    getState { |skipProjectStuf|
         var state = Dictionary();
         state[\type] = "PatternBoxView";
-        state[\layers] = numberBoxPatternLayers.value;
-        state[\scoreId] = model[\scoreId];
-        state[\envirText] = model[\envirText];
-        state[\faderScoreControlVolume] = model[\faderScoreControlVolume];
+        if (skipProjectStuf == true, {
+			state[\patternBoxName] = patternBoxName;
+			state[\volume] = volume;
+		});
+		state[\layers] = numberBoxPatternLayers.value;
+		state[\envirText] = model[\envirText];
         state[\controllerStates] = controllers collect: { | controller |
             controller.getState();
         };
         ^state;
     }
 
-    loadState { |state|
-        setValueFunction[\scoreId].value(state[\scoreId]);
-        setValueFunction[\envirText].value(state[\envirText]);
+    loadState { |state, skipProjectStuf|
+
+		if (skipProjectStuf == true, {
+			setValueFunction[\patternBoxName].value(state[\patternBoxName]);
+			this.volume = state[\volume];
+	    });
+		setValueFunction[\envirText].value(state[\envirText]);
         // Remove the scores that are to many.
         if (state[\controllerStates].size < controllers.size, {
             var amountToMany = controllers.size - state[\controllerStates].size;
@@ -488,7 +385,6 @@ PatternBoxView : View {
         };
 	    numberBoxPatternLayers.value = state[\layers];
         this.actionChangeLayers(state[\layers]);
-		setValueFunction[\faderScoreControlVolume].value(state[\faderScoreControlVolume]);
     }
 
     dispose {

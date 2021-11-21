@@ -11,10 +11,10 @@ PresetView(bounds:500@50, contextId: "mycontext").front().actionFetchPreset_({ 1
 
 PresetView : View {
 	classvar eventPresetsChanged, <>nameToPositionMap, presets, presetNamesSorted, presetPersistanceDir;
-	var mainLayout, layoutControls, textNotification, <popupPresetSelector, <buttonPresetNext, <buttonPresetPrevious, buttonPresetLoad, buttonPresetStore, buttonPresetCreate, buttonPresetDelete, textPresetName;
+	var mainLayout, layoutControls, notificationMessageLabel, <popupPresetSelector, <buttonPresetNext, <buttonPresetPrevious, buttonPresetLoad, buttonPresetUpdate, buttonPresetCreate, buttonPresetDelete, textPresetName;
 	var <>actionFetchPreset, <>actionLoadPreset, <>contextId, <>name, presetPersistanceFile, eventHandlerPresetsChanged;
 
-	*new { | parent, bounds, contextId |
+	*new { | contextId, parent, bounds  |
 		if (contextId.isNil) {
 			Error("Constructor argument contextId is mandatory").throw();
 		};
@@ -23,7 +23,7 @@ PresetView : View {
 
 	*initClass {
 		// This method is automatically evaluated during startup.
-		presetPersistanceDir = Platform.userAppSupportDir ++ "/ExtensionsWorkdir/CaACLib/PresetView/";
+		presetPersistanceDir = Platform.userAppSupportDir ++ "/ExtensionsWorkdir/SCM_CaACLib/" ++ this.class.asString ++ "/";
 		File.mkdir(presetPersistanceDir); // Create if not exists.
 		presets = Dictionary();
 		nameToPositionMap = Dictionary();
@@ -54,18 +54,6 @@ PresetView : View {
 		eventPresetsChanged[this.contextId] = ();
 	}
 
-	setNotification { | message |
-		textNotification.string = message;
-		textNotification.visible = true;
-		fork {
-			2.wait;
-			{
-				textNotification.string = "";
-				textNotification.visible = false;
-			}.defer;
-		}
-	}
-
 	initializeView{
 		mainLayout = VLayout();
 		mainLayout.margins = 0!4;
@@ -75,13 +63,10 @@ PresetView : View {
 		layoutControls.margins = 0!4;
 		mainLayout.add(layoutControls);
 
-		textNotification = StaticText();
-		textNotification.visible = false;
-		mainLayout.add(textNotification);
+		notificationMessageLabel = MessageLabelViewFactory.createInstance(this, class: "message-info");
+		mainLayout.add(notificationMessageLabel);
 
-		popupPresetSelector = PopUpMenu();
-		popupPresetSelector.background = Color.black.alpha_(0.8);
-		popupPresetSelector.stringColor = Color.red;
+		popupPresetSelector = PopUpMenuFactory.createInstance(this);
 		popupPresetSelector.action = { |menu|
 			name = menu.item;
 			textPresetName.string = menu.item;
@@ -90,77 +75,61 @@ PresetView : View {
 		popupPresetSelector.maxWidth = 150;
 		layoutControls.add(popupPresetSelector);
 
-		buttonPresetNext = Button();
-		buttonPresetNext.states = [["-", Color.red, Color.new255(189, 183, 107)]];
+		buttonPresetNext = ButtonFactory.createInstance(this, class: "btn-next");
+
 		buttonPresetNext.action = {
 			if (popupPresetSelector.items.size > 0, {
 				popupPresetSelector.valueAction = popupPresetSelector.value - 1 %  popupPresetSelector.items.size;
 			});
 		};
-		buttonPresetNext.maxWidth = 20;
 
 		layoutControls.add(buttonPresetNext);
 
-		buttonPresetPrevious = Button();
-		buttonPresetPrevious.states = [["+", Color.red, Color.new255(189, 183, 107)]];
+		buttonPresetPrevious = buttonPresetNext = ButtonFactory.createInstance(this, class: "btn-previous");
 		buttonPresetPrevious.action = {
 			if (popupPresetSelector.items.size > 0, {
 				popupPresetSelector.valueAction = popupPresetSelector.value - 1 %  popupPresetSelector.items.size;
 			});
 		};
-		buttonPresetPrevious.maxWidth = 20;
 
 		layoutControls.add(buttonPresetPrevious);
 
-		textPresetName = TextField();
+		textPresetName = TextFieldFactory.createInstance(this);
 
 		layoutControls.add(textPresetName);
 
-		buttonPresetLoad = Button();
-		buttonPresetLoad.states = [["load", Color.red, Color.black.alpha_(0.8)]];
+		buttonPresetLoad = ButtonFactory.createInstance(this, class: "btn-success", buttonString1: "load");
 		buttonPresetLoad.action = { |sender|
 			if (popupPresetSelector.item.notNil, {
 				actionLoadPreset.value(presets[contextId][popupPresetSelector.item]);
 				name = popupPresetSelector.item;
 				textPresetName.string = name;
-				this.setNotification("The selected preset is loaded.");
+				notificationMessageLabel.notify("Preset is loaded.");
 			});
 		};
-		buttonPresetLoad.maxWidth = 50;
-		buttonPresetLoad.minWidth = 50;
 
 		layoutControls.add(buttonPresetLoad);
 
-		buttonPresetStore = Button();
-		buttonPresetStore.states = [["update", Color.red, Color.black.alpha_(0.8)]];
-		buttonPresetStore.action = {
-			this.updatePreset(textPresetName.string);
-			this.setNotification("The selected preset is updated.");
-		};
-		buttonPresetStore.maxWidth = 50;
-		buttonPresetStore.minWidth = 50;
-
-		layoutControls.add(buttonPresetStore);
-
-		buttonPresetCreate = Button();
-		buttonPresetCreate.states = [["create", Color.red, Color.black.alpha_(0.8)]];
+		buttonPresetCreate = ButtonFactory.createInstance(this, class: "btn-success", buttonString1: "create");
 		buttonPresetCreate.action = {
 			this.createPreset(textPresetName.string);
-			this.setNotification("A new preset is created.");
+			notificationMessageLabel.notify("Preset is created.");
 		};
-		buttonPresetCreate.maxWidth = 50;
-		buttonPresetCreate.minWidth = 50;
-
 		layoutControls.add(buttonPresetCreate);
 
-		buttonPresetDelete = Button();
-		buttonPresetDelete.states = [["delete", Color.red, Color.black.alpha_(0.8)]];
+		buttonPresetUpdate = ButtonFactory.createInstance(this, class: "btn-warning", buttonString1: "update");
+		buttonPresetUpdate.action = {
+			this.updatePreset(textPresetName.string);
+			notificationMessageLabel.notify("Preset is updated.");
+		};
+
+		layoutControls.add(buttonPresetUpdate);
+
+		buttonPresetDelete =  ButtonFactory.createInstance(this, class: "btn-danger", buttonString1: "delete");
 		buttonPresetDelete.action = {
 			this.deletePreset(popupPresetSelector.item);
-			this.setNotification("The selected preset is deleted.");
+			notificationMessageLabel.notify("Preset is deleted.");
 		};
-		buttonPresetDelete.maxWidth = 50;
-		buttonPresetDelete.minWidth = 50;
 
 		layoutControls.add(buttonPresetDelete);
 	}
@@ -208,7 +177,7 @@ PresetView : View {
 				this.sortPresetContext();
 				eventPresetsChanged[contextId].changed();
 			}, {
-				this.setNotification("Preset name is already taken.");
+				notificationMessageLabel.notify("Preset name is already taken.");
 			});
 		});
 	}
@@ -225,7 +194,7 @@ PresetView : View {
 				this.name = newName;
 				eventPresetsChanged[contextId].changed();
 			}, {
-				this.setNotification("Preset name is already taken.");
+				notificationMessageLabel.notify("Preset name is already taken.");
 			});
 		});
 	}
@@ -244,7 +213,7 @@ PresetView : View {
 
 	getState {
 		var state = Dictionary();
-		state[\type] = "PresetView";
+		state[\type] = this.class.asString;
 		state[\name] = name;
 	}
 

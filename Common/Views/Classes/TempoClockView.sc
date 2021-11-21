@@ -6,7 +6,7 @@ DESCRIPTION: TempoClockView
 AUTHOR: Marinus Klaassen (2012, 2021Q3)
 
 EXAMPLE:
-TempoClockView(bounds:200@50).front();
+TempoClockView(bounds:100@50).front();
 */
 
 TempoClockView : View {
@@ -19,16 +19,16 @@ TempoClockView : View {
 
 	*initClass {
 		// This method is automatically evaluated during startup.
-		var persistanceDir = Platform.userAppSupportDir ++ "/ExtensionsWorkdir/SCMcaACLib/";
+		var persistanceDir = Platform.userAppSupportDir ++ "/ExtensionsWorkdir/SCM_CaACLib/" ++ this.class.asString ++ "/";
 		File.mkdir(persistanceDir); // Create if not exists.
-		persistanceFile = persistanceDir ++ "TempoClockView.state";
+		persistanceFile = persistanceDir ++ this.class.asString + ".state";
 	}
 
 	initialize {
 		this.loadState();
 		this.setDefaultTempoClock(tempoInBeatsPerSeconds);
 		this.initializeView();
-		this.onMove = { if (this.parent.notNil, { this.persistState(); }); };
+		this.onMove = { if (this.parent.isNil, { this.persistState(); }); };
 	}
 
 	initializeView {
@@ -37,25 +37,20 @@ TempoClockView : View {
 		this.layout = mainLayout;
 
 		this.deleteOnClose = false;
-		this.name = "Default Tempo Clock";
+		this.name = "BPM";
 
-		labelTempoClock = StaticText();
-		labelTempoClock.string = "BPM";
+		labelTempoClock = StaticTextFactory.createInstance(this);
+		labelTempoClock.string = "Global tempo in BPM:";
 
-		this.layout.add(labelTempoClock);
+		this.layout.add(labelTempoClock, align: \left);
 
-		numberboxTempoClock = NumberBox();
+		numberboxTempoClock = NumberBoxFactory.createInstance(this, class: "numberbox-secondary");
 		numberboxTempoClock.value = tempoInBeatsPerSeconds;
+		numberboxTempoClock.maxWidth = 50;
 		numberboxTempoClock.decimals = 0;
 		numberboxTempoClock.action = { |sender| this.onClickAction_NumberBoxTempoClock(sender); };
 
 		this.layout.add(numberboxTempoClock);
-
-		buttonSetToDefault = Button();
-		buttonSetToDefault.string = "Reset";
-		buttonSetToDefault.action = { |sender| this.onClickAction_ButtonSetToDefault(sender); };
-
-		this.layout.add(buttonSetToDefault);
 	}
 
     onClickAction_ButtonSetToDefault { |sender|

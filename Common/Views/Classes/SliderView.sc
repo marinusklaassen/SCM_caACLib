@@ -19,6 +19,8 @@ SliderView : View {
 	}
 
 	init { | controlSpec, initVal, labelText |
+		mainLayoutView = GridLayout();
+		this.layout = mainLayoutView;
 
 		// newCopyArgs didn't work.. weird. any workaround.
 		this.controlSpec = controlSpec;
@@ -27,10 +29,10 @@ SliderView : View {
 		if (this.controlSpec.isNil, { this.controlSpec = ControlSpec(); });
 
 		// Configure views
-		labelView = StaticText()
+		labelView = StaticTextFactory.createInstance(this)
 		.string_(this.labelText);
 
-		numberBoxView = NumberBox()
+		numberBoxView = NumberBoxFactory.createInstance(this)
 		.clipLo_(this.controlSpec.minval)
 		.clipHi_(this.controlSpec.maxval)
 		.value_(this.controlSpec.map(initVal))
@@ -41,7 +43,7 @@ SliderView : View {
 			sliderView.value = unmappedValue;
 		});
 
-		sliderView = Slider()
+		sliderView = SliderFactory.createInstance(this)
 		.value_(initVal)
 		.orientation_(\horizontal)
 		.action_({ |v|
@@ -52,16 +54,12 @@ SliderView : View {
 		unitView = StaticText()
 		.string_(this.controlSpec.units);
 
-		// Configure layout
-		mainLayoutView = GridLayout();
 		mainLayoutView.add(labelView, row: 0, column: 0, align: \left);
 		mainLayoutView.add(numberBoxView, row: 0, column: 2);
 		mainLayoutView.add(unitView, row: 0, column: 3, align: \right);
 		mainLayoutView.addSpanning(sliderView, row: 1, column: 0, rowSpan: 1, columnSpan: 4);
 		mainLayoutView.setColumnStretch(1, 1);
 		mainLayoutView.margins = 0!4;
-
-		this.layout = mainLayoutView;
 		// Set init values
 		this.value = initVal;
 	    this.labelText = labelText;

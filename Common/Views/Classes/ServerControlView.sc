@@ -10,8 +10,8 @@ ServerControlView(bounds:400@50).front();
 */
 
 ServerControlView : View {
-	classvar cockpitStatePersistanceFile, cockpitStatePersistanceDir, currentDevice;
-	var <mainLayout, selectAudioDevices,buttonReboot, buttonShowServerNodeGraph, buttonShowMeter, buttonPanic;
+	classvar cockpitStatePersistanceFile, cockpitStatePersistanceDir, currentDevice, instances;
+	var <mainLayout, <>selectAudioDevices, buttonReboot, buttonShowServerNodeGraph, buttonShowMeter, buttonPanic, buttonRefreshMIDI;
 
 	*new { |parent, bounds|
 		^super.new(parent, bounds).initialize();
@@ -19,57 +19,65 @@ ServerControlView : View {
 
 	*initClass {
 		// This method is automatically evaluated during startup.
-	    var cockpitStatePersistanceDir = Platform.userAppSupportDir ++ "/ExtensionsWorkdir/CaACLib/CockpitView/";
+		var cockpitStatePersistanceDir = Platform.userAppSupportDir ++ "/ExtensionsWorkdir/SCM_CaACLib/" ++ this.class.asString ++ "/";
 		File.mkdir(cockpitStatePersistanceDir); // Create if not exists.
-		cockpitStatePersistanceFile = cockpitStatePersistanceDir ++ "scmcockpit.state";
+		cockpitStatePersistanceFile = cockpitStatePersistanceDir ++ this.class.asString ++ ".state";
+		instances = Set();
 	}
 
 	initialize {
 		this.loadState();
 		this.initializeView();
 		Server.default.reboot;
-		this.onMove = { this.persistState(); };
+		this.onMove = { if(this.parent.isNil, { this.persistState(); })};
+		instances.add(this);
 	}
 
 	initializeView {
 
-		mainLayout = HLayout();
+		mainLayout = GridLayout();
 		this.layout = mainLayout;
 
 		this.deleteOnClose = false;
 		this.name = "SC Server & Runtime Control";
 
-		selectAudioDevices = PopUpMenu();
+		buttonPanic = ButtonFactory.createInstance(this, class: "btn-warning", buttonString1: "panic");
+		buttonPanic.action = { this.onButtonAction_Panic(); };
+
+		mainLayout.addSpanning(buttonPanic, 0, 0, columnSpan: 4);
+
+		selectAudioDevices = PopUpMenuFactory.createInstance(this);
 		selectAudioDevices.items = ServerOptions.devices;
 		selectAudioDevices.action = { |sender| this.onPopupAction_DeviceSelection(sender); };
 		ServerOptions.devices do: { |device, index| if (device == currentDevice, { selectAudioDevices.value = index; }); };
 
-		mainLayout.add(selectAudioDevices);
+		mainLayout.addSpanning(selectAudioDevices, 1, columnSpan: 4);
 
-		buttonReboot = Button();
-		buttonReboot.string = "(re)boot";
+		buttonReboot = ButtonFactory.createInstance(this, class: "btn-primary", buttonString1: "(re)boot)");
 		buttonReboot.action = { this.onDeviceReboot(); };
 
-		mainLayout.add(buttonReboot);
+		mainLayout.add(buttonReboot, 2, 0);
 
-		buttonShowServerNodeGraph = Button();
-		buttonShowServerNodeGraph.string = "node graph";
+		buttonShowServerNodeGraph = ButtonFactory.createInstance(this, class: "btn-normal", buttonString1: "node graph");
 		buttonShowServerNodeGraph.action = { this.onButtonAction_ShowServerNodeGraph(); };
 
-		mainLayout.add(buttonShowServerNodeGraph);
+		mainLayout.add(buttonShowServerNodeGraph, 2, 1);
 
-		buttonShowMeter = Button();
-		buttonShowMeter.string = "meter";
+		buttonShowMeter = ButtonFactory.createInstance(this, class: "btn-normal", buttonString1: "meter");
 		buttonShowMeter.action = { this.onButtonAction_ShowMeter(); };
 
-		mainLayout.add(buttonShowMeter);
+		mainLayout.add(buttonShowMeter, 2, 2);
 
-		buttonPanic = Button();
-		buttonPanic.string = "panic";
-		buttonPanic.action = { this.onButtonAction_Panic(); };
+		buttonRefreshMIDI = ButtonFactory.createInstance(this, class: "btn-normal", buttonString1: "MIDI refresh");
+		buttonRefreshMIDI.action = { this.onButtonAction_RefreshMIDI(); };
 
-		mainLayout.add(buttonPanic);
+		mainLayout.add(buttonRefreshMIDI, 2, 3);
 	}
+
+	onButtonAction_RefreshMIDI {
+		MIDIClient.init;
+		MIDIIn.connectAll;
+    }
 
     onButtonAction_Panic {
 		CmdPeriod.run;
@@ -86,18 +94,20 @@ ServerControlView : View {
 
 	onPopupAction_DeviceSelection { |sender|
 		Server.local.options.device = sender.item;
-		Server.local.reboot;
+		this.onDeviceReboot();
 		currentDevice = sender.item;
 		this.persistState();
+		instances do: { |instance| instance.selectAudioDevices.value = sender.value };
 	}
 
 	onDeviceReboot {
-		Server.default.reboot;
+		CmdPeriod.run;
+	    Server.local.reboot;
 	}
 
 	getState {
 		var state = Dictionary();
-		state[\type] = "CockpitView";
+		state[\type] = this.class.asString;
 		state[\windowBounds] = this.bounds;
 		^state[\selectedAudioDevice] = currentDevice;
 	}

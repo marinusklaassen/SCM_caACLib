@@ -11,21 +11,14 @@ SynthBoxControlPanelView(\default).front
 
 SynthBoxControlPanelView : View {
 	var <>metaData, <gui, <defName, <>randomAction, <>playTrigger, <>playToggle;
-	var <mainLayout, <togglePlay, <buttonOneshot, <buttonRandomize, <labelSynthName;
+	var <mainLayout, <togglePlay, <buttonOneshot, <buttonRandomize;
 
-	*new { |argDefName, parent, bounds|
-		^super.new(parent, bounds).initialize(argDefName,argDefName);
+	*new { |parent, bounds|
+		^super.new(parent, bounds).initialize();
 	}
 
-	initialize { |argDefName|
-
-		defName = argDefName;
+	initialize {
 		this.initializeView();
-	}
-
-	defName_ { |argDefName|
-		gui[\defName].string = argDefName;
-		defName = argDefName;
 	}
 
 	randomize { if (randomAction.notNil) { randomAction.value; } }
@@ -33,30 +26,20 @@ SynthBoxControlPanelView : View {
 	initializeView {
 		mainLayout = HLayout();
 		this.layout = mainLayout;
-		this.background = Color.green;
 
-		togglePlay= Button()
-		.states_([
-			["PLAY", Color.grey, Color.black],
-			["STOP", Color.black, Color.red]])
+		togglePlay= ButtonFactory.createInstance(this, class: "btn-toggle", buttonString1: "PLAY", buttonString2: "STOP")
 		.action_({ arg sender; if (playToggle.notNil) { playToggle.value(sender.value)}});
 
 		mainLayout.add(togglePlay);
 
-		buttonOneshot = Button()
-		.states_([["SHOOT", Color.grey, Color.black]])
+		buttonOneshot = ButtonFactory.createInstance(this, class: "btn-normal", buttonString1: "ONESHOT")
 		.action_({ arg butt; if (playTrigger.notNil) { playTrigger.value }});
+
 		mainLayout.add(buttonOneshot);
 
-		buttonRandomize = Button()
-		.states_([["RANDOMIZE", Color.green, Color.black]])
+		buttonRandomize = ButtonFactory.createInstance(this, class: "btn-secondary", buttonString1: "RANDOMIZE")
 		.action_({ this.randomize(); });
-		mainLayout.add(buttonRandomize);
 
-		labelSynthName= StaticText()
-		.align_(\center)
-		.string_(defName)
-		.font_(Font("Monaco"));
-		mainLayout.add(labelSynthName);
+		mainLayout.add(buttonRandomize);
 	}
 }

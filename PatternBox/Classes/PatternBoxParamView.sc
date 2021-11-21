@@ -1,5 +1,5 @@
 /*
-FILENAME: ScoreParamView
+FILENAME: PatternBoxParamView
 
 DESCRIPTION: View to compose patterns and assign view controls to synth arguments/event keys.
 
@@ -15,14 +15,14 @@ w.layout = l;
 TODO:
 Slider en range value hernoemen naar gewoon value & range (KISS).
 
-a = ScoreParamView().front;
+a = PatternBoxParamView().front;
 */
 
-ScoreParamView : View {
+PatternBoxParamView : View {
 	var buttonDelete, scriptFieldView, controlSpec, model, setValueFunction, dependants, <paramController, <controlSpecView, ez4Buttons, <name, <>currentLayerIndex, <>currentWidgetType, <>currentWidgetIndex, previousLayer;
 	var <>actionNameChanged, <>removeAction, <>index, <>paramProxy, <>controllerProxies, <>scriptFunc, <>actionButtonDelete, <>rangeSliderAction, <>sliderAction, <>actionPatternScriptChanged;
 	var layoutStackControlSection, controlNoControl, controlSlider, controlRangeSlider, <keyName, mainLayout, textPatternKeyname, layoutStackVariableSection, scorePatternScriptEditorView;
-    var buttonOpenParamControlScriptPopup, buttonSelectScriptOrSpecOpControlStack, buttonShowSpecEditor, buttonSelectControlType;
+    var buttonSelectScriptView, buttonSelectScriptOrSpecOpControlStack, buttonShowSpecEditor, buttonSelectControlType;
 
 	*new { | parent, bounds |
 		^super.new(parent, bounds).initialize();
@@ -68,14 +68,19 @@ ScoreParamView : View {
 	}
 
 	initializeView {
-		this.background = Color.red.alpha_(0.4);
+
+		// Laatste view
+		// De rode button - script view naar voren
+		// Blauw is slider
+		// Geel is control spec
+		// Zwart? Nog even bedenken.
+
+		this.background = Color.black.alpha_(0.15);
 		mainLayout = HLayout();
 		mainLayout.margins = [5, 5, 20, 5];
 		this.layout = mainLayout;
 
-		textPatternKeyname = TextField();
-		textPatternKeyname.maxWidth = 90;
-		textPatternKeyname.minWidth = 90;
+		textPatternKeyname = TextFieldFactory.createInstance(this, "text-patternboxparamview");
 		textPatternKeyname.action = { | sender |
 			var keyNameStripped = sender.string.stripWhiteSpace();
 			controlSpecView.setSpecByString(keyNameStripped);
@@ -91,13 +96,13 @@ ScoreParamView : View {
 
         mainLayout.add(layoutStackVariableSection, align: \top, stretch: 1.0);
 
-        scriptFieldView = ScriptFieldView();
+		scriptFieldView = ScriptFieldViewFactory.createInstance(this, "script-patternboxparamview");
 		scriptFieldView.action = { | sender |
 			this.actionPatternScriptChanged.value(sender);
 		};
 		layoutStackVariableSection.add(scriptFieldView);
 
-	    controlSpecView = ControlSpecView();
+	    controlSpecView = ControlSpecViewFactory.createInstance(this);
 		controlSpecView.action = { | sender |
 			controlSpec = sender.controlSpec;
 			model.changed(\sliderValue, model[\sliderValue]);
@@ -112,14 +117,13 @@ ScoreParamView : View {
 
 		layoutStackVariableSection.add(View().layout_(layoutStackControlSection));
 
-		controlNoControl = StaticText();
+		controlNoControl = StaticTextFactory.createInstance(this);
 		controlNoControl.string = "No control";
 
 		layoutStackControlSection.add(controlNoControl);
 
-		controlSlider = Slider();
+		controlSlider = SliderFactory.createInstance(this, class: "slider-horizontal");
 		controlSlider.value = model[\sliderValue];
-		controlSlider.orientation = \horizontal;
 		controlSlider.action = { |val|
 		  setValueFunction[\sliderValue].value(val.value);
 	    };
@@ -131,10 +135,9 @@ ScoreParamView : View {
 	    });
 	    layoutStackControlSection.add(controlSlider);
 
-	    controlRangeSlider = RangeSlider();
+	    controlRangeSlider = RangeSliderFactory.createInstance(this, class: "slider-horizontal");
 	    controlRangeSlider.lo = model[\rangeSliderValues][0];
 	    controlRangeSlider.hi = model[\rangeSliderValues][1];
-		controlRangeSlider.orientation = \horizontal;
 		controlRangeSlider.action = { |val|
 		    setValueFunction[\rangeSliderValues].value([val.lo,val.hi])
         };
@@ -148,13 +151,13 @@ ScoreParamView : View {
 		});
         layoutStackControlSection.add(controlRangeSlider);
 
-        buttonOpenParamControlScriptPopup = Button();
-	    buttonOpenParamControlScriptPopup.maxWidth = 24;
-		buttonOpenParamControlScriptPopup.states = [[""] ++ Color.red.dup(2)];
-	    buttonOpenParamControlScriptPopup.action = {
-		   scriptFieldView.showPopup();
+        buttonSelectScriptView = Button();
+	    buttonSelectScriptView.maxWidth = 24;
+		buttonSelectScriptView.states = [[""] ++ Color.red.dup(2)];
+	    buttonSelectScriptView.action = {
+		    layoutStackVariableSection.index = 0;
 	    };
-        mainLayout.add(buttonOpenParamControlScriptPopup, align: \top);
+        mainLayout.add(buttonSelectScriptView, align: \top);
 
 	    buttonSelectScriptOrSpecOpControlStack = Button();
 			buttonSelectScriptOrSpecOpControlStack.maxWidth = 24;
@@ -181,8 +184,7 @@ ScoreParamView : View {
 	    };
         mainLayout.add(buttonSelectControlType, align: \top);
 
-		buttonDelete = DeleteButton();
-		buttonDelete.fixedSize = 10;
+		buttonDelete = ButtonFactory.createInstance(this, class: "btn-delete");
 		buttonDelete.action = {
 		  if (actionButtonDelete.notNil, { actionButtonDelete.value(this) });
 	    };
