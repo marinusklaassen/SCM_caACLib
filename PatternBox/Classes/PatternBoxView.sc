@@ -286,26 +286,9 @@ PatternBoxView : View {
 	}
 
     addParamView {
-        var paramChannel = PatternBoxParamView();
+        var paramChannel = PatternBoxParamView(this);
 
-        paramChannel.controllerProxies = (
-            fader: PatternProxy(0),
-            rangeLo: PatternProxy(0),
-            rangeHi: PatternProxy(1)
-        );
-
-        paramChannel.rangeSliderAction = { | rangeList |
-            paramChannel.controllerProxies[\rangeLo].source = rangeList[0];
-            paramChannel.controllerProxies[\rangeHi].source = rangeList[1];
-        };
-
-        paramChannel.paramProxy = PatternProxy(1);
-
-        paramChannel.sliderAction = { | val |
-            paramChannel.controllerProxies[\fader].source = val
-        };
-
-		paramChannel.actionpatternTargetIDChanged = { |sender|
+    		paramChannel.actionpatternTargetIDChanged = { |sender|
 			this.rebuildParallelPatternStreams(sender);
         };
 
@@ -317,25 +300,6 @@ PatternBoxView : View {
            controllers.remove(sender);
            sender.remove(); // Remove itself from the layout.
            this.rebuildParallelPatternStreams(sender);
-        };
-
-        paramChannel.actionPatternScriptChanged = { | sender |
-            var func = nil;
-            sender.scriptFieldView.clearError();
-            try {
-                func = interpret("{ |fader, rangeLo, rangeHi, env| " ++  sender.scriptFieldView.string ++ "}");
-            };
-
-            if (func.notNil) {
-                sender.scriptFunc = func;
-                sender.paramProxy.source = func.value(
-                    sender.controllerProxies['fader'],
-                    sender.controllerProxies['rangeLo'],
-                    sender.controllerProxies['rangeHi'],
-                    model[\environment]);
-            } {
-                sender.scriptFieldView.setError("Invalid input.");
-            };
         };
 
 		paramChannel.actionMoveDown = { |sender|

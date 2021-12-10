@@ -19,13 +19,13 @@ a = PatternBoxParamView().front;
 */
 
 PatternBoxParamView : View {
-	var buttonDelete, <scriptFieldView, controlSpec, model, setValueFunction, dependants, <paramController, <controlSpecView, ez4Buttons, <name, <>currentLayerIndex, <>currentWidgetType, <>currentWidgetIndex, previousLayer;
+	var <>patternBoxContext, buttonDelete, <scriptFieldView, controlSpec, model, setValueFunction, dependants, <paramController, <controlSpecView, ez4Buttons, <name, <>currentLayerIndex, <>currentWidgetType, <>currentWidgetIndex, previousLayer;
 	var <>actionNameChanged, <>removeAction, <>index, <>paramProxy, <>controllerProxies, <>scriptFunc, <>actionButtonDelete, <>rangeSliderAction, <>sliderAction, <>actionPatternScriptChanged, <>actionpatternTargetIDChanged;
 	var layoutStackControlSection, controlNoControl, controlSlider, controlRangeSlider, <keyName, <patternTargetID, mainLayout, textpatternTargetID, textPatternKeyname, layoutStackVariableSection, scorePatternScriptEditorView;
     var buttonSelectScriptView, buttonSelectScriptOrSpecOpControlStack, buttonShowSpecEditor, buttonSelectControlType, <>actionMoveUp, <>actionMoveDown;
 
-	*new { | parent, bounds |
-		^super.new(parent, bounds).initialize();
+	*new { | patternBoxContext, parent, bounds |
+		^super.new(parent, bounds).initialize(patternBoxContext);
 	}
 
 	keyName_ { | string |
@@ -38,10 +38,27 @@ PatternBoxParamView : View {
 		patternTargetID = string;
 	}
 
-	initialize {
+	initialize { | patternBoxContext |
+		this.patternBoxContext = patternBoxContext;
+        paramProxy = PatternProxy(1);
+		controllerProxies = (
+            fader: PatternProxy(0),
+            rangeLo: PatternProxy(0),
+            rangeHi: PatternProxy(1)
+        );
 		controlSpec = ControlSpec();
 		this.initializeModelAndEvents();
 		this.initializeView();
+        rangeSliderAction = { | rangeList |
+			controllerProxies[\rangeLo].source = rangeList[0];
+			controllerProxies[\rangeHi].source = rangeList[1];
+        };
+
+
+        sliderAction = { | val |
+            controllerProxies[\fader].source = val
+        };
+
      }
 
 	initializeModelAndEvents {
@@ -119,7 +136,7 @@ PatternBoxParamView : View {
 
 		scriptFieldView = ScriptFieldViewFactory.createInstance(this, "script-patternboxparamview");
 		scriptFieldView.action = { | sender |
-			this.actionPatternScriptChanged.value(this);
+			this.onActionPatternScriptChanged(sender);
 		};
 		layoutStackVariableSection.add(scriptFieldView);
 
@@ -211,6 +228,25 @@ PatternBoxParamView : View {
 	    };
 		mainLayout.add(buttonDelete, align: \top);
 	}
+
+	onActionPatternScriptChanged { | sender |
+            var func = nil;
+            sender.clearError();
+            try {
+                func = interpret("{ |fader, rangeLo, rangeHi, env| " ++  sender.string ++ "}");
+            };
+
+            if (func.notNil) {
+                this.scriptFunc = func;
+                paramProxy.source = func.value(
+                    controllerProxies['fader'],
+                    controllerProxies['rangeLo'],
+                    controllerProxies['rangeHi'],
+                    patternBoxContext.model[\environment]);
+            } {
+                scriptFieldView.setError("Invalid input.");
+            };
+    }
 
 	randomize {
 		setValueFunction[\sliderValue].value(1.0.rand); // setValue moet gewoon een setValue, setRange, setControlSpec method word. En deze method invoke een event.
