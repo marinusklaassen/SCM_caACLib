@@ -16,6 +16,10 @@ TextFieldFactory {
 			newInstance.maxWidth = 90;
 			newInstance.minWidth = 90;
 		});
+	    if (class.contains("text-patternboxpatterntargetid"), {
+			newInstance.maxWidth = 50;
+			newInstance.minWidth = 50;
+		});
 
 		^newInstance;
 	}

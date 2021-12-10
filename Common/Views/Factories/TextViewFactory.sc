@@ -16,6 +16,7 @@ TextViewFactory {
 		    newInstance.minHeight = 150;
 			newInstance.maxHeight = 150;
 		});
+
 		^newInstance;
 	}
 }

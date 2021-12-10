@@ -19,10 +19,10 @@ a = PatternBoxParamView().front;
 */
 
 PatternBoxParamView : View {
-	var buttonDelete, scriptFieldView, controlSpec, model, setValueFunction, dependants, <paramController, <controlSpecView, ez4Buttons, <name, <>currentLayerIndex, <>currentWidgetType, <>currentWidgetIndex, previousLayer;
-	var <>actionNameChanged, <>removeAction, <>index, <>paramProxy, <>controllerProxies, <>scriptFunc, <>actionButtonDelete, <>rangeSliderAction, <>sliderAction, <>actionPatternScriptChanged;
-	var layoutStackControlSection, controlNoControl, controlSlider, controlRangeSlider, <keyName, mainLayout, textPatternKeyname, layoutStackVariableSection, scorePatternScriptEditorView;
-    var buttonSelectScriptView, buttonSelectScriptOrSpecOpControlStack, buttonShowSpecEditor, buttonSelectControlType;
+	var buttonDelete, <scriptFieldView, controlSpec, model, setValueFunction, dependants, <paramController, <controlSpecView, ez4Buttons, <name, <>currentLayerIndex, <>currentWidgetType, <>currentWidgetIndex, previousLayer;
+	var <>actionNameChanged, <>removeAction, <>index, <>paramProxy, <>controllerProxies, <>scriptFunc, <>actionButtonDelete, <>rangeSliderAction, <>sliderAction, <>actionPatternScriptChanged, <>actionpatternTargetIDChanged;
+	var layoutStackControlSection, controlNoControl, controlSlider, controlRangeSlider, <keyName, <patternTargetID, mainLayout, textpatternTargetID, textPatternKeyname, layoutStackVariableSection, scorePatternScriptEditorView;
+    var buttonSelectScriptView, buttonSelectScriptOrSpecOpControlStack, buttonShowSpecEditor, buttonSelectControlType, <>actionMoveUp, <>actionMoveDown;
 
 	*new { | parent, bounds |
 		^super.new(parent, bounds).initialize();
@@ -31,6 +31,11 @@ PatternBoxParamView : View {
 	keyName_ { | string |
 		textPatternKeyname.string = string;
 		keyName = string;
+	}
+
+	patternTargetID_ { | string |
+		textpatternTargetID.string = string;
+		patternTargetID = string;
 	}
 
 	initialize {
@@ -69,16 +74,32 @@ PatternBoxParamView : View {
 
 	initializeView {
 
-		// Laatste view
-		// De rode button - script view naar voren
-		// Blauw is slider
-		// Geel is control spec
-		// Zwart? Nog even bedenken.
-
 		this.background = Color.black.alpha_(0.15);
 		mainLayout = HLayout();
 		mainLayout.margins = [5, 5, 20, 5];
 		this.layout = mainLayout;
+
+		mainLayout.add(
+			Button()
+			.fixedWidth_(20)
+			.string_("↑")
+			.action_({  if (actionMoveUp.notNil, { actionMoveUp.value(this) }); }));
+
+		mainLayout.add(
+			Button()
+			.fixedWidth_(20)
+			.string_("↓")
+			.action_({  if (actionMoveDown.notNil, { actionMoveDown.value(this) }); }));
+
+		textpatternTargetID = TextFieldFactory.createInstance(this, "text-patternboxpatterntargetid");
+		textpatternTargetID.action = { | sender |
+			var patternTargetIDStripped = sender.string.stripWhiteSpace();
+			this.patternTargetID = patternTargetIDStripped;
+			textpatternTargetID.string = patternTargetIDStripped;
+			actionpatternTargetIDChanged.value(this);
+		};
+
+		mainLayout.add(textpatternTargetID, align: \top);
 
 		textPatternKeyname = TextFieldFactory.createInstance(this, "text-patternboxparamview");
 		textPatternKeyname.action = { | sender |
@@ -98,7 +119,7 @@ PatternBoxParamView : View {
 
 		scriptFieldView = ScriptFieldViewFactory.createInstance(this, "script-patternboxparamview");
 		scriptFieldView.action = { | sender |
-			this.actionPatternScriptChanged.value(sender);
+			this.actionPatternScriptChanged.value(this);
 		};
 		layoutStackVariableSection.add(scriptFieldView);
 
@@ -201,6 +222,7 @@ PatternBoxParamView : View {
         state[\type] = "PatternBoxParam";
 		state[\layoutStackVariableSectionIndex] = layoutStackVariableSection.index;
 		state[\layoutStackControlSectionIndex] = layoutStackControlSection.index;
+		state[\patternTargetID] = patternTargetID;
 		state[\paramName] = keyName;
 		state[\value] = model[\sliderValue];
 		state[\range] = model[\rangeSliderValues];
@@ -211,6 +233,8 @@ PatternBoxParamView : View {
 
 	loadState { |state|
 		controlSpecView.setSpecByString(state[\paramName]);
+		this.patternTargetID = state[\patternTargetID];
+		actionpatternTargetIDChanged.value(this);
 		this.keyName = state[\paramName];
 		actionNameChanged.value(this);
 		controlSpecView.loadState(state[\controlSpecView]); // TODO Call method SetControlSpec

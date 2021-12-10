@@ -1,5 +1,5 @@
 /*
-FILENAME: PatternBoxView
+keyFILENAME: PatternBoxView
 
 DESCRIPTION: THe PatternBoxView is a dedicated reponsive editor to build patterns and assign controls to parameters.
 
@@ -18,10 +18,10 @@ a.keys do: { |key| a[key.postln].postln }
 */
 
 PatternBoxView : View {
-    var <>lemurClient, <presetView, <controllers, <playingStream, <keyAndPatternPairs;
+    var <>lemurClient, <presetView, <controllers, <playingStream, <dictionaryPbindsByPatternTargetID;
     var mixerAmpProxy, eventStreamProxy, <eventStream, controllerProxies, eventParProxy, setValueFunction, <model, dependants, parentView;
     var scoreGui, mixerGui, <scoreControlMixerChannelView,layoutMain,layoutHeader,layoutFooter,scrollViewControls,layoutControlHeaderLabels,layoutChannels,textpatternBoxName, buttonPlay, buttonRandomize, presetView, textEnvirFieldView;
-    var layoutControlHeaderLabels,labelParamNameControlHeader, errorLabelEnvirFieldView, buttonSpawnCopy, buttonClear, buttonShowProject, labelParamControlScriptOrControllerHeader, labelParamControlSelectorsHeader, labelPatternLayers, numberBoxPatternLayers, buttonAddChannel;
+    var layoutControlHeaderLabels,labelParamNameControlHeader, errorLabelEnvirFieldView, buttonSpawnCopy, buttonClear, buttonShowProject, labelParamTargetpatternTargetIDControlHeader, labelParamControlScriptOrControllerHeader, labelParamControlSelectorsHeader, labelPatternLayers, numberBoxPatternLayers, buttonAddChannel;
 	var <>index, <playState, >closeAction,<>removeAction, <patternBoxName, commandPeriodHandler, <>actionPlayStateChanged, <>actionNameChanged, <>actionVolumeChanged, <volume;
 
     classvar instanceCounter=0;
@@ -132,9 +132,9 @@ PatternBoxView : View {
 
 	    CmdPeriod.add(commandPeriodHandler);
 
-        controllers = Array();
+        controllers = List();
 
-        keyAndPatternPairs = IdentityDictionary();
+        dictionaryPbindsByPatternTargetID = IdentityDictionary();
         this.initializeView();
 
     }
@@ -185,7 +185,7 @@ PatternBoxView : View {
 			this.getState(skipProjectStuf: true);
 		};
 		presetView.actionLoadPreset = { |preset|
-			this.loadState(preset, skipProject: true);
+			this.loadState(preset, skipProjectStuf: true);
 		};
 
         layoutMain.add(presetView);
@@ -214,6 +214,13 @@ PatternBoxView : View {
 
         layoutControlHeaderLabels = HLayout();
         layoutControlHeaderLabels.margins = [5, 5, 5, 0];
+
+		labelParamTargetpatternTargetIDControlHeader = StaticTextFactory.createInstance(this, class: "columnlabel-patternbox-move", labelText: "MOVE");
+        layoutControlHeaderLabels.add(labelParamTargetpatternTargetIDControlHeader, align: \left);
+
+
+		labelParamTargetpatternTargetIDControlHeader = StaticTextFactory.createInstance(this, class: "columnlabel-patternbox-ptid", labelText: "PTID");
+        layoutControlHeaderLabels.add(labelParamTargetpatternTargetIDControlHeader, align: \left);
 
 		labelParamNameControlHeader = StaticTextFactory.createInstance(this, class: "columnlabel-patternbox", labelText: "NAME");
         layoutControlHeaderLabels.add(labelParamNameControlHeader, align: \left);
@@ -255,6 +262,29 @@ PatternBoxView : View {
         layoutFooter.add(buttonAddChannel, align: \right);
     }
 
+	rebuildParallelPatternStreams { |sender|
+		dictionaryPbindsByPatternTargetID = Dictionary();
+            if (sender.paramProxy.isNil, {
+				sender.paramProxy = PatternProxy(1) });
+            controllers do: { |patternBoxParamView|
+			   var patternTargetID = if (patternBoxParamView.patternTargetID.size > 0, { patternBoxParamView.patternTargetID.asSymbol; }, { \default; });
+			   if (dictionaryPbindsByPatternTargetID[patternTargetID].isNil, {
+				dictionaryPbindsByPatternTargetID[patternTargetID] = Dictionary();
+			   });
+			    dictionaryPbindsByPatternTargetID[patternTargetID][patternBoxParamView.keyName.asSymbol] = patternBoxParamView.paramProxy;
+            };
+			if (dictionaryPbindsByPatternTargetID.size == 0, {
+				eventStreamProxy.source = Pbind();
+			},
+			{
+			   var pbinds = List();
+				dictionaryPbindsByPatternTargetID.values do: { | pbindForTargetDict |
+				pbinds.add(Pbind(*pbindForTargetDict.getPairs));
+				};
+				eventStreamProxy.source = Ppar(pbinds);
+			});
+	}
+
     addParamView {
         var paramChannel = PatternBoxParamView();
 
@@ -275,53 +305,61 @@ PatternBoxView : View {
             paramChannel.controllerProxies[\fader].source = val
         };
 
+		paramChannel.actionpatternTargetIDChanged = { |sender|
+			this.rebuildParallelPatternStreams(sender);
+        };
+
         paramChannel.actionNameChanged = { |sender|
-            keyAndPatternPairs = Dictionary();
-            if (paramChannel.paramProxy.isNil) { paramChannel.paramProxy = PatternProxy(1) };
-            controllers do: { |aChannel|
-                keyAndPatternPairs[aChannel.keyName.asSymbol] = aChannel.paramProxy;
-            };
-            eventStreamProxy.source = Pbind(*keyAndPatternPairs.getPairs);
+			this.rebuildParallelPatternStreams(sender);
+        };
+
+        paramChannel.actionButtonDelete = { | sender|
+           controllers.remove(sender);
+           sender.remove(); // Remove itself from the layout.
+           this.rebuildParallelPatternStreams(sender);
         };
 
         paramChannel.actionPatternScriptChanged = { | sender |
             var func = nil;
-            sender.clearError();
+            sender.scriptFieldView.clearError();
             try {
-                func = interpret("{ |fader, rangeLo, rangeHi, env| " ++ sender.string ++ "}");
+                func = interpret("{ |fader, rangeLo, rangeHi, env| " ++  sender.scriptFieldView.string ++ "}");
             };
 
             if (func.notNil) {
-                paramChannel.scriptFunc = func;
-                paramChannel.paramProxy.source = func.value(
-                    paramChannel.controllerProxies['fader'],
-                    paramChannel.controllerProxies['rangeLo'],
-                    paramChannel.controllerProxies['rangeHi'],
+                sender.scriptFunc = func;
+                sender.paramProxy.source = func.value(
+                    sender.controllerProxies['fader'],
+                    sender.controllerProxies['rangeLo'],
+                    sender.controllerProxies['rangeHi'],
                     model[\environment]);
             } {
-                sender.setErrorText("Invalid input.");
+                sender.scriptFieldView.setError("Invalid input.");
             };
         };
 
-        paramChannel.actionButtonDelete = { | sender|
-            var tempChannel = controllers.remove(paramChannel);
-            paramChannel.remove(); // Remove itself from the layout.
-            keyAndPatternPairs = IdentityDictionary();
-            controllers do: { | scoreParamView |
-                keyAndPatternPairs[scoreParamView.keyName.asSymbol] = scoreParamView.paramProxy;
-            };
-            if (keyAndPatternPairs.size >= 2) {
-                eventStreamProxy.source = Pbind(*keyAndPatternPairs.getPairs);
-            } {
-                eventStreamProxy.source = Pbind();
-            }
+		paramChannel.actionMoveDown = { |sender|
+			this.movePatternBoxParamView(sender, 1);
+		};
 
-        };
+		paramChannel.actionMoveUp = { |sender|
+			this.movePatternBoxParamView(sender, -1);
+		};
 
         layoutChannels.insert(paramChannel, controllers.size);
         controllers = controllers.add(paramChannel);
         ^paramChannel;
     }
+
+	movePatternBoxParamView { |patternBoxParamView, step|
+		var currentPosition = controllers.indexOf(patternBoxParamView);
+		var nextPosition = currentPosition + step;
+		if (nextPosition >= 0 && (nextPosition < controllers.size), {
+			controllers.removeAt(currentPosition);
+			controllers.insert(nextPosition, patternBoxParamView);
+			layoutChannels.insert(patternBoxParamView, nextPosition);
+		});
+	}
 
     randomize {
         controllers do: { |patternBoxParamView|
