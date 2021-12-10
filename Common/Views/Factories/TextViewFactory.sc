@@ -8,7 +8,7 @@ AUTHOR: Marinus Klaassen (2021Q4)
 
 TextViewFactory {
 
- *createInstance { |caller, class, deviationID|
+ *createInstance { |caller, class|
 		var newInstance = TextView();
 		class = class.asString();
 

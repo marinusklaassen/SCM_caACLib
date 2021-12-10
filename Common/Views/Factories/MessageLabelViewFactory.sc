@@ -8,7 +8,7 @@ AUTHOR: Marinus Klaassen (2021Q4)
 
 MessageLabelViewFactory {
 
-	    *createInstance { |caller, class, deviationID, message|
+	    *createInstance { |caller, class, message|
 
 		var newInstance = MessageLabelView();
 

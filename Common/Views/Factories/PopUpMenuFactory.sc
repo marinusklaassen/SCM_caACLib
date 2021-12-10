@@ -8,7 +8,7 @@ AUTHOR: Marinus Klaassen (2021Q4)
 
 PopUpMenuFactory {
 
- *createInstance { |caller, class, deviationID|
+ *createInstance { |caller, class|
 		var newInstance = PopUpMenu();
 		class = class.asString();
 		^newInstance;

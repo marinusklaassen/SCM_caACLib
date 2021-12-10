@@ -8,7 +8,7 @@ AUTHOR: Marinus Klaassen (2021Q4)
 
 ScriptFieldViewFactory {
 
- *createInstance { |caller, class |
+ *createInstance { |caller, class|
 		var newInstance = ScriptFieldView();
 		class = class.asString();
 		^newInstance;

@@ -11,13 +11,11 @@ SliderFactory {
 	*createInstance { |caller, class, deviationID|
 		var newInstance = Slider();
 		class = class.asString();
-
 		case
 		{ class == "slider-horizontal"; }
 		{
 			newInstance.orientation = \horizontal;
 		};
-
 		^newInstance;
 	}
 }
