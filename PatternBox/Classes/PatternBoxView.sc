@@ -76,25 +76,16 @@ PatternBoxView : View {
 		dependants[\interpresetenvirText] = {|theChanger, what, environmentCode|
 			var environment;
 			if (what == \envirText) {
-
 				errorLabelEnvirFieldView.clear();
 				environment =  "Environment.make({" ++ environmentCode ++ "})";
-
 				try {
 					environment = interpret(environment);
 				} { environment = nil; };
 
 				if (environment.notNil) {
 					model[\environment] = environment;
-					model[\envirText].postln;
-					model[\environment].postln;
-					controllers do: { |aCon|
-						aCon.paramProxy.source = aCon.scriptFunc.value(
-							aCon.controllerProxies['fader'],
-							aCon.controllerProxies['rangeLo'],
-							aCon.controllerProxies['rangeHi'],
-							model[\environment]
-						)
+					controllers do: { |controller|
+						controller.regenerateAndInterpretedParamScript();
 					};
 
 				} {

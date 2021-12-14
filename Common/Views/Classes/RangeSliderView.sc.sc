@@ -12,7 +12,7 @@
 
 RangeSliderView : View {
 	var <spec, <labelText, <range, <rangeMapped, valueLoProxy, valueLoMappedProxy, valueHiProxy, valueHiMappedProxy;
-	var <mainLayoutView, <rangeSliderView,lo, hi, loMapped, hiMapped, proxyLo, proxyHi, controlSpecView; // spec in deze scope, print argument list.
+	var <mainLayoutView, <rangeSliderView, <lo, <hi, loMapped, hiMapped, proxyLo, proxyHi, controlSpecView; // spec in deze scope, print argument list.
 
 	*new { | parent, bounds, spec, initVal, labelText, uiMode |
 		^super.new(parent, bounds).init(spec, initVal, labelText, uiMode);
@@ -79,4 +79,16 @@ RangeSliderView : View {
 		^result;
 	}
 
+	getState {
+		var state = Dictionary();
+		state[\lo] = this.lo;
+		state[\hi] = this.hi;
+		^state;
+    }
+
+    loadState { |state|
+		this.lo = state[\lo];
+		this.hi = state[\hi];
+    }
 }
+

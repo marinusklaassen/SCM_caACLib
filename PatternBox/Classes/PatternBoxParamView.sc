@@ -22,7 +22,7 @@ PatternBoxParamView : View {
 	var <>patternBoxContext, buttonDelete, <scriptFieldView, setValueFunction, dependants, <paramController, <name, <>currentLayerIndex, <>currentWidgetType, <>currentWidgetIndex, previousLayer;
 	var <>actionNameChanged, <>removeAction, <>index, <>paramProxy, <>controllerProxies, <>scriptFunc, <>actionButtonDelete, <>rangeSliderAction, <>sliderAction, <>actionPatternScriptChanged, <>actionPatternTargetIDChanged;
 	var layoutStackControlSection, controlNoControl, controlSlider, controlRangeSlider, <keyName, <patternTargetID, mainLayout, textpatternTargetID, textPatternKeyname, layoutScriptControllerSection, scorePatternScriptEditorView;
-	var patternBoxParamControlSectionView, buttonSelectScriptView, buttonSelectScriptOrSpecOpControlStack, buttonSwitchEditingMode, buttonRandomizeControls, <>actionMoveUp, <>actionMoveDown;
+	var skipRegenerate = false, patternBoxParamControlSectionView, buttonSelectScriptView, buttonSelectScriptOrSpecOpControlStack, buttonSwitchEditingMode, buttonRandomizeControls, <>actionMoveUp, <>actionMoveDown;
 
 	*new { | patternBoxContext, parent, bounds |
 		^super.new(parent, bounds).initialize(patternBoxContext);
@@ -63,7 +63,7 @@ PatternBoxParamView : View {
 			.fixedWidth_(20)
 			.string_("↓")
 			.action_({  if (actionMoveDown.notNil, { actionMoveDown.value(this) }); })
-		    ,align: \top);
+			,align: \top);
 
 		textpatternTargetID = TextFieldFactory.createInstance(this, "text-patternboxpatterntargetid");
 		textpatternTargetID.action = { | sender |
@@ -99,7 +99,7 @@ PatternBoxParamView : View {
 		layoutScriptControllerSection.add(scriptFieldView);
 
 		patternBoxParamControlSectionView = PatternBoxParamControlGroupView();
-        patternBoxParamControlSectionView.layout.margins = 0!4;
+		patternBoxParamControlSectionView.layout.margins = 0!4;
 		patternBoxParamControlSectionView.actionControlCRUD = { |sender|
 			this.regenerateAndInterpretedParamScript();
 		};
@@ -150,38 +150,31 @@ PatternBoxParamView : View {
 	}
 
 	regenerateAndInterpretedParamScript {
-
 		// Evalueer deze code ook bij wijziging van een UI control
 		var func, funcAsString, proxies, paramString, keyValuesProxyPairs;
-		try {
-			scriptFieldView.clearError();
-			proxies = patternBoxParamControlSectionView.getProxies();
-			proxies[\env] = patternBoxContext.model[\environment];
-			keyValuesProxyPairs = proxies.getPairs();
-			keyValuesProxyPairs.postln;
-
-			keyValuesProxyPairs do: { |item, i|
-				if (i % 2 == 0, {
-					paramString = paramString ++ if(i == 0, "", " , ") ++ item;
-				});
+		if (skipRegenerate.notNil && scriptFieldView.string.notNil, {
+			try {
+				scriptFieldView.clearError();
+				proxies = patternBoxParamControlSectionView.getProxies();
+				proxies[\env] = patternBoxContext.model[\environment];
+				keyValuesProxyPairs = proxies.getPairs();
+				keyValuesProxyPairs do: { |item, i|
+					if (i % 2 == 0, {
+						paramString = paramString ++ if(i == 0, "", " , ") ++ item;
+					});
+				};
+				funcAsString = "{ |" + paramString + "|" +  scriptFieldView.string + "}";
+				funcAsString.postln;
+				func = interpret(funcAsString);
 			};
-			funcAsString = "{ |" + paramString + "|" +  scriptFieldView.string + "}";
-			funcAsString.postln;
-			func = interpret(funcAsString);
-		};
-
-		if (func.notNil) {
-			this.scriptFunc = func;
-
-			paramProxy.source = func.performKeyValuePairs(\value, keyValuesProxyPairs.postln);
-		} {
-			scriptFieldView.setError("Invalid input.");
-		};
-
-
+			if (func.notNil) {
+				this.scriptFunc = func;
+				paramProxy.source = func.performKeyValuePairs(\value, keyValuesProxyPairs.postln);
+			} {
+				scriptFieldView.setError("Invalid input.");
+			};
+		});
 	}
-
-
 
 	randomize {
 		patternBoxParamControlSectionView.randomize();
@@ -194,17 +187,19 @@ PatternBoxParamView : View {
 		state[\paramName] = keyName;
 		state[\patternBoxParamControlSectionView] = patternBoxParamControlSectionView.getState();
 		state[\scriptView] = scriptFieldView.getState();
-
 		^state;
 	}
 
 	loadState { |state|
+		skipRegenerate =true;
 		this.patternTargetID = state[\patternTargetID];
-		actionPatternTargetIDChanged.value(this);
 		this.keyName = state[\paramName];
 		actionNameChanged.value(this);
-		state[\patternBoxParamControlSectionView] = patternBoxParamControlSectionView.loadState();
+		actionPatternTargetIDChanged.value(this);
+		patternBoxParamControlSectionView.loadState(state[\patternBoxParamControlSectionView]);
 		scriptFieldView.loadState(state[\scriptView]);
+		skipRegenerate = false;
+		this.regenerateAndInterpretedParamScript();
 	}
 
 	dispose {

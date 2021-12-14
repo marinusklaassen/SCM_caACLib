@@ -98,4 +98,14 @@ SliderView : View {
 		result[this.name.asSymbol] = valueMappedProxy;
 		^result;
 	}
+
+	getState {
+		var state = Dictionary();
+		state[\value] = this.value;
+		^state;
+    }
+
+    loadState { |state|
+		this.value = state[\value];
+    }
 }

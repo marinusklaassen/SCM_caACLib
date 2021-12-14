@@ -9,7 +9,7 @@ AUTHOR: Marinus Klaassen (2021Q4)
 SliderViewFactory {
 
 	*createInstance { |caller, class, controlSpec, initVal, labelText|
-		var newInstance = SliderView(controlSpec: controlSpec, initVal: initVal, labelText: labelText);
+		var newInstance = SliderView();
 		class = class.asString();
 		newInstance.numberBoxView
 		.background_(Color.white.alpha_(0.5))

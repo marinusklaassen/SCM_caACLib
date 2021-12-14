@@ -99,14 +99,18 @@ PatternBoxParamControlItemView : View {
 	}
 
     getState {
-		// selectedControlType
-		// controlSpecView state
-		// textFieldControlName
+		var state = Dictionary();
+		state[\selectedControlType] = selectedControlType;
+		state[\controlSpecView] = controlSpecView.getState();
+		state[\textFieldControlName] = controlName;
+		state[\controlView] = controlView.getState();
+		^state;
     }
 
-    loadState {
-		// selectedControlType
-		// controlSpecView stae
-		// textFieldControlName value action
+    loadState { |state|
+		this.onItemChanged_PopupSelectControl(state[\selectedControlType]);
+		controlSpecView.loadState(state[\controlSpecView]);
+		this.controlNameAction = state[\textFieldControlName];
+		controlView.loadState(state[\controlView]);
     }
 }

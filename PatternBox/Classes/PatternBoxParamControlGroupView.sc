@@ -55,8 +55,8 @@ PatternBoxParamControlGroupView : View {
 			if (actionControlCRUD.notNil, { actionControlCRUD.value(this); });
 
 		};
-		controlItems.add(controlItem);
 		if (state.notNil, { controlItem.loadState(state) });
+		controlItems.add(controlItem);
 		mainLayout.insert(controlItem, controlItems.size - 1);
 		if (actionControlCRUD.notNil, { actionControlCRUD.value(this); });
 	}
@@ -65,22 +65,32 @@ PatternBoxParamControlGroupView : View {
 		controlItems do: { |controlItem| controlItem.randomize(); };
 	}
 
-	getState {
-		^controlItems collect: { |item| item.getState(); };
-	}
-
 	getProxies {
 		var result = Dictionary();
 		controlItems do: { |item| result.putAll(item.getProxies()); };
 		^result;
 	}
 
+	getState {
+		var state = Dictionary();
+		state[\visible] = this.visible;
+		state[\editMode] = editMode;
+		state[\controlItems] = controlItems collect: { |item| item.getState(); };
+			state[\controlItems].postln;
+		^state;
+	}
+
 	loadState { |state|
-		controlItems do: { |item| item.remove(); };
+		controlItems do: { |item| item.remove; };
 		controlItems = List();
-		state do: { |itemState|
-			onButtonClick_AddPatternBoxParamControlItemView(itemState);
-		}
+		if (state.notNil, {
+		if(state[\editMode].notNil, { this.editMode = state[\editMode]; });
+		if(state[\visible].notNil, { this.visible = state[\visible]; });
+		state[\controlItems] do: { |itemState|
+			this.onButtonClick_AddPatternBoxParamControlItemView(itemState);
+		};
+		}, {  this.editMode  = false; });
 	}
 }
+
 

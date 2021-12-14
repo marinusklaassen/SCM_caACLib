@@ -49,7 +49,10 @@ PatternBoxProjectItemView : View {
 		togglePlay.action = {|sender| this.onTogglePlay(sender); };
 		mainLayout.add(togglePlay, 0, 0);
 
-		sliderVolume = SliderViewFactory.createInstance(this, controlSpec: \db.asSpec, initVal: volume, labelText: patternBoxView.patternBoxName)
+		sliderVolume = SliderViewFactory.createInstance(this)
+		.spec_(\db.asSpec)
+		.value_(volume)
+		.labelText_(patternBoxView.patternBoxName)
 		.action_({ |sender | this.onSliderVolumeChanged(sender.value); });
         mainLayout.add(sliderVolume, 0, 1);
 		mainLayout.setColumnStretch(1, 1);
