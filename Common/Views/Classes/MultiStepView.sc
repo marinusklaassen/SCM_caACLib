@@ -50,7 +50,7 @@ MultiStepView : View {
 		if (this.spec.isNil, { this.spec = ControlSpec(); });
 
 		proxy.size do: { |i|
-			var newStep = Button().states_([["off"], ["on"]]).action_({ |sender| proxy[i] = sender.value; });
+			var newStep = Button().states_([["off"], ["on"]]).action_({ |sender| proxy[i] = sender.value; }).minWidth_(30);
 			sliders.add(newStep);
 			this.layout.add(newStep);
 		};
@@ -75,5 +75,18 @@ MultiStepView : View {
 	labelText_ { |text|
 
 	}
+
+	getState {
+		var state = Dictionary();
+		state[\slidersValues] = sliders collect: { |slider| slider.value; };
+		^state;
+    }
+
+    loadState { |state|
+		state[\slidersValues] do: { |value, i|
+			sliders[i].value = value;
+			proxy[i] = value;
+		};
+    }
 }
 

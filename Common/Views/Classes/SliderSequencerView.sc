@@ -28,6 +28,7 @@ SliderSequencerView : View {
 	randomize {
 		sliders do: { |slider| slider.value = 1.0.rand };
 		sliders.size do: { |i|
+			proxy[i] = sliders[i].value;
 			proxyMapped[i] = spec.map(proxy[i]);
 		};
 	}
@@ -77,4 +78,18 @@ SliderSequencerView : View {
 		result[this.name.asSymbol] = proxyMapped;
 		^result;
 	}
+
+	getState {
+		var state = Dictionary();
+		state[\slidersValues] = sliders collect: { |slider| slider.value; };
+		^state;
+    }
+
+    loadState { |state|
+		state[\slidersValues] do: { |value, i|
+			sliders[i].value = value;
+			proxy[i] = value;
+			proxyMapped[i] = spec.map(proxy[i]);
+		};
+    }
 }
