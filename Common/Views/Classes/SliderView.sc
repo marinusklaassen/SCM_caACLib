@@ -4,55 +4,70 @@
  * DESCRIPTION:
  *         Based on the sclang EZSlider, however it's a child of View and the child views are organised by a layout, so it can scale.
  *
- *         SliderView(nil, 400@100, \db.asSpec, 0.5, "test").front().action_({ |v| v.postln; }).labelText_("Label test").value_(1.0.rand).value.postln;
- *         SliderView()
+ *
+a = SliderView(nil, 400@100, \db.asSpec, 0.5, "test").front().action_({ |v| v.postln; }).labelText_("Label test").value_(1.0.rand).value.postln;
+a.value = 0;
+*         SliderView()
  *
  * AUTHOR: Marinus Klaassen (2012, 2021Q3)
  */
 
 SliderView : View {
-	var <>controlSpec, <labelText, <value;
-	var <mainLayoutView, <sliderView, <labelView, <numberBoxView, unitView;
+	var <spec, <labelText, <value = 0, <valueMapped, valueProxy, valueMappedProxy;
+	var <mainLayoutView, <sliderView, <labelView, <numberBoxView, unitView, controlSpecView;
 
-	*new { | parent, bounds, controlSpec, initVal, labelText |
-		^super.new(parent, bounds).init(controlSpec, initVal, labelText);
+	*new { | parent, bounds |
+		^super.new(parent, bounds).init();
 	}
 
-	init { | controlSpec, initVal, labelText |
+	uiMode { |uiMode|
+		if (uiMode == \brief, {
+			labelView.visible = false;
+			numberBoxView.visible = false;
+			unitView.visible = false;
+		});
+	}
+
+	editMode_ { |mode| }
+
+	randomize {
+		this.value = 1.0.rand;
+	}
+
+    spec_ { |argSpec|
+		spec = argSpec;
+		numberBoxView.clipLo_(this.spec.minval);
+		numberBoxView.clipHi_(this.spec.maxval);
+		unitView.string_(this.spec.units);
+		this.value = value;
+	}
+
+	init {
+		spec = ControlSpec();
+		valueProxy = PatternProxy();
+		valueMappedProxy = PatternProxy();
+
 		mainLayoutView = GridLayout();
 		this.layout = mainLayoutView;
-
-		// newCopyArgs didn't work.. weird. any workaround.
-		this.controlSpec = controlSpec;
-
-        // defaults
-		if (this.controlSpec.isNil, { this.controlSpec = ControlSpec(); });
 
 		// Configure views
 		labelView = StaticTextFactory.createInstance(this)
 		.string_(this.labelText);
 
 		numberBoxView = NumberBoxFactory.createInstance(this)
-		.clipLo_(this.controlSpec.minval)
-		.clipHi_(this.controlSpec.maxval)
-		.value_(this.controlSpec.map(initVal))
 		.action_({ |v|
-			var unmappedValue = this.controlSpec.unmap(v.value);
+			var unmappedValue = this.spec.unmap(v.value);
 			value = unmappedValue;
 			this.action.value(unmappedValue);
 			sliderView.value = unmappedValue;
 		});
 
 		sliderView = SliderFactory.createInstance(this)
-		.value_(initVal)
 		.orientation_(\horizontal)
-		.action_({ |v|
-			var mappedValue = this.controlSpec.map(v.value);
-			numberBoxView.value = mappedValue;
-		    value = v.value;
-			this.action.value(v.value); });
-		unitView = StaticText()
-		.string_(this.controlSpec.units);
+		.action_({ |sender|
+		    this.value = sender.value;
+			this.action.value(sender.value); });
+		unitView = StaticText();
 
 		mainLayoutView.add(labelView, row: 0, column: 0, align: \left);
 		mainLayoutView.add(numberBoxView, row: 0, column: 2);
@@ -60,15 +75,15 @@ SliderView : View {
 		mainLayoutView.addSpanning(sliderView, row: 1, column: 0, rowSpan: 1, columnSpan: 4);
 		mainLayoutView.setColumnStretch(1, 1);
 		mainLayoutView.margins = 0!4;
-		// Set init values
-		this.value = initVal;
-	    this.labelText = labelText;
 	}
 
-	value_ { |v|
-		value = v;
+	value_ { |argValue|
+		value = argValue;
+		valueMapped = spec.map(argValue);
 		sliderView.value = value;
-		numberBoxView.value = this.controlSpec.map(value);
+		numberBoxView.value = valueMapped;
+		valueProxy.source = value;
+		valueMappedProxy.source = valueMapped;
 	}
 
 	labelText_ { |text|

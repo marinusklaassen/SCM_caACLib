@@ -10,7 +10,7 @@ ControlSpecView(bounds:400@20).front().action = { |sender| sender.controlSpec.po
 */
 
 ControlSpecView : View {
-	var controlSpec, mainLayout, textInput, labelError, model,dependants,setValueFunction;
+	var controlSpec, mainLayout, textInput, <>action, labelError, model,dependants,setValueFunction;
 
 	// Constructor
 	*new { |parent, bounds|
@@ -20,6 +20,25 @@ ControlSpecView : View {
 	// Extra property accesors
 	controlSpec {
 		^model[\controlSpec];
+	}
+
+	spec {
+		^model[\controlSpec];
+	}
+
+	specAsString {
+		^model[\rawSpecAsString];
+	}
+
+	specAsString_ { | specAsString |
+		var spec = specAsString.asSymbol.asSpec;
+		// Only update a valid conversion of default spec like \freq.asSymbol
+		if(spec.notNil, {
+			model[\controlSpec] =  spec;
+			model[\rawSpecAsString] = format("%%.asSpec", $\\, specAsString);
+			model.changed(\controlSpec, model[\controlSpec]);
+			model.changed(\rawSpecAsString, model[\rawSpecAsString]);
+		});
 	}
 
 	// Instance initialization
@@ -48,6 +67,7 @@ ControlSpecView : View {
 				model.changed(\controlSpec, interpretSpec);
 				model[\rawSpecAsString] = rawSpecAsString;
 				model.changed(\rawSpecAsString, rawSpecAsString);
+				if (this.action.notNil, { |sender| this.action.value(this) });
 
 			}, {
 				labelError.string = "Invalid input. Must be a valid ControlSpec.";
@@ -76,29 +96,14 @@ ControlSpecView : View {
 			setValueFunction.value(sender.string);
 		};
 		mainLayout.add(textInput);
-
 		dependants[\textInput] = {|theChanger, what, val|
 			if(what == \rawSpecAsString, {
 				textInput.string = val;
 			});
 		};
-
 		model.addDependant(dependants[\textInput]);
-
 		labelError = MessageLabelViewFactory.createInstance(this, class: "message-error");
-
 		mainLayout.add(labelError, stretch: 1.0);
-	}
-
-    setSpecByString { | specAsString |
-		var spec = specAsString.asSymbol.asSpec;
-		// Only update a valid conversion of default spec like \freq.asSymbol
-		if(spec.notNil, {
-			model[\controlSpec] =  spec;
-			model[\rawSpecAsString] = format("%%.asSpec", $\\, specAsString);
-			model.changed(\controlSpec, model[\controlSpec]);
-			model.changed(\rawSpecAsString, model[\rawSpecAsString]);
-		});
 	}
 
 	getState {
@@ -113,4 +118,3 @@ ControlSpecView : View {
 		setValueFunction.value(state[\rawSpecAsString]);
 	}
 }
-
