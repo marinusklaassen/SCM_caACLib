@@ -22,7 +22,7 @@ PatternBoxParamView : View {
 	var <>patternBoxContext, buttonDelete, <scriptFieldView, setValueFunction, dependants, <paramController, <name, <>currentLayerIndex, <>currentWidgetType, <>currentWidgetIndex, previousLayer;
 	var <>actionNameChanged, <>removeAction, <>index, <>paramProxy, <>controllerProxies, <>scriptFunc, <>actionButtonDelete, <>rangeSliderAction, <>sliderAction, <>actionPatternScriptChanged, <>actionPatternTargetIDChanged;
 	var layoutStackControlSection, controlNoControl, controlSlider, controlRangeSlider, <keyName, <patternTargetID, mainLayout, textpatternTargetID, textPatternKeyname, layoutScriptControllerSection, scorePatternScriptEditorView;
-	var patternBoxParamControlSectionView, buttonSelectScriptView, buttonSelectScriptOrSpecOpControlStack, buttonYellow, buttonSelectControlType, <>actionMoveUp, <>actionMoveDown;
+	var patternBoxParamControlSectionView, buttonSelectScriptView, buttonSelectScriptOrSpecOpControlStack, buttonSwitchEditingMode, buttonRandomizeControls, <>actionMoveUp, <>actionMoveDown;
 
 	*new { | patternBoxContext, parent, bounds |
 		^super.new(parent, bounds).initialize(patternBoxContext);
@@ -93,24 +93,30 @@ PatternBoxParamView : View {
 
 		scriptFieldView = ScriptFieldViewFactory.createInstance(this, "script-patternboxparamview");
 		scriptFieldView.action = { | sender |
-			this.onActionPatternScriptChanged(sender);
+			this.regenerateAndInterpretedParamScript();
 		};
 
 		layoutScriptControllerSection.add(scriptFieldView);
 
 		patternBoxParamControlSectionView = PatternBoxParamControlGroupView();
         patternBoxParamControlSectionView.layout.margins = 0!4;
+		patternBoxParamControlSectionView.actionControlCRUD = { |sender|
+			this.regenerateAndInterpretedParamScript();
+		};
+
 		layoutScriptControllerSection.add(patternBoxParamControlSectionView);
 
 		buttonSelectScriptView = Button();
 		buttonSelectScriptView.maxWidth = 24;
+		buttonSelectScriptView.toolTip = "Print available script env & control parameters to console.";
 		buttonSelectScriptView.states = [[""] ++ Color.red.dup(2)];
 		buttonSelectScriptView.action = {
-			layoutScriptControllerSection.index = 0;
+			"Not yet implemented: Print available script env & control parameters to console.".postln;
 		};
 		mainLayout.add(buttonSelectScriptView, align: \top);
 
 		buttonSelectScriptOrSpecOpControlStack = Button();
+		buttonSelectScriptOrSpecOpControlStack.toolTip = "Switch show or hide controls.";
 		buttonSelectScriptOrSpecOpControlStack.maxWidth = 24;
 		buttonSelectScriptOrSpecOpControlStack.states = [[""] ++ Color.blue.dup(2)];
 		buttonSelectScriptOrSpecOpControlStack.action = {
@@ -118,21 +124,23 @@ PatternBoxParamView : View {
 		};
 		mainLayout.add(buttonSelectScriptOrSpecOpControlStack, align: \top);
 
-		buttonYellow = Button();
-		buttonYellow.maxWidth = 24;
-		buttonYellow.states = [[""] ++ Color.yellow.dup(2)];
-		buttonYellow.action = {
-			// tobe specified
-		};
-		mainLayout.add(buttonYellow, align: \top);
-
-		buttonSelectControlType = Button();
-		buttonSelectControlType.maxWidth = 24;
-		buttonSelectControlType.states = [[""] ++ Color.black.dup(2)];
-		buttonSelectControlType.action = {
+		buttonSwitchEditingMode = Button();
+		buttonSwitchEditingMode.toolTip = "Switch enable or disable editmode.";
+		buttonSwitchEditingMode.maxWidth = 24;
+		buttonSwitchEditingMode.states = [[""] ++ Color.yellow.dup(2)];
+		buttonSwitchEditingMode.action = {
 			patternBoxParamControlSectionView.editMode = patternBoxParamControlSectionView.editMode.not;
 		};
-		mainLayout.add(buttonSelectControlType, align: \top);
+		mainLayout.add(buttonSwitchEditingMode, align: \top);
+
+		buttonRandomizeControls = Button();
+		buttonRandomizeControls.toolTip = "Randomize controls";
+		buttonRandomizeControls.maxWidth = 24;
+		buttonRandomizeControls.states = [[""] ++ Color.black.dup(2)];
+		buttonRandomizeControls.action = {
+			this.randomize();
+		};
+		mainLayout.add(buttonRandomizeControls, align: \top);
 
 		buttonDelete = ButtonFactory.createInstance(this, class: "btn-delete");
 		buttonDelete.action = {
@@ -141,25 +149,39 @@ PatternBoxParamView : View {
 		mainLayout.add(buttonDelete, align: \top);
 	}
 
-	onActionPatternScriptChanged { | sender |
+	regenerateAndInterpretedParamScript {
+
 		// Evalueer deze code ook bij wijziging van een UI control
-		var func = nil;
-		sender.clearError();
+		var func, funcAsString, proxies, paramString, keyValuesProxyPairs;
 		try {
-			//
-			// TODO fader, rangeLo, rangeHi, param namen op basis van de controlitemgroup
-			func = interpret("{ | env| " ++  sender.string ++ "}");
+			scriptFieldView.clearError();
+			proxies = patternBoxParamControlSectionView.getProxies();
+			proxies[\env] = patternBoxContext.model[\environment];
+			keyValuesProxyPairs = proxies.getPairs();
+			keyValuesProxyPairs.postln;
+
+			keyValuesProxyPairs do: { |item, i|
+				if (i % 2 == 0, {
+					paramString = paramString ++ if(i == 0, "", " , ") ++ item;
+				});
+			};
+			funcAsString = "{ |" + paramString + "|" +  scriptFieldView.string + "}";
+			funcAsString.postln;
+			func = interpret(funcAsString);
 		};
 
 		if (func.notNil) {
 			this.scriptFunc = func;
-			paramProxy.source = func.value(
-				// controlgroupparams injecteren
-				patternBoxContext.model[\environment]);
+
+			paramProxy.source = func.performKeyValuePairs(\value, keyValuesProxyPairs.postln);
 		} {
 			scriptFieldView.setError("Invalid input.");
 		};
+
+
 	}
+
+
 
 	randomize {
 		patternBoxParamControlSectionView.randomize();

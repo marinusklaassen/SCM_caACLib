@@ -24,7 +24,7 @@ MultiStepView : View {
 		// for \rest is off and \note is on
 	}
 
-	setUIMode { |mode|
+	uiMode { |mode|
 
 	}
 
@@ -50,7 +50,7 @@ MultiStepView : View {
 		if (this.spec.isNil, { this.spec = ControlSpec(); });
 
 		proxy.size do: { |i|
-			var newStep = Button().states_([["off"], ["on"]]).action_({ |sender| proxy[i] = sender.value; proxy.postln; });
+			var newStep = Button().states_([["off"], ["on"]]).action_({ |sender| proxy[i] = sender.value; });
 			sliders.add(newStep);
 			this.layout.add(newStep);
 		};
@@ -58,6 +58,12 @@ MultiStepView : View {
 		mainLayoutView.margins = 0!4;
 
 	    this.labelText = labelText;
+	}
+
+	getProxies {
+		var result = Dictionary();
+		result[this.name.asSymbol] = proxy;
+		^result;
 	}
 
 	value_ { |v|

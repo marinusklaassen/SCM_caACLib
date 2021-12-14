@@ -11,7 +11,7 @@ a.bounds
 
 PatternBoxParamControlGroupView : View {
 
-	var mainLayout, buttonAdd, controlItems, <editMode, <>controlNameDefault, <>actionRemove;
+	var mainLayout, buttonAdd, <controlItems, <editMode, <>controlNameDefault, <>actionControlCRUD;
 
 	*new { |parent, bounds|
 		^super.new(parent, bounds).initialize();
@@ -26,7 +26,10 @@ PatternBoxParamControlGroupView : View {
 	initializeView {
 		mainLayout = VLayout();
 		this.layout = mainLayout;
-		buttonAdd = Button().string_("add widget").action_({ this.onButtonClick_AddPatternBoxParamControlItemView() });
+		buttonAdd = ButtonFactory.createInstance(this, class: "btn-add");
+		buttonAdd.fixedSize_(20);
+		buttonAdd.toolTip = "Add a control";
+		buttonAdd.action_({ this.onButtonClick_AddPatternBoxParamControlItemView() });
 		buttonAdd.visible = false;
 		editMode = false;
 		mainLayout.add(buttonAdd, align: \right);
@@ -39,17 +42,23 @@ PatternBoxParamControlGroupView : View {
 	}
 
 	onButtonClick_AddPatternBoxParamControlItemView { |state|
-		var controlItem = PatternBoxParamControlItemView();
-		controlItem.controlName = this.controlNameDefault;
+		var controlItem = PatternBoxParamControlItemView(name: "control" ++ (controlItems.size + 1));
 		controlItem.actionRemove = { |sender|
 			controlItems.remove(sender);
 			controlItem.remove();
-			if (actionRemove.notNil, { actionRemove.value(this); });
+			if (actionControlCRUD.notNil, { actionControlCRUD.value(this); });
+		};
+		controlItem.actionControlItemChanged = {
+			if (actionControlCRUD.notNil, { actionControlCRUD.value(this); });
+		};
+		controlItem.actionControlNameChanged = {
+			if (actionControlCRUD.notNil, { actionControlCRUD.value(this); });
+
 		};
 		controlItems.add(controlItem);
 		if (state.notNil, { controlItem.loadState(state) });
 		mainLayout.insert(controlItem, controlItems.size - 1);
-
+		if (actionControlCRUD.notNil, { actionControlCRUD.value(this); });
 	}
 
 	randomize {
@@ -58,6 +67,12 @@ PatternBoxParamControlGroupView : View {
 
 	getState {
 		^controlItems collect: { |item| item.getState(); };
+	}
+
+	getProxies {
+		var result = Dictionary();
+		controlItems do: { |item| result.putAll(item.getProxies()); };
+		^result;
 	}
 
 	loadState { |state|

@@ -71,4 +71,12 @@ RangeSliderView : View {
 		valueHiProxy.source = hi;
 		valueHiMappedProxy.source = hiMapped;
 	}
+
+	getProxies {
+		var result = Dictionary();
+		result[asSymbol(this.name ++ "Lo")] = valueLoMappedProxy;
+		result[asSymbol(this.name ++ "Hi")] = valueHiMappedProxy;
+		^result;
+	}
+
 }

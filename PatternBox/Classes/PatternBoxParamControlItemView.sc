@@ -12,16 +12,17 @@ a.bounds
 PatternBoxParamControlItemView : View {
 
     var <>spec, <>keyName, popupSelectControl, controlSpecView, controlView, textFieldControlName, mainLayout, buttonRemove, <editMode, <patternProxy, <value;
-    var <>actionRemove, <>actionItemChanged, <>actionControlNameChanged, <controlName, <>selectedControlType;
+    var <>actionRemove, <>actionControlItemChanged, <>actionControlNameChanged, <controlName, <>selectedControlType;
     var editMode = false;
-    *new { |parent, bounds|
-        ^super.new(parent, bounds).initialize();
+    *new { |name, parent, bounds|
+        ^super.new(parent, bounds).initialize(name);
     }
 
-    initialize {
+    initialize { |name|
         patternProxy = PatternProxy();
         this.spec = ControlSpec();
         this.initializeView();
+		this.controlName = name;
         this.onItemChanged_PopupSelectControl("slider");
     }
 
@@ -49,8 +50,7 @@ PatternBoxParamControlItemView : View {
         popupSelectControl.visible = mode;
         textFieldControlName.visible = mode;
         controlSpecView.visible = mode;
-        if (controlView.notNil, { controlView.editMode = mode; });
-        editMode = mode;
+        if (controlView.notNil, { controlView.editMode = mode; });        editMode = mode;
         if (controlView.notNil, { controlView.editMode = mode; });
     }
 
@@ -70,6 +70,7 @@ PatternBoxParamControlItemView : View {
 
     onControlNameChanged_TextField { |name|
         this.controlName = name;
+		if (controlView.notNil, { controlView.name = name; });
         actionControlNameChanged.value(this);
     }
 
@@ -81,14 +82,21 @@ PatternBoxParamControlItemView : View {
 		{ type == "range" } { controlView = RangeSliderView(); }
 		{ type == "steps" } {controlView = MultiStepView(); }
 		{ type == "multislider" } { controlView = SliderSequencerView(); };
+		controlView.name = this.controlName;
 		controlView.spec = spec;
 		controlView.uiMode(\brief);
         mainLayout.addSpanning(controlView, 2, 0, columnSpan: 3);
+		if (actionControlItemChanged.notNil, { this.actionControlItemChanged.value(this); });
     }
 
     randomize {
         if (controlView.notNil, { controlView.randomize(); });
     }
+
+	getProxies {
+		if (controlView.notNil, {
+			^controlView.getProxies(); });
+	}
 
     getState {
 		// selectedControlType

@@ -37,8 +37,6 @@ SliderSequencerView : View {
 		sliders.size do: { |i|
 			proxyMapped[i] = spec.map(proxy[i]);
 		};
-		proxy.postln;
-			proxyMapped.postln;
 	}
 
 	init {
@@ -60,8 +58,6 @@ SliderSequencerView : View {
 				|sender|
 				proxy[i] = sender.value;
 				proxyMapped[i] = spec.map(sender.value);
-				proxy.postln;
-				proxyMapped.postln;
 			});
 			sliders.add(newSlider);
 			this.layout.add(newSlider);
@@ -74,5 +70,11 @@ SliderSequencerView : View {
 
 	labelText_ { |text|
 
+	}
+
+	getProxies {
+		var result = Dictionary();
+		result[this.name.asSymbol] = proxyMapped;
+		^result;
 	}
 }

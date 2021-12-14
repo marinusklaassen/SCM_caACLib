@@ -45,7 +45,9 @@ SliderView : View {
 	init {
 		spec = ControlSpec();
 		valueProxy = PatternProxy();
+		valueProxy.source = 1;
 		valueMappedProxy = PatternProxy();
+		valueProxy.source = 1;
 
 		mainLayoutView = GridLayout();
 		this.layout = mainLayoutView;
@@ -89,5 +91,11 @@ SliderView : View {
 	labelText_ { |text|
 		labelText = text;
 		labelView.string = text;
+	}
+
+	getProxies {
+		var result = Dictionary();
+		result[this.name.asSymbol] = valueMappedProxy;
+		^result;
 	}
 }
