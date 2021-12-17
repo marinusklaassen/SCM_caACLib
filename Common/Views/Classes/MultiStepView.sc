@@ -8,85 +8,118 @@
  *         MultiStepView()
  *
  * AUTHOR: Marinus Klaassen (2012, 2021Q3)
- */
+ *
+ * EXAMPLE:
+a = MultiStepView().front
+b = a.getState();
+a.editMode = true;
+a.randomize
+a.loadState(b);
+*/
+
 
 MultiStepView : View {
-	var <>spec, <labelText, <value, valueMapped, <>name;
-	var <mainLayoutView, <sliderView, <labelView, <numberBoxView, unitView, controlSpecView, proxy, sliders;
+	var <>name, <stepCount = 0, <mainLayout, stepsLayout, buttonSteps, <>proxySteps, numberBoxStepCount, labelStepCount;
 
-	*new { | spec, parent, bounds |
-		^super.new(parent, bounds).init(spec); // use new copyargs
+	*new { | parent, bounds |
+		^super.new(parent, bounds).init;
 	}
 
 	editMode_ { |mode|
-		// Set editMode. For example: set the amount of steps.
-		// Off value // On value
-		// for \rest is off and \note is on
+		numberBoxStepCount.visible = mode;
+		labelStepCount.visible = mode;
+	}
+
+	stepCount_ { |argStepCount|
+		if(argStepCount > stepCount, {
+			(argStepCount - stepCount) do: { this.addStep(); };
+		}, if (argStepCount < stepCount, {
+			(stepCount - argStepCount) do: { this.removeStep(); };
+		}));
+		numberBoxStepCount.value = argStepCount;
+		stepCount = argStepCount;
+	}
+
+	addStep { |initVal = 0|
+		var index = proxySteps.size;
+		var newButtonStep = Button()
+		.states_([["_", nil, Color.black.alpha_(0.5)], ["_", nil, Color.red.alpha_(0.5)]])
+		  .minWidth_(30)
+		.action_({ |sender| proxySteps[index] = sender.value; });
+		buttonSteps.add(newButtonStep);
+		proxySteps.add(initVal);
+		stepsLayout.add(newButtonStep);
+		newButtonStep.value = initVal;
+	}
+
+	removeStep {
+		buttonSteps.pop().remove; // calling remove on controllers removes itself layout
+		proxySteps.pop();
 	}
 
 	uiMode { |mode|
+		// intentional left empty
+	}
 
+	spec_ { |argSpec|
+		// intentional left empty
 	}
 
 	randomize {
-		sliders do: { |slider| slider.value = 1.0.rand };
+		buttonSteps do: { |buttonStep| buttonStep.valueAction = 2.rand; };
 	}
 
-	registerProxy { |context|
-		//
-		// name
-	}
+	init {
+		proxySteps = List();
+		buttonSteps = List();
 
-	init { | spec, initVal, labelText, uiMode |
-		mainLayoutView = HLayout();
-		this.layout = mainLayoutView;
-		this.layout.margins_(0!4).spacing_(0);
+		mainLayout = GridLayout();
+		mainLayout.margins = 0!4;
+		this.layout = mainLayout;
 
-		proxy = List.newUsing(0!8);
-		sliders = List();
-		this.spec = spec;
+		stepsLayout = HLayout();
+		stepsLayout.margins = 0!4;
+		stepsLayout.spacing = 2;
 
-        // defaults
-		if (this.spec.isNil, { this.spec = ControlSpec(); });
+		mainLayout.addSpanning(stepsLayout, 0, 0, columnSpan: 2);
 
-		proxy.size do: { |i|
-			var newStep = Button().states_([["off"], ["on"]]).action_({ |sender| proxy[i] = sender.value; }).minWidth_(30);
-			sliders.add(newStep);
-			this.layout.add(newStep);
-		};
+		labelStepCount = StaticText();
+		labelStepCount.string = "Step amount:";
+		labelStepCount.maxWidth = 100;
 
-		mainLayoutView.margins = 0!4;
+		mainLayout.add(labelStepCount, 1, 0);
 
-	    this.labelText = labelText;
+		numberBoxStepCount = NumberBox();
+        numberBoxStepCount.decimals = 0;
+		numberBoxStepCount.clipLo = 1;
+		numberBoxStepCount.clipHi = 128;
+		numberBoxStepCount.action = { |sender| this.stepCount_(sender.value); };
+		numberBoxStepCount.maxWidth = 50;
+		mainLayout.add(numberBoxStepCount, 1, 1, align: \left);
+
+		mainLayout.add(nil, 1, 2);
+
+		this.stepCount = 8;
+		this.editMode = false;
 	}
 
 	getProxies {
 		var result = Dictionary();
-		result[this.name.asSymbol] = proxy;
+		result[this.name.asSymbol] = proxySteps;
 		^result;
-	}
-
-	value_ { |v|
-		value = v;
-		sliderView.value = value;
-		numberBoxView.value = this.spec.map(value);
-	}
-
-	labelText_ { |text|
-
 	}
 
 	getState {
 		var state = Dictionary();
-		state[\slidersValues] = sliders collect: { |slider| slider.value; };
+		state[\stepValues] = proxySteps collect: { |buttonStep| buttonStep.value; };
 		^state;
     }
 
     loadState { |state|
-		state[\slidersValues] do: { |value, i|
-			sliders[i].value = value;
-			proxy[i] = value;
-		};
+		// indien size is minder dan pop en remove het aantal.
+		if (state.notNil, {
+			this.stepCount = state[\stepValues].size;
+			state[\stepValues] do: { |value, i| buttonSteps[i].value = value; };
+		});
     }
 }
-

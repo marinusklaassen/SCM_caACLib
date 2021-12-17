@@ -71,18 +71,19 @@ ButtonFactory {
 			newInstance.minHeight = 60;
 		});
 		if (class.contains("toggle-play-patternboxprojectitemview"), {
-			newInstance.font = Font("Menlo", 14);
+			newInstance.font = Font("Menlo", 24);
             newInstance.minWidth_(50).maxWidth_(45).minHeight_(50);
-			newInstance.states_([["PLAY"], ["STOP"]]);
+			newInstance.states_([["▶"], ["◼"]]);
 		});
 		if (class.contains("btn-patternboxprojectitemview-showpatternbox"), {
-			newInstance.font = Font("Menlo", 14);
+			newInstance.font = Font("Menlo", 28);
             newInstance.minWidth_(50).maxWidth_(45).minHeight_(50);
-			newInstance.states_([["SCORE"]])
+			newInstance.states_([["🎛️"]])
 		});
 		if (class.contains("btn-delete"), {
 			newInstance = DeleteButton();
-            newInstance.fixedSize_(10)
+			newInstance.background = Color.black.alpha_(0);
+            newInstance.fixedSize_(13)
 		});
 		^newInstance;
 	}

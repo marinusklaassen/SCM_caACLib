@@ -50,7 +50,7 @@ PatternBoxParamControlItemView : View {
         popupSelectControl.visible = mode;
         textFieldControlName.visible = mode;
         controlSpecView.visible = mode;
-        if (controlView.notNil, { controlView.editMode = mode; });        editMode = mode;
+		editMode = mode;
         if (controlView.notNil, { controlView.editMode = mode; });
     }
 
@@ -85,6 +85,7 @@ PatternBoxParamControlItemView : View {
 		controlView.name = this.controlName;
 		controlView.spec = spec;
 		controlView.uiMode(\brief);
+		controlView.editMode = this.editMode;
         mainLayout.addSpanning(controlView, 2, 0, columnSpan: 3);
 		if (actionControlItemChanged.notNil, { this.actionControlItemChanged.value(this); });
     }

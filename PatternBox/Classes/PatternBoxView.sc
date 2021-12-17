@@ -154,7 +154,8 @@ PatternBoxView : View {
 		layoutHeader = HLayout();
 		layoutMain.add(layoutHeader);
 
-		buttonPlay = ButtonFactory.createInstance(this, class: "btn-toggle btn-large", buttonString1: "PLAY", buttonString2: "STOP");
+		buttonPlay = ButtonFactory.createInstance(this, class: "btn-toggle btn-large", buttonString1: "▶", buttonString2: "◼");
+		buttonPlay.font = Font("Menlo", 24);
 		buttonPlay.action_({ |val| setValueFunction[\buttonPlay].value(val.value); });
 
 		buttonRandomize = ButtonFactory.createInstance(this, class: "btn-large btn-random", buttonString1: "RANDOMIZE");

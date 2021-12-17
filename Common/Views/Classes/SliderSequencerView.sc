@@ -8,74 +8,119 @@
  *         SliderSequencerView()
  *
  * AUTHOR: Marinus Klaassen (2012, 2021Q3)
+a = SliderSequencerView().front
+b = a.getState();
+a.editMode = true;
+a.randomize
+a.loadState(b);
+a.spec = \freq.asSpec;
  */
 
 SliderSequencerView : View {
 	var <spec, <labelText, <value, valueMapped;
-	var <mainLayoutView, <sliderView, <labelView, <numberBoxView, unitView, controlSpecView, proxy, proxyMapped, sliders;
+	var <>name, <stepCount = 0, <mainLayout, stepsLayout, buttonSteps, <>proxySteps, sliders, numberBoxStepCount, labelStepCount;
+	var <mainLayoutView, <sliderView, <labelView, <numberBoxView, unitView, controlSpecView, proxySteps, proxyStepsMapped, sliders;
 
 	*new { | parent, bounds |
 		^super.new(parent, bounds).init();
 	}
 
-	uiMode { |uiMode|
-		if (uiMode == \brief, {
-		});
+	editMode_ { |mode|
+		numberBoxStepCount.visible = mode;
+		labelStepCount.visible = mode;
 	}
 
-	editMode_ { |mode| }
+	stepCount_ { |argStepCount|
+		if(argStepCount > stepCount, {
+			(argStepCount - stepCount) do: { this.addStep(); };
+		}, if (argStepCount < stepCount, {
+			(stepCount - argStepCount) do: { this.removeStep(); };
+		}));
+		numberBoxStepCount.value = argStepCount;
+		stepCount = argStepCount;
+	}
+
+	addStep { |initVal = 0|
+		var index = proxySteps.size;
+		var newSliderStep = Slider()
+		.orientation_(\vertical)
+		.minHeight_(100)
+		.value_()
+		.action_({ |sender|
+			proxySteps[index] = sender.value;
+			proxyStepsMapped[index] = spec.map(sender.value);
+		});
+		sliders.add(newSliderStep);
+		proxySteps.add(initVal);
+		proxyStepsMapped.add(spec.map(initVal));
+		stepsLayout.add(newSliderStep);
+		newSliderStep.value = initVal;
+	}
+
+	removeStep {
+		sliders.pop().remove; // calling remove on controllers removes itself layout
+		proxySteps.pop();
+		proxyStepsMapped.pop();
+	}
+
+	uiMode { |mode|
+		// intentional left empty
+	}
 
 	randomize {
-		sliders do: { |slider| slider.value = 1.0.rand };
 		sliders.size do: { |i|
-			proxy[i] = sliders[i].value;
-			proxyMapped[i] = spec.map(proxy[i]);
+			sliders[i].value = 1.0.rand;
+			proxySteps[i] = sliders[i].value;
+			proxyStepsMapped[i] = spec.map(proxySteps[i]);
 		};
 	}
 
     spec_ { |argSpec|
 		spec = argSpec;
 		sliders.size do: { |i|
-			proxyMapped[i] = spec.map(proxy[i]);
+			proxyStepsMapped[i] = spec.map(proxySteps[i]);
 		};
 	}
 
 	init {
-		mainLayoutView = HLayout();
-		this.layout = mainLayoutView;
-		this.layout.margins_(0!4).spacing_(0);
-
-		proxy = List.newUsing(0!8);
-		proxyMapped = List.newUsing(0!8);
+		proxySteps = List();
+		proxyStepsMapped = List();
 		sliders = List();
-		// newCopyArgs didn't work.. weird. any workaround.
-		this.spec = spec;
 
-        // defaults
-		if (this.spec.isNil, { this.spec = ControlSpec(); });
+		mainLayout = GridLayout();
+		mainLayout.margins = 0!4;
+		this.layout = mainLayout;
 
-		proxy.size do: { |i|
-			var newSlider = Slider().orientation_(\vertical).minHeight_(100).value_().action_({
-				|sender|
-				proxy[i] = sender.value;
-				proxyMapped[i] = spec.map(sender.value);
-			});
-			sliders.add(newSlider);
-			this.layout.add(newSlider);
-		};
+		stepsLayout = HLayout();
+		stepsLayout.margins = 0!4;
+		stepsLayout.spacing = 2;
 
-		mainLayoutView.margins = 0!4;
+		mainLayout.addSpanning(stepsLayout, 0, 0, columnSpan: 2);
 
-	    this.labelText = labelText;
-	}
+		labelStepCount = StaticText();
+		labelStepCount.string = "Step amount:";
+		labelStepCount.maxWidth = 100;
 
-	labelText_ { |text|
+		mainLayout.add(labelStepCount, 1, 0);
 
+		numberBoxStepCount = NumberBox();
+        numberBoxStepCount.decimals = 0;
+		numberBoxStepCount.clipLo = 1;
+		numberBoxStepCount.clipHi = 128;
+		numberBoxStepCount.action = { |sender| this.stepCount_(sender.value); };
+		numberBoxStepCount.maxWidth = 50;
+		mainLayout.add(numberBoxStepCount, 1, 1, align: \left);
+
+		mainLayout.add(nil, 1, 2);
+
+		this.spec = ControlSpec();
+		this.stepCount = 8;
+		this.editMode = false;
 	}
 
 	getProxies {
 		var result = Dictionary();
-		result[this.name.asSymbol] = proxyMapped;
+		result[this.name.asSymbol] = proxyStepsMapped;
 		^result;
 	}
 
@@ -86,10 +131,13 @@ SliderSequencerView : View {
     }
 
     loadState { |state|
-		state[\slidersValues] do: { |value, i|
-			sliders[i].value = value;
-			proxy[i] = value;
-			proxyMapped[i] = spec.map(proxy[i]);
-		};
+		if (state.notNil, {
+			this.stepCount = state[\slidersValues].size;
+			state[\slidersValues] do: { |value, i|
+				sliders[i].value = value;
+				proxySteps[i] = value;
+				proxyStepsMapped[i] = spec.map(proxySteps[i]);
+			};
+		});
     }
 }

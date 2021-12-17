@@ -57,6 +57,7 @@ PatternBoxParamControlGroupView : View {
 		};
 		if (state.notNil, { controlItem.loadState(state) });
 		controlItems.add(controlItem);
+		controlItem.editMode = editMode;
 		mainLayout.insert(controlItem, controlItems.size - 1);
 		if (actionControlCRUD.notNil, { actionControlCRUD.value(this); });
 	}
