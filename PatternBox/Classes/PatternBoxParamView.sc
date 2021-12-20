@@ -100,6 +100,8 @@ PatternBoxParamView : View {
 
 		patternBoxParamControlSectionView = PatternBoxParamControlGroupView();
 		patternBoxParamControlSectionView.layout.margins = 0!4;
+		patternBoxParamControlSectionView.visible = false;
+		patternBoxParamControlSectionView.editMode = false;
 		patternBoxParamControlSectionView.actionControlCRUD = { |sender|
 			this.regenerateAndInterpretedParamScript();
 		};
@@ -120,7 +122,14 @@ PatternBoxParamView : View {
 		buttonSelectScriptOrSpecOpControlStack.maxWidth = 24;
 		buttonSelectScriptOrSpecOpControlStack.states = [[""] ++ Color.blue.dup(2)];
 		buttonSelectScriptOrSpecOpControlStack.action = {
-			patternBoxParamControlSectionView.visible = patternBoxParamControlSectionView.visible.not;
+			if (patternBoxParamControlSectionView.visible, {
+				patternBoxParamControlSectionView.visible = false;
+			},{
+				patternBoxParamControlSectionView.visible = true;
+				if (patternBoxParamControlSectionView.controlItems.size == 0, {
+					patternBoxParamControlSectionView.editMode = true;
+				});
+			});
 		};
 		mainLayout.add(buttonSelectScriptOrSpecOpControlStack, align: \top);
 
@@ -130,6 +139,9 @@ PatternBoxParamView : View {
 		buttonSwitchEditingMode.states = [[""] ++ Color.yellow.dup(2)];
 		buttonSwitchEditingMode.action = {
 			patternBoxParamControlSectionView.editMode = patternBoxParamControlSectionView.editMode.not;
+			if (patternBoxParamControlSectionView.editMode, {
+				patternBoxParamControlSectionView.visible = true;
+			});
 		};
 		mainLayout.add(buttonSwitchEditingMode, align: \top);
 
