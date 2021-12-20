@@ -77,8 +77,8 @@ ButtonFactory {
 		});
 		if (class.contains("btn-patternboxprojectitemview-showpatternbox"), {
 			newInstance.font = Font("Menlo", 28);
-            newInstance.minWidth_(50).maxWidth_(45).minHeight_(50);
-			newInstance.states_([["🎛️"]])
+			newInstance = Button().icon_(Image(PathName.new(PatternBoxView.filenameSymbol.asString).pathOnly ++ "sliders.png", 50@50)).iconSize_(30).front;
+			newInstance.minWidth_(50).maxWidth_(45).minHeight_(50);
 		});
 		if (class.contains("btn-delete"), {
 			newInstance = DeleteButton();
