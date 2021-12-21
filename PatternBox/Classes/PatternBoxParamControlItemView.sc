@@ -11,8 +11,8 @@ a.bounds
 
 PatternBoxParamControlItemView : View {
 
-    var <>spec, <>keyName, popupSelectControl, labelControlName, controlSpecView, controlView, textFieldControlName, mainLayout, buttonRemove, <editMode, <patternProxy, <value;
-    var <>actionRemove, <>actionControlItemChanged, <>actionControlNameChanged, <controlName, <>selectedControlType;
+    var <>spec, <>keyName, popupSelectControl, buttonUp, buttonDown, labelControlName, controlSpecView, controlView, textFieldControlName, mainLayout, buttonRemove, <editMode, <patternProxy, <value;
+    var <>actionRemove, <>actionMoveDown, <>actionMoveUp, <>actionControlItemChanged, <>actionControlNameChanged, <controlName, <>selectedControlType;
     var editMode = false;
     *new { |name, parent, bounds|
         ^super.new(parent, bounds).initialize(name);
@@ -46,10 +46,21 @@ PatternBoxParamControlItemView : View {
 	    controlSpecView = ControlSpecView();
 		controlSpecView.action = { |sender| this.onSpecChanged_ControlSpecView(sender); };
 	 	mainLayout.addSpanning(controlSpecView, 2, columnSpan: 2);
+		buttonUp = Button()
+		.fixedWidth_(20)
+		.states_([["↑", Color.black, Color.clear.alpha_(0.2)]])
+		.action_({  if (actionMoveUp.notNil, { actionMoveUp.value(this) }); });
+		buttonDown = Button()
+		.fixedWidth_(20)
+		.states_([["↓", Color.black, Color.clear.alpha_(0.2)]])
+		.action_({  if (actionMoveDown.notNil, { actionMoveDown.value(this) }); });
+        mainLayout.add(HLayout(buttonUp, buttonDown), 4, 1, align: \right);
 	}
 
     editMode_ { |mode|
         buttonRemove.visible  = mode;
+		buttonUp.visible = mode;
+		buttonDown.visible = mode;
         popupSelectControl.visible = mode;
         textFieldControlName.visible = mode;
         controlSpecView.visible = mode;

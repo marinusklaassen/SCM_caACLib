@@ -55,11 +55,28 @@ PatternBoxParamControlGroupView : View {
 			if (actionControlCRUD.notNil, { actionControlCRUD.value(this); });
 
 		};
+		controlItem.actionMoveDown = { |sender|
+			this.movePatternBoxParamView(sender, 1);
+		};
+		controlItem.actionMoveUp = { |sender|
+			this.movePatternBoxParamView(sender, -1);
+		};
 		if (state.notNil, { controlItem.loadState(state) });
 		controlItems.add(controlItem);
 		controlItem.editMode = editMode;
+
 		mainLayout.insert(controlItem, controlItems.size - 1);
 		if (actionControlCRUD.notNil, { actionControlCRUD.value(this); });
+	}
+
+	movePatternBoxParamView { |controlItemView, step|
+		var currentPosition = controlItems.indexOf(controlItemView);
+		var nextPosition = currentPosition + step;
+		if (nextPosition >= 0 && (nextPosition < controlItems.size), {
+			controlItems.removeAt(currentPosition);
+			controlItems.insert(nextPosition, controlItemView);
+			mainLayout.insert(controlItemView, nextPosition);
+		});
 	}
 
 	randomize {
