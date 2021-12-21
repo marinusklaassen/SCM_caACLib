@@ -249,6 +249,7 @@ PatternBoxView : View {
 		layoutFooter.add(nil);
 
 		buttonAddChannel = ButtonFactory.createInstance(this, class: "btn-add");
+		buttonAddChannel.toolTip = "Add a new PatternBox key controller.";
 		buttonAddChannel.action = { this.addParamView(); };
 
 		layoutFooter.add(buttonAddChannel, align: \right);

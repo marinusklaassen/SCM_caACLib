@@ -11,7 +11,7 @@ a.bounds
 
 PatternBoxParamControlItemView : View {
 
-    var <>spec, <>keyName, popupSelectControl, controlSpecView, controlView, textFieldControlName, mainLayout, buttonRemove, <editMode, <patternProxy, <value;
+    var <>spec, <>keyName, popupSelectControl, labelControlName, controlSpecView, controlView, textFieldControlName, mainLayout, buttonRemove, <editMode, <patternProxy, <value;
     var <>actionRemove, <>actionControlItemChanged, <>actionControlNameChanged, <controlName, <>selectedControlType;
     var editMode = false;
     *new { |name, parent, bounds|
@@ -27,22 +27,25 @@ PatternBoxParamControlItemView : View {
     }
 
     initializeView {
+		this.background = Color.black.alpha = 0.2;
         mainLayout = GridLayout();
-        mainLayout.margins = 0!4;
+		mainLayout.margins = 4!4;
         this.layout = mainLayout;
-        popupSelectControl = PopUpMenu();
+		labelControlName = StaticText();
+		mainLayout.add(labelControlName, 0, 0);
+		popupSelectControl = PopUpMenu();
         popupSelectControl.items = ["slider", "range", "steps", "multislider" ];
         popupSelectControl.action = { |sender| this.onItemChanged_PopupSelectControl(sender.item); };
-        mainLayout.add(popupSelectControl, 0, 0);
+        mainLayout.add(popupSelectControl, 1, 0);
         textFieldControlName = TextField();
         textFieldControlName.action = { |sender| this.onControlNameChanged_TextField(sender.string.stripWhiteSpace) };
-        mainLayout.add(textFieldControlName, 0, 1);
+        mainLayout.add(textFieldControlName, 1, 1);
         buttonRemove = ButtonFactory.createInstance(this, class: "btn-delete");
         buttonRemove.action = { if (actionRemove.notNil, { actionRemove.value(this); }); };
-        mainLayout.add(buttonRemove, 0, 2);
+        mainLayout.add(buttonRemove, 0, 1, align: \right);
 	    controlSpecView = ControlSpecView();
 		controlSpecView.action = { |sender| this.onSpecChanged_ControlSpecView(sender); };
-	 	mainLayout.addSpanning(controlSpecView, 1, columnSpan: 3);
+	 	mainLayout.addSpanning(controlSpecView, 2, columnSpan: 2);
 	}
 
     editMode_ { |mode|
@@ -57,6 +60,7 @@ PatternBoxParamControlItemView : View {
 	controlName_ { |name|
 		controlName = name;
 		textFieldControlName.string = name;
+		labelControlName.string = name;
 	}
 
     controlNameAction_ { |name|
@@ -86,7 +90,7 @@ PatternBoxParamControlItemView : View {
 		controlView.spec = spec;
 		controlView.uiMode(\brief);
 		controlView.editMode = this.editMode;
-        mainLayout.addSpanning(controlView, 2, 0, columnSpan: 3);
+        mainLayout.addSpanning(controlView, 3, 0, columnSpan: 2);
 		if (actionControlItemChanged.notNil, { this.actionControlItemChanged.value(this); });
     }
 

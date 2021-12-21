@@ -54,6 +54,7 @@ PatternBoxProjectView : View {
 		footerLayout.add(tempoClockView,  align: \left);
 
 		buttonAddPatternBox = ButtonFactory.createInstance(this, "btn-add");
+		buttonAddPatternBox.toolTip = "Add a new PatternBox.";
 		buttonAddPatternBox.action = { this.invokeEvent(this.eventAddPatternBox); };
 
 		footerLayout.add(buttonAddPatternBox,  align: \right);
