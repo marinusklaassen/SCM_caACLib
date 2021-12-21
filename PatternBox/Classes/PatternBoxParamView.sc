@@ -66,6 +66,7 @@ PatternBoxParamView : View {
 			,align: \top);
 
 		textpatternTargetID = TextFieldFactory.createInstance(this, "text-patternboxpatterntargetid");
+		textpatternTargetID.toolTip = "Set the target ID of the pbind. For each unique ID a pbind is constructed.";
 		textpatternTargetID.action = { | sender |
 			var patternTargetIDStripped = sender.string.stripWhiteSpace();
 			this.patternTargetID = patternTargetIDStripped;
@@ -76,6 +77,7 @@ PatternBoxParamView : View {
 		mainLayout.add(textpatternTargetID, align: \top);
 
 		textPatternKeyname = TextFieldFactory.createInstance(this, "text-patternboxparamview");
+		textPatternKeyname.toolTip = "The key where a fixed value, a pattern or controls (via pattern proxies) can be assigned.";
 		textPatternKeyname.action = { | sender |
 			var keyNameStripped = sender.string.stripWhiteSpace();
 			patternBoxParamControlSectionView.controlNameDefault = keyNameStripped;
@@ -92,6 +94,7 @@ PatternBoxParamView : View {
 		mainLayout.add(layoutScriptControllerSection, align: \top, stretch: 1.0);
 
 		scriptFieldView = ScriptFieldViewFactory.createInstance(this, "script-patternboxparamview");
+		scriptFieldView.toolTip = "Set a fixed value, a pattern or controls (via pattern proxies) here.";
 		scriptFieldView.action = { | sender |
 			this.regenerateAndInterpretedParamScript();
 		};
@@ -138,8 +141,13 @@ PatternBoxParamView : View {
 		buttonSwitchEditingMode.maxWidth = 24;
 		buttonSwitchEditingMode.states = [[""] ++ Color.yellow.dup(2)];
 		buttonSwitchEditingMode.action = {
-			patternBoxParamControlSectionView.editMode = patternBoxParamControlSectionView.editMode.not;
 			if (patternBoxParamControlSectionView.editMode, {
+				patternBoxParamControlSectionView.editMode =  false;
+				if (patternBoxParamControlSectionView.controlItems.size == 0, {
+					patternBoxParamControlSectionView.visible = false;
+				});
+			},{
+				patternBoxParamControlSectionView.editMode = true;
 				patternBoxParamControlSectionView.visible = true;
 			});
 		};
@@ -155,6 +163,7 @@ PatternBoxParamView : View {
 		mainLayout.add(buttonRandomizeControls, align: \top);
 
 		buttonDelete = ButtonFactory.createInstance(this, class: "btn-delete");
+		buttonDelete.toolTip = "Remove this pattern key control section.";
 		buttonDelete.action = {
 			if (actionButtonDelete.notNil, { actionButtonDelete.value(this) });
 		};
