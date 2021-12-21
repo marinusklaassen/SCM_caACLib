@@ -54,14 +54,14 @@ PatternBoxParamView : View {
 		mainLayout.add(
 			Button()
 			.fixedWidth_(20)
-			.string_("↑")
+			.states_([["↑", Color.black, Color.clear.alpha_(0.1)]])
 			.action_({  if (actionMoveUp.notNil, { actionMoveUp.value(this) }); })
 			,align: \top);
 
 		mainLayout.add(
 			Button()
 			.fixedWidth_(20)
-			.string_("↓")
+			.states_([["↓", Color.black, Color.clear.alpha_(0.1)]])
 			.action_({  if (actionMoveDown.notNil, { actionMoveDown.value(this) }); })
 			,align: \top);
 

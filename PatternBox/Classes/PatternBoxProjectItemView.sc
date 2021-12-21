@@ -19,7 +19,7 @@ a.keys do: { |key| a[key.postln].postln }
 
 PatternBoxProjectItemView : View {
 
-	var mainLayout, patternBoxView, togglePlay, sliderVolume, buttonShowPatternBox, buttonRemove;
+	var mainLayout, <>actionMoveUp, <>actionMoveDown, patternBoxView, togglePlay, sliderVolume, buttonShowPatternBox, buttonRemove;
 	var onCommandPeriodFunc, <>actionRemove;
 	var volume = 1, patternBoxName, playState = 0, lemurClient;
 
@@ -28,7 +28,6 @@ PatternBoxProjectItemView : View {
     }
 
     initialize { |lemurClient|
-
         lemurClient = lemurClient;
 		patternBoxView = PatternBoxView(lemurClient: patternBoxView, bounds: Rect(100, 100, 600, 800));
 		patternBoxView.actionNameChanged = { |sender| this.onPatternBoxNameChanged(sender); };
@@ -42,28 +41,45 @@ PatternBoxProjectItemView : View {
     initializeView {
         mainLayout = GridLayout();
 		mainLayout.margins_([0,0,20,0]);
+		mainLayout.vSpacing_(0);
 		this.layout = mainLayout;
 		this.background = Color.black.alpha_(0.2);
 
+		mainLayout.add(
+			Button()
+			.fixedWidth_(20)
+			.fixedHeight_(24)
+			.states_([["↑", Color.black, Color.white.alpha_(0.5)]])
+			.action_({  if (actionMoveUp.notNil, { actionMoveUp.value(this) }); })
+			,0, 0);
+
+		mainLayout.add(
+			Button()
+			.fixedWidth_(20)
+			.fixedHeight_(24)
+			.states_([["↓", Color.black, Color.white.alpha_(0.5)]])
+			.action_({  if (actionMoveDown.notNil, { actionMoveDown.value(this) }); })
+			,1, 0);
+
 		togglePlay = ButtonFactory.createInstance(this, class: "toggle-play-patternboxprojectitemview");
 		togglePlay.action = {|sender| this.onTogglePlay(sender); };
-		mainLayout.add(togglePlay, 0, 0);
+		mainLayout.addSpanning(togglePlay, 0, 1, rowSpan: 2);
 
 		sliderVolume = SliderViewFactory.createInstance(this)
 		.spec_(\db.asSpec)
 		.value_(volume)
 		.labelText_(patternBoxView.patternBoxName)
 		.action_({ |sender | this.onSliderVolumeChanged(sender.value); });
-        mainLayout.add(sliderVolume, 0, 1);
+        mainLayout.addSpanning(sliderVolume, 0, 2, rowSpan: 2);
 		mainLayout.setColumnStretch(1, 1);
 
 		buttonShowPatternBox = ButtonFactory.createInstance(this, class: "btn-patternboxprojectitemview-showpatternbox");
 		buttonShowPatternBox.action = { |sender| this.onButtonShowPatternBox(sender); };
-        layout.add(buttonShowPatternBox, 0, 2);
+        layout.addSpanning(buttonShowPatternBox, 0, 3, rowSpan: 2);
 
 		buttonRemove = ButtonFactory.createInstance(this, class: "btn-delete");
 		buttonRemove.action = { |sender| this.onButtonRemove(sender); };
-		layout.add(buttonRemove, 0, 3, align: \top);
+		layout.add(buttonRemove, 0, 4, align: \top);
     }
 
 	onPatternBoxNameChanged { |sender|

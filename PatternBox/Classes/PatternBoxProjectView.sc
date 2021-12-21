@@ -87,9 +87,25 @@ PatternBoxProjectView : View {
 		patternBoxProjectItemView.actionRemove = { | sender |
 			patternBoxProjectItemViews.remove(patternBoxProjectItemView);
 		};
+		patternBoxProjectItemView.actionMoveDown = { |sender|
+			this.movePatternBoxItemView(sender, 1);
+		};
+		patternBoxProjectItemView.actionMoveUp = { |sender|
+			this.movePatternBoxItemView(sender, -1);
+		};
 		layoutPatternBoxItems.insert(patternBoxProjectItemView, patternBoxProjectItemViews.size); // workaround. insert before stretchable space.
 		patternBoxProjectItemViews.add(patternBoxProjectItemView);
 		^patternBoxProjectItemView;
+	}
+
+	movePatternBoxItemView { |patternBoxProjectItemView, step|
+		var currentPosition = patternBoxProjectItemViews.indexOf(patternBoxProjectItemView);
+		var nextPosition = currentPosition + step;
+		if (nextPosition >= 0 && (nextPosition < patternBoxProjectItemViews.size), {
+			patternBoxProjectItemViews.removeAt(currentPosition);
+			patternBoxProjectItemViews.insert(nextPosition, patternBoxProjectItemView);
+			layoutPatternBoxItems.insert(patternBoxProjectItemView, nextPosition);
+		});
 	}
 
 	getState {
