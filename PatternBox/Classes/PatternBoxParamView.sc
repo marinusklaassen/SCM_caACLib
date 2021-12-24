@@ -23,7 +23,7 @@ PatternBoxParamView : View {
 	var <>actionNameChanged, <>removeAction, <>index, <>paramProxy, <>controllerProxies, <>scriptFunc, <>actionButtonDelete, <>rangeSliderAction, <>sliderAction, <>actionPatternScriptChanged, <>actionPatternTargetIDChanged;
 	var layoutStackControlSection, controlNoControl, controlSlider, controlRangeSlider, <keyName, <patternTargetID, mainLayout, textpatternTargetID, textPatternKeyname, layoutScriptControllerSection, scorePatternScriptEditorView;
 	var skipRegenerate = false, patternBoxParamControlSectionView, buttonSelectScriptView, buttonSelectScriptOrSpecOpControlStack, buttonSwitchEditingMode, buttonRandomizeControls, <>actionMoveUp, <>actionMoveDown;
-	var <>actionMoveParamView, prBeginDragAction, prCanReceiveDragHandler, prReceiveDragHandler;
+	var <>actionMoveParamView, prBeginDragAction, prCanReceiveDragHandler, prReceiveDragHandler, <>actionInsertPatternBox;
 
 	*new { | patternBoxContext, parent, bounds |
 		^super.new(parent, bounds).initialize(patternBoxContext);
@@ -51,6 +51,15 @@ PatternBoxParamView : View {
 		mainLayout = HLayout();
 		mainLayout.margins = [5, 5, 20, 5];
 		this.layout = mainLayout;
+
+		this.setContextMenuActions(
+			MenuAction("Insert row before", {
+				if (actionInsertPatternBox.notNil, { actionInsertPatternBox.value(this, "INSERT_BEFORE"); });
+			}),
+			MenuAction("Insert row after", {
+				if (actionInsertPatternBox.notNil, { actionInsertPatternBox.value(this, "INSERT_AFTER"); });
+			})
+		);
 
 		mainLayout.add(
 			Button()

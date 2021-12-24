@@ -278,7 +278,7 @@ PatternBoxView : View {
 		});
 	}
 
-	addParamView {
+	addParamView { |positionInLayout|
 		var paramChannel = PatternBoxParamView(this);
 
 		paramChannel.actionPatternTargetIDChanged = { |sender|
@@ -303,6 +303,14 @@ PatternBoxView : View {
 			this.movePatternBoxParamView(sender, -1);
 		};
 
+		paramChannel.actionInsertPatternBox = { |sender, insertType|
+			var positionInLayout = controllers.indexOf(sender);
+			if (insertType == "INSERT_AFTER", {
+				positionInLayout = positionInLayout + 1;
+			});
+			this.addParamView(positionInLayout);
+		};
+
 		paramChannel.actionMoveParamView = { |dragDestinationObject, dragObject|
 			var targetPosition;
 			if (dragDestinationObject !==  dragObject, {
@@ -313,8 +321,14 @@ PatternBoxView : View {
 			});
 		};
 
-		layoutChannels.insert(paramChannel, controllers.size);
-		controllers = controllers.add(paramChannel);
+		if (positionInLayout.notNil, {
+			layoutChannels.insert(paramChannel, positionInLayout);
+			controllers = controllers.insert(positionInLayout, paramChannel);
+		},{
+			layoutChannels.insert(paramChannel, controllers.size);
+			controllers = controllers.add(paramChannel);
+		});
+
 		^paramChannel;
 	}
 
