@@ -48,13 +48,14 @@ PatternBoxProjectItemView : View {
 		this.background = Color.black.alpha_(0.2);
 
 		this.setContextMenuActions(
-			MenuAction("Insert PatternBox before", {
+			MenuAction("Insert row before", {
 				if (actionInsertPatternBox.notNil, { actionInsertPatternBox.value(this, "INSERT_BEFORE"); });
 			}),
-			MenuAction("Insert PatternBox after", {
+			MenuAction("Insert row after", {
 				if (actionInsertPatternBox.notNil, { actionInsertPatternBox.value(this, "INSERT_AFTER"); });
 			})
 		);
+
 		buttonMoveUp = Button()
 			.fixedWidth_(20)
 			.fixedHeight_(24)
