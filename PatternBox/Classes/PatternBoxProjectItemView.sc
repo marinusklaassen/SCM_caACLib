@@ -17,11 +17,13 @@ m.model[\envirText]
 a.keys do: { |key| a[key.postln].postln }
 */
 
+
 PatternBoxProjectItemView : View {
 
-	var mainLayout, <>actionMoveUp, <>actionMoveDown, patternBoxView, togglePlay, sliderVolume, buttonShowPatternBox, buttonRemove;
-	var onCommandPeriodFunc, <>actionRemove;
-	var volume = 1, patternBoxName, playState = 0, lemurClient;
+	var mainLayout, <>actionMoveUp, <>actionMoveDown, patternBoxView, togglePlay, sliderVolume, buttonShowPatternBox, buttonRemove, buttonMoveUp, buttonMoveDown;
+	var onCommandPeriodFunc, <>actionRemove, <>actionInsertPatternBox, <>actionMovePatternBox;
+	var volume = 1, <patternBoxName, playState = 0, lemurClient;
+	var prCanReceiveDragHandler, prReceiveDragHandler, prBeginDragAction;
 
     *new { |parent, bounds, lemurClient|
         ^super.new(parent, bounds).initialize(lemurClient);
@@ -38,28 +40,37 @@ PatternBoxProjectItemView : View {
 		this.initializeView();
     }
 
-    initializeView {
+	initializeView {
         mainLayout = GridLayout();
-		mainLayout.margins_([0,0,20,0]);
+		mainLayout.margins_([2,2,20,2]);
 		mainLayout.vSpacing_(0);
 		this.layout = mainLayout;
 		this.background = Color.black.alpha_(0.2);
 
-		mainLayout.add(
-			Button()
+		this.setContextMenuActions(
+			MenuAction("Insert PatternBox before", {
+				if (actionInsertPatternBox.notNil, { actionInsertPatternBox.value(this, "INSERT_BEFORE"); });
+			}),
+			MenuAction("Insert PatternBox after", {
+				if (actionInsertPatternBox.notNil, { actionInsertPatternBox.value(this, "INSERT_AFTER"); });
+			})
+		);
+		buttonMoveUp = Button()
 			.fixedWidth_(20)
 			.fixedHeight_(24)
 			.states_([["↑", Color.black, Color.white.alpha_(0.5)]])
-			.action_({  if (actionMoveUp.notNil, { actionMoveUp.value(this) }); })
-			,0, 0);
+			.action_({  if (actionMoveUp.notNil, { actionMoveUp.value(this) }); });
 
-		mainLayout.add(
-			Button()
+
+		mainLayout.add(buttonMoveUp, 0, 0);
+
+		buttonMoveDown = Button()
 			.fixedWidth_(20)
 			.fixedHeight_(24)
 			.states_([["↓", Color.black, Color.white.alpha_(0.5)]])
-			.action_({  if (actionMoveDown.notNil, { actionMoveDown.value(this) }); })
-			,1, 0);
+			.action_({  if (actionMoveDown.notNil, { actionMoveDown.value(this) }); });
+
+		mainLayout.add(buttonMoveDown, 1, 0);
 
 		togglePlay = ButtonFactory.createInstance(this, class: "toggle-play-patternboxprojectitemview");
 		togglePlay.action = {|sender| this.onTogglePlay(sender); };
@@ -80,11 +91,59 @@ PatternBoxProjectItemView : View {
 		buttonRemove = ButtonFactory.createInstance(this, class: "btn-delete");
 		buttonRemove.action = { |sender| this.onButtonRemove(sender); };
 		layout.add(buttonRemove, 0, 4, align: \top);
-    }
+
+		// Start drag & drop workaround
+		prBeginDragAction =  { |view, x, y|
+			this; // Current instance is the object to drag.
+		};
+
+		prCanReceiveDragHandler = {  |view, x, y|
+			View.currentDrag.isKindOf(PatternBoxProjectItemView);
+		};
+
+		prReceiveDragHandler = { |view, x, y|
+			if (actionMovePatternBox.notNil, { actionMovePatternBox.value(this, View.currentDrag); });
+		};
+
+		this.dragLabel = patternBoxView.patternBoxName;
+		this.beginDragAction = prBeginDragAction;
+		this.canReceiveDragHandler = prCanReceiveDragHandler;
+		this.receiveDragHandler = prReceiveDragHandler;
+
+		buttonMoveUp.dragLabel = patternBoxView.patternBoxName;
+		buttonMoveUp.beginDragAction = prBeginDragAction;
+		buttonMoveUp.canReceiveDragHandler = prCanReceiveDragHandler;
+		buttonMoveUp.receiveDragHandler = prReceiveDragHandler;
+
+	    buttonMoveDown.dragLabel = patternBoxView.patternBoxName;
+		buttonMoveDown.beginDragAction = prBeginDragAction;
+		buttonMoveDown.canReceiveDragHandler = prCanReceiveDragHandler;
+		buttonMoveDown.receiveDragHandler = prReceiveDragHandler;
+
+		togglePlay.dragLabel = patternBoxView.patternBoxName;
+		togglePlay.beginDragAction = prBeginDragAction;
+		togglePlay.canReceiveDragHandler = prCanReceiveDragHandler;
+		togglePlay.receiveDragHandler = prReceiveDragHandler;
+
+		buttonShowPatternBox.dragLabel = patternBoxView.patternBoxName;
+		buttonShowPatternBox.beginDragAction = prBeginDragAction;
+		buttonShowPatternBox.canReceiveDragHandler = prCanReceiveDragHandler;
+		buttonShowPatternBox.receiveDragHandler = prReceiveDragHandler;
+
+		sliderVolume.dragLabel = patternBoxView.patternBoxName;
+		sliderVolume.beginDragAction = prBeginDragAction;
+		sliderVolume.canReceiveDragHandler = prCanReceiveDragHandler;
+		sliderVolume.receiveDragHandler = prReceiveDragHandler;
+	}
 
 	onPatternBoxNameChanged { |sender|
 		sliderVolume.labelText = sender.patternBoxName;
 		patternBoxName = sender.patternBoxName;
+		this.dragLabel = sender.patternBoxName;
+		buttonShowPatternBox.dragLabel = sender.patternBoxName;
+		buttonMoveUp.dragLabel = sender.patternBoxName;
+		buttonMoveDown.dragLabel = sender.patternBoxName;
+		togglePlay.dragLabel = sender.patternBoxName;
 	}
 
 	onPatternBoxPlayStateChanged { |sender|

@@ -82,7 +82,7 @@ PatternBoxProjectView : View {
 		});
 	}
 
-	addPatternBox {
+	addPatternBox { |positionInLayout|
 		var patternBoxProjectItemView = PatternBoxProjectItemView(lemurClient);
 		patternBoxProjectItemView.actionRemove = { | sender |
 			patternBoxProjectItemViews.remove(patternBoxProjectItemView);
@@ -93,8 +93,32 @@ PatternBoxProjectView : View {
 		patternBoxProjectItemView.actionMoveUp = { |sender|
 			this.movePatternBoxItemView(sender, -1);
 		};
-		layoutPatternBoxItems.insert(patternBoxProjectItemView, patternBoxProjectItemViews.size); // workaround. insert before stretchable space.
-		patternBoxProjectItemViews.add(patternBoxProjectItemView);
+
+		patternBoxProjectItemView.actionInsertPatternBox = { |sender, insertType|
+			var positionInLayout = patternBoxProjectItemViews.indexOf(sender);
+			if (insertType == "INSERT_AFTER", {
+				positionInLayout = positionInLayout + 1;
+			});
+			this.addPatternBox(positionInLayout);
+		};
+
+		patternBoxProjectItemView.actionMovePatternBox = { |dragDestinationObject, dragObject|
+			var targetPosition;
+			if (dragDestinationObject !==  dragObject, {
+				targetPosition = patternBoxProjectItemViews.indexOf(dragDestinationObject);
+				patternBoxProjectItemViews.remove(dragObject);
+				patternBoxProjectItemViews.insert(targetPosition, dragObject);
+				layoutPatternBoxItems.insert(dragObject, targetPosition);
+			});
+		};
+
+		if (positionInLayout.notNil, {
+			layoutPatternBoxItems.insert(patternBoxProjectItemView, positionInLayout);
+			patternBoxProjectItemViews.insert(positionInLayout, patternBoxProjectItemView);
+		},{
+			layoutPatternBoxItems.insert(patternBoxProjectItemView, patternBoxProjectItemViews.size); // workaround. insert before stretchable space.
+			patternBoxProjectItemViews.add(patternBoxProjectItemView);
+		});
 		^patternBoxProjectItemView;
 	}
 
