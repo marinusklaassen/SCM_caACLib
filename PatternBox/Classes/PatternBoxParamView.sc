@@ -23,6 +23,7 @@ PatternBoxParamView : View {
 	var <>actionNameChanged, <>removeAction, <>index, <>paramProxy, <>controllerProxies, <>scriptFunc, <>actionButtonDelete, <>rangeSliderAction, <>sliderAction, <>actionPatternScriptChanged, <>actionPatternTargetIDChanged;
 	var layoutStackControlSection, controlNoControl, controlSlider, controlRangeSlider, <keyName, <patternTargetID, mainLayout, textpatternTargetID, textPatternKeyname, layoutScriptControllerSection, scorePatternScriptEditorView;
 	var skipRegenerate = false, patternBoxParamControlSectionView, buttonSelectScriptView, buttonSelectScriptOrSpecOpControlStack, buttonSwitchEditingMode, buttonRandomizeControls, <>actionMoveUp, <>actionMoveDown;
+	var <>actionMoveParamView, prBeginDragAction, prCanReceiveDragHandler, prReceiveDragHandler;
 
 	*new { | patternBoxContext, parent, bounds |
 		^super.new(parent, bounds).initialize(patternBoxContext);
@@ -168,6 +169,23 @@ PatternBoxParamView : View {
 			if (actionButtonDelete.notNil, { actionButtonDelete.value(this) });
 		};
 		mainLayout.add(buttonDelete, align: \top);
+
+		// Start drag & drop workaround
+		prBeginDragAction =  { |view, x, y|
+			this; // Current instance is the object to drag.
+		};
+
+		prCanReceiveDragHandler = {  |view, x, y|
+			View.currentDrag.isKindOf(PatternBoxParamView);
+		};
+
+		prReceiveDragHandler = { |view, x, y|
+			if (actionMoveParamView.notNil, { actionMoveParamView.value(this, View.currentDrag); });
+		};
+
+		this.beginDragAction = prBeginDragAction;
+		this.canReceiveDragHandler = prCanReceiveDragHandler;
+		this.receiveDragHandler = prReceiveDragHandler;
 	}
 
 	regenerateAndInterpretedParamScript {

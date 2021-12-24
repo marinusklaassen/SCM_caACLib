@@ -303,6 +303,16 @@ PatternBoxView : View {
 			this.movePatternBoxParamView(sender, -1);
 		};
 
+		paramChannel.actionMoveParamView = { |dragDestinationObject, dragObject|
+			var targetPosition;
+			if (dragDestinationObject !==  dragObject, {
+				targetPosition = controllers.indexOf(dragDestinationObject);
+				controllers.remove(dragObject);
+				controllers.insert(targetPosition, dragObject);
+				layoutChannels.insert(dragObject, targetPosition);
+			});
+		};
+
 		layoutChannels.insert(paramChannel, controllers.size);
 		controllers = controllers.add(paramChannel);
 		^paramChannel;
