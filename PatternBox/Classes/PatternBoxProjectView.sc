@@ -45,6 +45,18 @@ PatternBoxProjectView : View {
 
 		scrollViewPatternBoxItems = ScrollViewFactory.createInstance(this);
 		scrollViewPatternBoxItems.canvas.layout = layoutPatternBoxItems;
+
+		scrollViewPatternBoxItems.canvas.canReceiveDragHandler = {  |view, x, y|
+			View.currentDrag.isKindOf(PatternBoxProjectItemView);
+		};
+
+		scrollViewPatternBoxItems.canvas.receiveDragHandler = { |view, x, y|
+			var targetPosition = patternBoxProjectItemViews.size - 1;
+			patternBoxProjectItemViews.remove(View.currentDrag);
+			patternBoxProjectItemViews.insert(targetPosition, View.currentDrag);
+			layoutPatternBoxItems.insert(View.currentDrag, targetPosition);
+		};
+
 		mainLayout.add(scrollViewPatternBoxItems);
 
 		footerLayout = HLayout();
@@ -87,12 +99,6 @@ PatternBoxProjectView : View {
 		patternBoxProjectItemView.actionRemove = { | sender |
 			patternBoxProjectItemViews.remove(patternBoxProjectItemView);
 		};
-		patternBoxProjectItemView.actionMoveDown = { |sender|
-			this.movePatternBoxItemView(sender, 1);
-		};
-		patternBoxProjectItemView.actionMoveUp = { |sender|
-			this.movePatternBoxItemView(sender, -1);
-		};
 
 		patternBoxProjectItemView.actionInsertPatternBox = { |sender, insertType|
 			var positionInLayout = patternBoxProjectItemViews.indexOf(sender);
@@ -120,16 +126,6 @@ PatternBoxProjectView : View {
 			patternBoxProjectItemViews.add(patternBoxProjectItemView);
 		});
 		^patternBoxProjectItemView;
-	}
-
-	movePatternBoxItemView { |patternBoxProjectItemView, step|
-		var currentPosition = patternBoxProjectItemViews.indexOf(patternBoxProjectItemView);
-		var nextPosition = currentPosition + step;
-		if (nextPosition >= 0 && (nextPosition < patternBoxProjectItemViews.size), {
-			patternBoxProjectItemViews.removeAt(currentPosition);
-			patternBoxProjectItemViews.insert(nextPosition, patternBoxProjectItemView);
-			layoutPatternBoxItems.insert(patternBoxProjectItemView, nextPosition);
-		});
 	}
 
 	getState {

@@ -19,10 +19,10 @@ a = PatternBoxParamView().front;
 */
 
 PatternBoxParamView : View {
-	var <>patternBoxContext, buttonDelete, <scriptFieldView, setValueFunction, dependants, <paramController, <name, <>currentLayerIndex, <>currentWidgetType, <>currentWidgetIndex, previousLayer;
+	var <>patternBoxContext, buttonDelete, <scriptFieldView, dragBothPanel, setValueFunction, dependants, <paramController, <name, <>currentLayerIndex, <>currentWidgetType, <>currentWidgetIndex, previousLayer;
 	var <>actionNameChanged, <>removeAction, <>index, <>paramProxy, <>controllerProxies, <>scriptFunc, <>actionButtonDelete, <>rangeSliderAction, <>sliderAction, <>actionPatternScriptChanged, <>actionPatternTargetIDChanged;
 	var layoutStackControlSection, controlNoControl, controlSlider, controlRangeSlider, <keyName, <patternTargetID, mainLayout, textpatternTargetID, textPatternKeyname, layoutScriptControllerSection, scorePatternScriptEditorView;
-	var skipRegenerate = false, patternBoxParamControlSectionView, buttonSelectScriptView, buttonSelectScriptOrSpecOpControlStack, buttonSwitchEditingMode, buttonRandomizeControls, <>actionMoveUp, <>actionMoveDown;
+	var skipRegenerate = false, patternBoxParamControlSectionView, buttonSelectScriptView, buttonSelectScriptOrSpecOpControlStack, buttonSwitchEditingMode, buttonRandomizeControls;
 	var <>actionMoveParamView, prBeginDragAction, prCanReceiveDragHandler, prReceiveDragHandler, <>actionInsertPatternBox;
 
 	*new { | patternBoxContext, parent, bounds |
@@ -48,32 +48,25 @@ PatternBoxParamView : View {
 	initializeView {
 
 		this.background = Color.black.alpha_(0.15);
+		this.toolTip = "Press CMD + drag to move this item to another position.";
 		mainLayout = HLayout();
 		mainLayout.margins = [5, 5, 20, 5];
 		this.layout = mainLayout;
 
 		this.setContextMenuActions(
-			MenuAction("Insert row before", {
+			MenuAction("Insert param row before", {
 				if (actionInsertPatternBox.notNil, { actionInsertPatternBox.value(this, "INSERT_BEFORE"); });
 			}),
-			MenuAction("Insert row after", {
+			MenuAction("Insert param row after", {
 				if (actionInsertPatternBox.notNil, { actionInsertPatternBox.value(this, "INSERT_AFTER"); });
 			})
 		);
 
-		mainLayout.add(
-			Button()
-			.fixedWidth_(20)
-			.states_([["↑", Color.black, Color.clear.alpha_(0.1)]])
-			.action_({  if (actionMoveUp.notNil, { actionMoveUp.value(this) }); })
-			,align: \top);
-
-		mainLayout.add(
-			Button()
-			.fixedWidth_(20)
-			.states_([["↓", Color.black, Color.clear.alpha_(0.1)]])
-			.action_({  if (actionMoveDown.notNil, { actionMoveDown.value(this) }); })
-			,align: \top);
+		dragBothPanel = DragBoth();
+		dragBothPanel.maxWidth = 24;
+		dragBothPanel.background = Color.blue.alpha_(0.3);
+		dragBothPanel.toolTip = this.toolTip;
+		mainLayout.add(dragBothPanel, align: \top);
 
 		textpatternTargetID = TextFieldFactory.createInstance(this, "text-patternboxpatterntargetid");
 		textpatternTargetID.toolTip = "Set the target ID of the pbind. For each unique ID a pbind is constructed.";
@@ -192,10 +185,24 @@ PatternBoxParamView : View {
 			if (actionMoveParamView.notNil, { actionMoveParamView.value(this, View.currentDrag); });
 		};
 
-		this.beginDragAction = prBeginDragAction;
-		this.canReceiveDragHandler = prCanReceiveDragHandler;
-		this.receiveDragHandler = prReceiveDragHandler;
+		this.setDragAndDropBehavior(this);
+		this.setDragAndDropBehavior(dragBothPanel);
+		this.setDragAndDropBehavior(buttonSelectScriptOrSpecOpControlStack);
+		this.setDragAndDropBehavior(buttonSelectScriptView);
+		this.setDragAndDropBehavior(buttonSwitchEditingMode);
+		this.setDragAndDropBehavior(buttonRandomizeControls);
+		this.setDragAndDropBehavior(textpatternTargetID);
+		this.setDragAndDropBehavior(textPatternKeyname);
+		this.setDragAndDropBehavior(scriptFieldView.textEditing);
 	}
+
+	setDragAndDropBehavior { |object|
+		object.dragLabel = "A PatternBox parameter.";
+		object.beginDragAction = prBeginDragAction;
+		object.canReceiveDragHandler = prCanReceiveDragHandler;
+		object.receiveDragHandler = prReceiveDragHandler;
+	}
+
 
 	regenerateAndInterpretedParamScript {
 		// Evalueer deze code ook bij wijziging van een UI control

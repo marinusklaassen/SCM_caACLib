@@ -1,16 +1,16 @@
 /*
- * FILENAME: SliderView
- *
- * DESCRIPTION:
- *         Based on the sclang EZSlider, however it's a child of View and the child views are organised by a layout, so it can scale.
- *
- *
+* FILENAME: SliderView
+*
+* DESCRIPTION:
+*         Based on the sclang EZSlider, however it's a child of View and the child views are organised by a layout, so it can scale.
+*
+*
 a = SliderView(nil, 400@100, \db.asSpec, 0.5, "test").front().action_({ |v| v.postln; }).labelText_("Label test").value_(1.0.rand).value.postln;
 a.value = 0;
 *         SliderView()
- *
- * AUTHOR: Marinus Klaassen (2012, 2021Q3)
- */
+*
+* AUTHOR: Marinus Klaassen (2012, 2021Q3)
+*/
 
 SliderView : View {
 	var <spec, <labelText, <value = 0, <valueMapped, valueProxy, valueMappedProxy;
@@ -34,7 +34,7 @@ SliderView : View {
 		this.value = 1.0.rand;
 	}
 
-    spec_ { |argSpec|
+	spec_ { |argSpec|
 		spec = argSpec;
 		numberBoxView.clipLo_(this.spec.minval);
 		numberBoxView.clipHi_(this.spec.maxval);
@@ -67,7 +67,7 @@ SliderView : View {
 		sliderView = SliderFactory.createInstance(this)
 		.orientation_(\horizontal)
 		.action_({ |sender|
-		    this.value = sender.value;
+			this.value = sender.value;
 			this.action.value(sender.value); });
 		unitView = StaticText();
 
@@ -77,6 +77,38 @@ SliderView : View {
 		mainLayoutView.addSpanning(sliderView, row: 1, column: 0, rowSpan: 1, columnSpan: 4);
 		mainLayoutView.setColumnStretch(1, 1);
 		mainLayoutView.margins = 0!4;
+	}
+
+	beginDragAction_ { |handler|
+		super.beginDragAction = handler;
+		labelView.beginDragAction = handler;
+		numberBoxView.beginDragAction = handler;
+		sliderView.beginDragAction = handler;
+		unitView.beginDragAction = handler;
+	}
+
+	dragLabel_ { |label|
+		super.dragLabel = label;
+		labelView.dragLabel = label;
+		numberBoxView.dragLabel = label;
+		sliderView.dragLabel = label;
+		unitView.dragLabel = label;
+	}
+
+	canReceiveDragHandler_ { |handler|
+		super.canReceiveDragHandler = handler;
+		labelView.canReceiveDragHandler = handler;
+		numberBoxView.canReceiveDragHandler = handler;
+		sliderView.canReceiveDragHandler = handler;
+		unitView.canReceiveDragHandler = handler;
+	}
+
+	receiveDragHandler_ { |handler|
+		super.receiveDragHandler = handler;
+		labelView.receiveDragHandler = handler;
+		numberBoxView.receiveDragHandler = handler;
+		sliderView.receiveDragHandler = handler;
+		unitView.receiveDragHandler = handler;
 	}
 
 	value_ { |argValue|
@@ -103,9 +135,9 @@ SliderView : View {
 		var state = Dictionary();
 		state[\value] = this.value;
 		^state;
-    }
+	}
 
-    loadState { |state|
+	loadState { |state|
 		this.value = state[\value];
-    }
+	}
 }

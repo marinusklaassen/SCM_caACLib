@@ -11,9 +11,11 @@ a.bounds
 
 PatternBoxParamControlItemView : View {
 
-    var <>spec, <>keyName, popupSelectControl, buttonUp, buttonDown, labelControlName, controlSpecView, controlView, textFieldControlName, mainLayout, buttonRemove, <editMode, <patternProxy, <value;
+    var <>spec, <>keyName, popupSelectControl, labelControlName, controlSpecView, controlView, textFieldControlName, mainLayout, buttonRemove, <editMode, <patternProxy, <value;
     var <>actionRemove, <>actionMoveDown, <>actionMoveUp, <>actionControlItemChanged, <>actionControlNameChanged, <controlName, <>selectedControlType;
     var editMode = false;
+	var prCanReceiveDragHandler, prReceiveDragHandler, prBeginDragAction, <>actionMoveControlItem, <>actionInsertControlItem;
+
     *new { |name, parent, bounds|
         ^super.new(parent, bounds).initialize(name);
     }
@@ -28,39 +30,67 @@ PatternBoxParamControlItemView : View {
 
     initializeView {
 		this.background = Color.black.alpha = 0.2;
-        mainLayout = GridLayout();
+		this.toolTip = "Configure control behavior.";
+		mainLayout = GridLayout();
 		mainLayout.margins = 4!4;
         this.layout = mainLayout;
+
+		this.setContextMenuActions(
+			MenuAction("Insert control row before", {
+				if (actionInsertControlItem.notNil, { actionInsertControlItem.value(this, "INSERT_BEFORE"); });
+			}),
+			MenuAction("Insert control param row after", {
+				if (actionInsertControlItem.notNil, { actionInsertControlItem.value(this, "INSERT_AFTER"); });
+			})
+		);
+
 		labelControlName = StaticText();
 		mainLayout.add(labelControlName, 0, 0);
 		popupSelectControl = PopUpMenu();
+		popupSelectControl.toolTip = "Select a control.";
         popupSelectControl.items = ["slider", "range", "steps", "multislider" ];
         popupSelectControl.action = { |sender| this.onItemChanged_PopupSelectControl(sender.item); };
         mainLayout.add(popupSelectControl, 1, 0);
         textFieldControlName = TextField();
+		textFieldControlName.toolTip = "Sets the parameter name of the control.";
         textFieldControlName.action = { |sender| this.onControlNameChanged_TextField(sender.string.stripWhiteSpace) };
         mainLayout.add(textFieldControlName, 1, 1);
         buttonRemove = ButtonFactory.createInstance(this, class: "btn-delete");
         buttonRemove.action = { if (actionRemove.notNil, { actionRemove.value(this); }); };
         mainLayout.add(buttonRemove, 0, 1, align: \right);
 	    controlSpecView = ControlSpecView();
+		controlSpecView.toolTip = "Sets the mapping using a ControlSpec.";
 		controlSpecView.action = { |sender| this.onSpecChanged_ControlSpecView(sender); };
 	 	mainLayout.addSpanning(controlSpecView, 2, columnSpan: 2);
-		buttonUp = Button()
-		.fixedWidth_(20)
-		.states_([["↑", Color.black, Color.clear.alpha_(0.2)]])
-		.action_({  if (actionMoveUp.notNil, { actionMoveUp.value(this) }); });
-		buttonDown = Button()
-		.fixedWidth_(20)
-		.states_([["↓", Color.black, Color.clear.alpha_(0.2)]])
-		.action_({  if (actionMoveDown.notNil, { actionMoveDown.value(this) }); });
-        mainLayout.add(HLayout(buttonUp, buttonDown), 4, 1, align: \right);
+
+		prBeginDragAction =  { |view, x, y|
+			[this, this.parent]; // Current instance is the object to drag.
+		};
+
+		prCanReceiveDragHandler = {  |view, x, y|
+			View.currentDrag[0].isKindOf(PatternBoxParamControlItemView) && (View.currentDrag[1] === this.parent);
+		};
+
+		prReceiveDragHandler = { |view, x, y|
+			if (actionMoveControlItem.notNil, { actionMoveControlItem.value(this, View.currentDrag[0]); });
+		};
+
+		this.setDragAndDropBehavior(this);
+		this.setDragAndDropBehavior(controlSpecView.textInput);
+		this.setDragAndDropBehavior(textFieldControlName);
+		this.setDragAndDropBehavior(popupSelectControl);
+		this.setDragAndDropBehavior(labelControlName);
 	}
 
-    editMode_ { |mode|
+	setDragAndDropBehavior { |object|
+		object.dragLabel = textFieldControlName.string;
+		object.beginDragAction = prBeginDragAction;
+		object.canReceiveDragHandler = prCanReceiveDragHandler;
+		object.receiveDragHandler = prReceiveDragHandler;
+	}
+
+	editMode_ { |mode|
         buttonRemove.visible  = mode;
-		buttonUp.visible = mode;
-		buttonDown.visible = mode;
         popupSelectControl.visible = mode;
         textFieldControlName.visible = mode;
         controlSpecView.visible = mode;
@@ -72,6 +102,11 @@ PatternBoxParamControlItemView : View {
 		controlName = name;
 		textFieldControlName.string = name;
 		labelControlName.string = name;
+		this.setDragAndDropBehavior(this);
+		this.setDragAndDropBehavior(controlSpecView);
+		this.setDragAndDropBehavior(textFieldControlName);
+		this.setDragAndDropBehavior(popupSelectControl);
+		this.setDragAndDropBehavior(labelControlName);
 	}
 
     controlNameAction_ { |name|

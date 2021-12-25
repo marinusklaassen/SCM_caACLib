@@ -207,11 +207,11 @@ PatternBoxView : View {
 		layoutControlHeaderLabels = HLayout();
 		layoutControlHeaderLabels.margins = [5, 5, 5, 0];
 
-		labelParamTargetpatternTargetIDControlHeader = StaticTextFactory.createInstance(this, class: "columnlabel-patternbox-move", labelText: "MOVE");
+		labelParamTargetpatternTargetIDControlHeader = StaticTextFactory.createInstance(this, class: "columnlabel-patternbox-move", labelText: "DRS");
 		layoutControlHeaderLabels.add(labelParamTargetpatternTargetIDControlHeader, align: \left);
 
 
-		labelParamTargetpatternTargetIDControlHeader = StaticTextFactory.createInstance(this, class: "columnlabel-patternbox-ptid", labelText: "PTID");
+		labelParamTargetpatternTargetIDControlHeader = StaticTextFactory.createInstance(this, class: "columnlabel-patternbox-ptid", labelText: "PTRID");
 		layoutControlHeaderLabels.add(labelParamTargetpatternTargetIDControlHeader, align: \left);
 
 		labelParamNameControlHeader = StaticTextFactory.createInstance(this, class: "columnlabel-patternbox", labelText: "NAME");
@@ -231,6 +231,15 @@ PatternBoxView : View {
 
 		scrollViewControls = ScrollViewFactory.createInstance(this);
 		scrollViewControls.canvas.layout = layoutChannels;
+		scrollViewControls.canvas.canReceiveDragHandler = {  |view, x, y|
+			View.currentDrag.isKindOf(PatternBoxParamView);
+		};
+		scrollViewControls.canvas.receiveDragHandler = { |view, x, y|
+			var targetPosition = controllers.size - 1;
+			controllers.remove(View.currentDrag);
+			controllers.insert(targetPosition, View.currentDrag);
+			layoutChannels.insert(View.currentDrag, targetPosition);
+		};
 		layoutMain.add(scrollViewControls);
 
 		layoutFooter = HLayout();
@@ -295,14 +304,6 @@ PatternBoxView : View {
 			this.rebuildParallelPatternStreams(sender);
 		};
 
-		paramChannel.actionMoveDown = { |sender|
-			this.movePatternBoxParamView(sender, 1);
-		};
-
-		paramChannel.actionMoveUp = { |sender|
-			this.movePatternBoxParamView(sender, -1);
-		};
-
 		paramChannel.actionInsertPatternBox = { |sender, insertType|
 			var positionInLayout = controllers.indexOf(sender);
 			if (insertType == "INSERT_AFTER", {
@@ -330,16 +331,6 @@ PatternBoxView : View {
 		});
 
 		^paramChannel;
-	}
-
-	movePatternBoxParamView { |patternBoxParamView, step|
-		var currentPosition = controllers.indexOf(patternBoxParamView);
-		var nextPosition = currentPosition + step;
-		if (nextPosition >= 0 && (nextPosition < controllers.size), {
-			controllers.removeAt(currentPosition);
-			controllers.insert(nextPosition, patternBoxParamView);
-			layoutChannels.insert(patternBoxParamView, nextPosition);
-		});
 	}
 
 	randomize {

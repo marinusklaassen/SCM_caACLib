@@ -10,7 +10,7 @@ ControlSpecView(bounds:400@20).front().action = { |sender| sender.controlSpec.po
 */
 
 ControlSpecView : View {
-	var controlSpec, mainLayout, textInput, <>action, labelError, model,dependants,setValueFunction;
+	var controlSpec, mainLayout, <textInput, <>action, labelError, model,dependants,setValueFunction;
 
 	// Constructor
 	*new { |parent, bounds|

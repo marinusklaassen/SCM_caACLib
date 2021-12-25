@@ -41,7 +41,7 @@ PatternBoxParamControlGroupView : View {
 		editMode = mode;
 	}
 
-	onButtonClick_AddPatternBoxParamControlItemView { |state|
+	onButtonClick_AddPatternBoxParamControlItemView { |state, positionInLayout|
 		var controlItem = PatternBoxParamControlItemView(name: "control" ++ (controlItems.size + 1));
 		controlItem.actionRemove = { |sender|
 			controlItems.remove(sender);
@@ -55,28 +55,32 @@ PatternBoxParamControlGroupView : View {
 			if (actionControlCRUD.notNil, { actionControlCRUD.value(this); });
 
 		};
-		controlItem.actionMoveDown = { |sender|
-			this.movePatternBoxParamView(sender, 1);
+		controlItem.actionMoveControlItem = { |dragDestinationObject, dragObject|
+			var targetPosition;
+			if (dragDestinationObject !==  dragObject, {
+				targetPosition = controlItems.indexOf(dragDestinationObject);
+				controlItems.remove(dragObject);
+				controlItems.insert(targetPosition, dragObject);
+				mainLayout.insert(dragObject, targetPosition);
+			});
 		};
-		controlItem.actionMoveUp = { |sender|
-			this.movePatternBoxParamView(sender, -1);
+		controlItem.actionInsertControlItem = { |sender, insertType|
+			var positionInLayout = controlItems.indexOf(sender);
+			if (insertType == "INSERT_AFTER", {
+				positionInLayout = positionInLayout + 1;
+			});
+			this.onButtonClick_AddPatternBoxParamControlItemView(positionInLayout: positionInLayout);
 		};
 		if (state.notNil, { controlItem.loadState(state) });
-		controlItems.add(controlItem);
 		controlItem.editMode = editMode;
-
-		mainLayout.insert(controlItem, controlItems.size - 1);
-		if (actionControlCRUD.notNil, { actionControlCRUD.value(this); });
-	}
-
-	movePatternBoxParamView { |controlItemView, step|
-		var currentPosition = controlItems.indexOf(controlItemView);
-		var nextPosition = currentPosition + step;
-		if (nextPosition >= 0 && (nextPosition < controlItems.size), {
-			controlItems.removeAt(currentPosition);
-			controlItems.insert(nextPosition, controlItemView);
-			mainLayout.insert(controlItemView, nextPosition);
+		if (positionInLayout.notNil, {
+			mainLayout.insert(controlItem, positionInLayout);
+			controlItems.insert(positionInLayout, controlItem);
+		},{
+			controlItems.add(controlItem);
+			mainLayout.insert(controlItem, controlItems.size - 1);
 		});
+		if (actionControlCRUD.notNil, { actionControlCRUD.value(this); });
 	}
 
 	randomize {
@@ -94,7 +98,7 @@ PatternBoxParamControlGroupView : View {
 		state[\visible] = this.visible;
 		state[\editMode] = editMode;
 		state[\controlItems] = controlItems collect: { |item| item.getState(); };
-			state[\controlItems].postln;
+			state[\controlItems];
 		^state;
 	}
 

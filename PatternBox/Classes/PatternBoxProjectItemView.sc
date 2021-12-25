@@ -20,7 +20,7 @@ a.keys do: { |key| a[key.postln].postln }
 
 PatternBoxProjectItemView : View {
 
-	var mainLayout, <>actionMoveUp, <>actionMoveDown, patternBoxView, togglePlay, sliderVolume, buttonShowPatternBox, buttonRemove, buttonMoveUp, buttonMoveDown;
+	var mainLayout, patternBoxView, togglePlay, dragBothPanel, sliderVolume, buttonShowPatternBox, buttonRemove, buttonMoveUp, buttonMoveDown;
 	var onCommandPeriodFunc, <>actionRemove, <>actionInsertPatternBox, <>actionMovePatternBox;
 	var volume = 1, <patternBoxName, playState = 0, lemurClient;
 	var prCanReceiveDragHandler, prReceiveDragHandler, prBeginDragAction;
@@ -42,8 +42,9 @@ PatternBoxProjectItemView : View {
 
 	initializeView {
         mainLayout = GridLayout();
-		mainLayout.margins_([2,2,20,2]);
+		mainLayout.margins_([5,2,20,2]);
 		mainLayout.vSpacing_(0);
+		this.toolTip = "Press CMD + drag to move this item to another position.";
 		this.layout = mainLayout;
 		this.background = Color.black.alpha_(0.2);
 
@@ -56,24 +57,15 @@ PatternBoxProjectItemView : View {
 			})
 		);
 
-		buttonMoveUp = Button()
-			.fixedWidth_(20)
-			.fixedHeight_(24)
-			.states_([["↑", Color.black, Color.white.alpha_(0.5)]])
-			.action_({  if (actionMoveUp.notNil, { actionMoveUp.value(this) }); });
-
-
-		mainLayout.add(buttonMoveUp, 0, 0);
-
-		buttonMoveDown = Button()
-			.fixedWidth_(20)
-			.fixedHeight_(24)
-			.states_([["↓", Color.black, Color.white.alpha_(0.5)]])
-			.action_({  if (actionMoveDown.notNil, { actionMoveDown.value(this) }); });
-
-		mainLayout.add(buttonMoveDown, 1, 0);
+		dragBothPanel = DragBoth();
+		dragBothPanel.minHeight = 50;
+		dragBothPanel.maxWidth = 12.5;
+		dragBothPanel.background = Color.blue.alpha_(0.3);
+		dragBothPanel.toolTip = this.toolTip;
+		mainLayout.addSpanning(dragBothPanel, 0, 0, rowSpan: 2);
 
 		togglePlay = ButtonFactory.createInstance(this, class: "toggle-play-patternboxprojectitemview");
+		togglePlay.toolTip = "Play/stop this PatternBox.";
 		togglePlay.action = {|sender| this.onTogglePlay(sender); };
 		mainLayout.addSpanning(togglePlay, 0, 1, rowSpan: 2);
 
@@ -87,13 +79,14 @@ PatternBoxProjectItemView : View {
 
 		buttonShowPatternBox = ButtonFactory.createInstance(this, class: "btn-patternboxprojectitemview-showpatternbox");
 		buttonShowPatternBox.action = { |sender| this.onButtonShowPatternBox(sender); };
+		buttonShowPatternBox.toolTip = "Bring the PatternBox editor to the front.";
         layout.addSpanning(buttonShowPatternBox, 0, 3, rowSpan: 2);
 
 		buttonRemove = ButtonFactory.createInstance(this, class: "btn-delete");
 		buttonRemove.action = { |sender| this.onButtonRemove(sender); };
 		layout.add(buttonRemove, 0, 4, align: \top);
 
-		// Start drag & drop workaround
+		// Start drag & drop beahvior workaround
 		prBeginDragAction =  { |view, x, y|
 			this; // Current instance is the object to drag.
 		};
@@ -106,45 +99,29 @@ PatternBoxProjectItemView : View {
 			if (actionMovePatternBox.notNil, { actionMovePatternBox.value(this, View.currentDrag); });
 		};
 
-		this.dragLabel = patternBoxView.patternBoxName;
-		this.beginDragAction = prBeginDragAction;
-		this.canReceiveDragHandler = prCanReceiveDragHandler;
-		this.receiveDragHandler = prReceiveDragHandler;
+		this.setDragAndDropBehavior(this);
+		this.setDragAndDropBehavior(dragBothPanel);
+		this.setDragAndDropBehavior(togglePlay);
+		this.setDragAndDropBehavior(buttonShowPatternBox);
+		this.setDragAndDropBehavior(sliderVolume);
+		// End drag & drop behavior workaround
+	}
 
-		buttonMoveUp.dragLabel = patternBoxView.patternBoxName;
-		buttonMoveUp.beginDragAction = prBeginDragAction;
-		buttonMoveUp.canReceiveDragHandler = prCanReceiveDragHandler;
-		buttonMoveUp.receiveDragHandler = prReceiveDragHandler;
-
-	    buttonMoveDown.dragLabel = patternBoxView.patternBoxName;
-		buttonMoveDown.beginDragAction = prBeginDragAction;
-		buttonMoveDown.canReceiveDragHandler = prCanReceiveDragHandler;
-		buttonMoveDown.receiveDragHandler = prReceiveDragHandler;
-
-		togglePlay.dragLabel = patternBoxView.patternBoxName;
-		togglePlay.beginDragAction = prBeginDragAction;
-		togglePlay.canReceiveDragHandler = prCanReceiveDragHandler;
-		togglePlay.receiveDragHandler = prReceiveDragHandler;
-
-		buttonShowPatternBox.dragLabel = patternBoxView.patternBoxName;
-		buttonShowPatternBox.beginDragAction = prBeginDragAction;
-		buttonShowPatternBox.canReceiveDragHandler = prCanReceiveDragHandler;
-		buttonShowPatternBox.receiveDragHandler = prReceiveDragHandler;
-
-		sliderVolume.dragLabel = patternBoxView.patternBoxName;
-		sliderVolume.beginDragAction = prBeginDragAction;
-		sliderVolume.canReceiveDragHandler = prCanReceiveDragHandler;
-		sliderVolume.receiveDragHandler = prReceiveDragHandler;
+	setDragAndDropBehavior { |object|
+		object.dragLabel = patternBoxView.patternBoxName;
+		object.beginDragAction = prBeginDragAction;
+		object.canReceiveDragHandler = prCanReceiveDragHandler;
+		object.receiveDragHandler = prReceiveDragHandler;
 	}
 
 	onPatternBoxNameChanged { |sender|
 		sliderVolume.labelText = sender.patternBoxName;
 		patternBoxName = sender.patternBoxName;
-		this.dragLabel = sender.patternBoxName;
-		buttonShowPatternBox.dragLabel = sender.patternBoxName;
-		buttonMoveUp.dragLabel = sender.patternBoxName;
-		buttonMoveDown.dragLabel = sender.patternBoxName;
-		togglePlay.dragLabel = sender.patternBoxName;
+		this.setDragAndDropBehavior(this);
+		this.setDragAndDropBehavior(dragBothPanel);
+		this.setDragAndDropBehavior(togglePlay);
+		this.setDragAndDropBehavior(buttonShowPatternBox);
+		this.setDragAndDropBehavior(sliderVolume);
 	}
 
 	onPatternBoxPlayStateChanged { |sender|

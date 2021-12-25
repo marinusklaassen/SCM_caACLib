@@ -25,7 +25,8 @@ StaticTextFactory {
 				newInstance.maxWidth = 88;
 				newInstance.minWidth = 88;
 			});
-			if (labelText == "PTID", {
+			if (labelText == "PTRID", {
+				newInstance.string = "PTID";
 				newInstance.maxWidth = 53;
 				newInstance.minWidth = 53;
 			});
@@ -35,8 +36,9 @@ StaticTextFactory {
 			});
 		});
 		if (class.contains("columnlabel-patternbox-move"), {
-				newInstance.maxWidth = 50;
-				newInstance.minWidth = 50;
+				newInstance.string = "..";
+			    newInstance.maxWidth = 28;
+				newInstance.minWidth = 28;
 		});
 		^newInstance;
 	}
