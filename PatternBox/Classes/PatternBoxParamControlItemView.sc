@@ -64,15 +64,15 @@ PatternBoxParamControlItemView : View {
 	 	mainLayout.addSpanning(controlSpecView, 2, columnSpan: 2);
 
 		prBeginDragAction =  { |view, x, y|
-			[this, this.parent]; // Current instance is the object to drag.
+			this // Current instance is the object to drag.
 		};
 
 		prCanReceiveDragHandler = {  |view, x, y|
-			View.currentDrag[0].isKindOf(PatternBoxParamControlItemView) && (View.currentDrag[1] === this.parent);
+			View.currentDrag.isKindOf(PatternBoxParamControlItemView) && (View.currentDrag.parent === this.parent);
 		};
 
 		prReceiveDragHandler = { |view, x, y|
-			if (actionMoveControlItem.notNil, { actionMoveControlItem.value(this, View.currentDrag[0]); });
+			if (actionMoveControlItem.notNil, { actionMoveControlItem.value(this, View.currentDrag); });
 		};
 
 		this.setDragAndDropBehavior(this);
