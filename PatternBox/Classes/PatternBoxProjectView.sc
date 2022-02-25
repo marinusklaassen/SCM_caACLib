@@ -24,6 +24,7 @@ PatternBoxProjectView : View {
 		this.initializeEvents();
 		this.initializeView();
 		this.registerEventHandlers();
+	    projectSaveAndLoadView.autoLoad();
 	}
 
 	initializeView {
@@ -33,7 +34,7 @@ PatternBoxProjectView : View {
 		mainLayout = VLayout();
 		this.layout = mainLayout;
 
-		projectSaveAndLoadView = ProjectPersistanceViewFactory.createInstance(this);
+		projectSaveAndLoadView = ProjectPersistanceViewFactory.createInstance(this, contextID: "PatternBoxProjectView");
 		mainLayout.add(projectSaveAndLoadView);
 
 		serverControlView = ServerControlViewFactory.createInstance(this);
@@ -157,4 +158,8 @@ PatternBoxProjectView : View {
 				};
 		});
 	}
+
+
+
+
 }

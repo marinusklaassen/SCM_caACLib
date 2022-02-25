@@ -162,8 +162,8 @@ PatternBoxProjectItemView : View {
     loadState { |state|
        state[\type] = "PatternBoxProjectItemView";
 	   patternBoxView.loadState(state[\patternBoxState]);
-       patternBoxName = state[\patternBoxName].postln;
-	   sliderVolume.labelText = patternBoxName.postln;
+       patternBoxName = state[\patternBoxName];
+	   sliderVolume.labelText = patternBoxName;
 	   volume = state[\volume];
 	   sliderVolume.value = volume;
     }

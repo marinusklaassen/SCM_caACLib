@@ -28,7 +28,9 @@ ServerControlView : View {
 	initialize {
 		this.loadState();
 		this.initializeView();
-		Server.default.reboot;
+		if (Server.default.serverRunning.not, {
+			Server.default.boot;
+		});
 		this.onMove = { if(this.parent.isNil, { this.persistState(); })};
 		instances.add(this);
 	}

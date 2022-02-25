@@ -219,12 +219,11 @@ PatternBoxParamView : View {
 					});
 				};
 				funcAsString = "{ |" + paramString + "|" +  scriptFieldView.string + "}";
-				funcAsString.postln;
 				func = interpret(funcAsString);
 			};
 			if (func.notNil) {
 				this.scriptFunc = func;
-				paramProxy.source = func.performKeyValuePairs(\value, keyValuesProxyPairs.postln);
+				paramProxy.source = func.performKeyValuePairs(\value, keyValuesProxyPairs);
 			} {
 				scriptFieldView.setError("Invalid input.");
 			};
