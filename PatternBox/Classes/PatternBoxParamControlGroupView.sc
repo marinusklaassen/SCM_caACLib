@@ -53,7 +53,6 @@ PatternBoxParamControlGroupView : View {
 		};
 		controlItem.actionControlNameChanged = {
 			if (actionControlCRUD.notNil, { actionControlCRUD.value(this); });
-
 		};
 		controlItem.actionMoveControlItem = { |dragDestinationObject, dragObject|
 			var targetPosition;
@@ -102,9 +101,10 @@ PatternBoxParamControlGroupView : View {
 		^state;
 	}
 
+
 	loadState { |state|
 		controlItems do: { |item| item.remove; };
-		controlItems = List();
+		controlItems.clear;
 		if (state.notNil, {
 		if(state[\editMode].notNil, { this.editMode = state[\editMode]; });
 		if(state[\visible].notNil, { this.visible = state[\visible]; });

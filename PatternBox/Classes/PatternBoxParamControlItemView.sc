@@ -160,11 +160,12 @@ PatternBoxParamControlItemView : View {
 
     loadState { |state|
 		var index = 0;
+		this.controlName = state[\textFieldControlName];
+		controlSpecView.loadState(state[\controlSpecView]);
 		this.onItemChanged_PopupSelectControl(state[\selectedControlType]);
 		popupSelectControl.items do: { |item, i| if (item == state[\selectedControlType], { index = i; }); };
 		popupSelectControl.value = index;
-		controlSpecView.loadState(state[\controlSpecView]);
-		this.controlNameAction = state[\textFieldControlName];
 		controlView.loadState(state[\controlView]);
-    }
+	}
 }
+

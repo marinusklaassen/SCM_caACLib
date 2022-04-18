@@ -19,7 +19,7 @@ a.loadState(b);
 
 
 MultiStepView : View {
-	var <>name, <stepCount = 0, <mainLayout, stepsLayout, buttonSteps, <>proxySteps, numberBoxStepCount, labelStepCount;
+	var  <spec, <>name, <stepCount = 0, <mainLayout, stepsLayout, buttonSteps, <>proxySteps, numberBoxStepCount, labelStepCount;
 
 	*new { | parent, bounds |
 		^super.new(parent, bounds).init;
@@ -119,7 +119,10 @@ MultiStepView : View {
 		// indien size is minder dan pop en remove het aantal.
 		if (state.notNil, {
 			this.stepCount = state[\stepValues].size;
-			state[\stepValues] do: { |value, i| buttonSteps[i].value = value; };
+			state[\stepValues] do: { |value, i|
+				buttonSteps[i].value = value;
+				proxySteps[i] = value;
+			};
 		});
     }
 }

@@ -133,10 +133,10 @@ SliderSequencerView : View {
     loadState { |state|
 		if (state.notNil, {
 			this.stepCount = state[\slidersValues].size;
-			state[\slidersValues] do: { |value, i|
+	   		state[\slidersValues] do: { |value, i|
 				sliders[i].value = value;
 				proxySteps[i] = value;
-				proxyStepsMapped[i] = spec.map(proxySteps[i]);
+				proxyStepsMapped[i] = spec.map(value);
 			};
 		});
     }

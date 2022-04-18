@@ -22,7 +22,7 @@ PatternBoxParamView : View {
 	var <>patternBoxContext, buttonDelete, <scriptFieldView, dragBothPanel, setValueFunction, dependants, <paramController, <name, <>currentLayerIndex, <>currentWidgetType, <>currentWidgetIndex, previousLayer;
 	var <>actionNameChanged, <>removeAction, <>index, <>paramProxy, <>controllerProxies, <>scriptFunc, <>actionButtonDelete, <>rangeSliderAction, <>sliderAction, <>actionPatternScriptChanged, <>actionPatternTargetIDChanged;
 	var layoutStackControlSection, controlNoControl, controlSlider, controlRangeSlider, <keyName, <patternTargetID, mainLayout, textpatternTargetID, textPatternKeyname, layoutScriptControllerSection, scorePatternScriptEditorView;
-	var skipRegenerate = false, patternBoxParamControlSectionView, buttonSelectScriptView, buttonSelectScriptOrSpecOpControlStack, buttonSwitchEditingMode, buttonRandomizeControls;
+	var canInterpret = false, patternBoxParamControlSectionView, buttonSelectScriptView, buttonSelectScriptOrSpecOpControlStack, buttonSwitchEditingMode, buttonRandomizeControls;
 	var <>actionMoveParamView, prBeginDragAction, prCanReceiveDragHandler, prReceiveDragHandler, <>actionInsertPatternBox;
 
 	*new { | patternBoxContext, parent, bounds |
@@ -43,6 +43,7 @@ PatternBoxParamView : View {
 		this.patternBoxContext = patternBoxContext;
 		paramProxy = PatternProxy(1); // patternProxy
 		this.initializeView();
+		canInterpret = true;
 	}
 
 	initializeView {
@@ -207,10 +208,11 @@ PatternBoxParamView : View {
 	regenerateAndInterpretedParamScript {
 		// Evalueer deze code ook bij wijziging van een UI control
 		var func, funcAsString, proxies, paramString, keyValuesProxyPairs;
-		if (skipRegenerate.notNil && scriptFieldView.string.notNil, {
+		if (canInterpret  && scriptFieldView.string.notNil, {
 			try {
 				scriptFieldView.clearError();
 				proxies = patternBoxParamControlSectionView.getProxies();
+				proxies.postln;
 				proxies[\env] = patternBoxContext.model[\environment];
 				keyValuesProxyPairs = proxies.getPairs();
 				keyValuesProxyPairs do: { |item, i|
@@ -245,14 +247,14 @@ PatternBoxParamView : View {
 	}
 
 	loadState { |state|
-		skipRegenerate =true;
+		canInterpret = false;
 		this.patternTargetID = state[\patternTargetID];
 		this.keyName = state[\paramName];
 		actionNameChanged.value(this);
 		actionPatternTargetIDChanged.value(this);
 		patternBoxParamControlSectionView.loadState(state[\patternBoxParamControlSectionView]);
 		scriptFieldView.loadState(state[\scriptView]);
-		skipRegenerate = false;
+		canInterpret = true;
 		this.regenerateAndInterpretedParamScript();
 	}
 
