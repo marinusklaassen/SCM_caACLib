@@ -21,8 +21,8 @@ PatternBoxView : View {
 	var <>lemurClient, <presetView, <controllers, <playingStream, <dictionaryPbindsByPatternTargetID;
 	var mixerAmpProxy, eventStreamProxy, <eventStream, controllerProxies, eventParProxy, setValueFunction, <model, dependants, parentView;
 	var scoreGui, mixerGui, <scoreControlMixerChannelView,layoutMain,layoutHeader,layoutFooter,scrollViewControls,layoutControlHeaderLabels,layoutChannels,textpatternBoxName, buttonPlay, buttonRandomize, presetView, textEnvirFieldView;
-	var layoutControlHeaderLabels,labelParamNameControlHeader, errorLabelEnvirFieldView, buttonSpawnCopy, buttonClear, buttonShowProject, labelParamTargetpatternTargetIDControlHeader, labelParamControlScriptOrControllerHeader, labelParamControlSelectorsHeader, labelPatternLayers, numberBoxPatternLayers, buttonAddChannel;
-	var <>index, <playState, >closeAction,<>removeAction, <patternBoxName, commandPeriodHandler, <>actionPlayStateChanged, <>actionNameChanged, <>actionVolumeChanged, <volume;
+	var layoutControlHeaderLabels,labelParamNameControlHeader, errorLabelEnvirFieldView, buttonCollapseExpandEnvir, buttonSpawnCopy, buttonClear, buttonShowProject, labelParamTargetpatternTargetIDControlHeader, labelParamControlScriptOrControllerHeader, labelParamControlSelectorsHeader, labelPatternLayers, numberBoxPatternLayers, buttonAddChannel;
+	var <>index, <playState, >closeAction,<>removeAction, <patternBoxName, envirHeader, commandPeriodHandler, <>actionPlayStateChanged, <>actionNameChanged, <>actionVolumeChanged, <volume;
 
 	classvar instanceCounter=0;
 
@@ -182,6 +182,9 @@ PatternBoxView : View {
 
 		layoutMain.add(presetView);
 
+		buttonCollapseExpandEnvir = ButtonFactory.createInstance(this, class: "btn-collapse-expand");
+		layoutMain.add(buttonCollapseExpandEnvir, align: \right);
+
 		textEnvirFieldView = TextViewFactory.createInstance(this, class: "text-patternbox-environment-script");
 
 		textEnvirFieldView.string = model[\envirText];
@@ -199,7 +202,11 @@ PatternBoxView : View {
 		};
 		model.addDependant(dependants[\textEnvirFieldView]);
 
-		layoutMain.add(textEnvirFieldView);
+		buttonCollapseExpandEnvir.action_({ |sender|
+			textEnvirFieldView.visible = sender.value == 1;
+		});
+
+	    layoutMain.add(textEnvirFieldView);
 
 		errorLabelEnvirFieldView = MessageLabelViewFactory.createInstance(this, class: "message-error");
 		layoutMain.add(errorLabelEnvirFieldView, align: \right);
@@ -367,6 +374,7 @@ PatternBoxView : View {
 		state[\controllerStates] = controllers collect: { | controller |
 			controller.getState();
 		};
+		state[\envirTextVisible] = textEnvirFieldView.visible;
 		^state;
 	}
 
@@ -392,6 +400,7 @@ PatternBoxView : View {
 			});
 			patternBoxParamView.loadState(patternBoxParamState);
 		};
+		textEnvirFieldView.visible = state[\envirTextVisible] == true;
 		numberBoxPatternLayers.value = state[\layers];
 		this.actionChangeLayers(state[\layers]);
 	}

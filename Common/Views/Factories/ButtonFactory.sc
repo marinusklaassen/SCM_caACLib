@@ -18,7 +18,7 @@ ButtonFactory {
 		newInstance.string = buttonString1;
 
 		if (caller.class.asString == "PresetView" , {
-		    newInstance.maxWidth = 45;
+			newInstance.maxWidth = 45;
 		});
 		if (class == "btn-danger", {
 			colorPallete.button = Color.red.alpha_(0.5);
@@ -27,17 +27,17 @@ ButtonFactory {
 		});
 		if (class == "btn-warning", {
 			colorPallete.button = Color.new255(255,140,0).alpha_(0.5);
-		    colorPallete.buttonText = Color.black;
-		    newInstance.palette_(colorPallete);
-        });
+			colorPallete.buttonText = Color.black;
+			newInstance.palette_(colorPallete);
+		});
 		if (class == "btn-success", {
 			colorPallete.button = Color.green.alpha_(0.5);
-		    colorPallete.buttonText = Color.black;
+			colorPallete.buttonText = Color.black;
 			newInstance.palette_(colorPallete);
 		});
 		if (class == "btn-primary", {
 			colorPallete.button = Color.blue.alpha_(0.5);
-		    colorPallete.buttonText = Color.white;
+			colorPallete.buttonText = Color.white;
 			newInstance.palette_(colorPallete);
 		});
 		if (class == "btn-next",{
@@ -72,7 +72,7 @@ ButtonFactory {
 		});
 		if (class.contains("toggle-play-patternboxprojectitemview"), {
 			newInstance.font = Font("Menlo", 24);
-            newInstance.minWidth_(50).maxWidth_(45).minHeight_(50);
+			newInstance.minWidth_(50).maxWidth_(45).minHeight_(50);
 			newInstance.states_([["▶"], ["◼"]]);
 		});
 		if (class.contains("btn-patternboxprojectitemview-showpatternbox"), {
@@ -83,8 +83,13 @@ ButtonFactory {
 		if (class.contains("btn-delete"), {
 			newInstance = DeleteButton();
 			newInstance.background = Color.black.alpha_(0);
-            newInstance.fixedSize_(13)
+			newInstance.fixedSize_(13)
 		});
+		if (class.contains("btn-collapse-expand"), {
+			newInstance = Button()
+			.states_([["show global edit"], ["hide global edit"]]);
+		});
+
 		^newInstance;
 	}
 }
