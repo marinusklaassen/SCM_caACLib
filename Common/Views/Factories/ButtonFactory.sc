@@ -88,7 +88,9 @@ ButtonFactory {
 		if (class.contains("btn-collapse-expand"), {
      		newInstance.states = [["toggle envir editor", Color.black, Color.black.alpha_(0.05)], ["toggle envir editor", Color.black, Color.black.alpha_(0.05)]];
 		});
-
+		if (class.contains("btn-patternbox-footer"), {
+     		 newInstance.states = [[buttonString1, Color.black, Color.black.alpha_(0.05)]];
+		});
 		^newInstance;
 	}
 }

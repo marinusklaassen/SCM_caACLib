@@ -21,7 +21,7 @@ PatternBoxView : View {
 	var <>lemurClient, <presetView, <controllers, <playingStream, <dictionaryPbindsByPatternTargetID;
 	var mixerAmpProxy, eventStreamProxy, <eventStream, controllerProxies, eventParProxy, setValueFunction, <model, dependants, parentView;
 	var scoreGui, mixerGui, <scoreControlMixerChannelView,layoutMain,layoutHeader,layoutFooter,scrollViewControls,layoutControlHeaderLabels,layoutChannels,textpatternBoxName, buttonPlay, buttonRandomize, presetView, textEnvirFieldView;
-	var layoutControlHeaderLabels,labelParamNameControlHeader, errorLabelEnvirFieldView, buttonCollapseExpandEnvir, buttonSpawnCopy, buttonClear, buttonShowProject, labelParamTargetpatternTargetIDControlHeader, labelParamControlScriptOrControllerHeader, labelParamControlSelectorsHeader, labelPatternLayers, numberBoxPatternLayers, buttonAddChannel;
+	var layoutControlHeaderLabels,labelParamNameControlHeader, errorLabelEnvirFieldView, buttonAllEditModeOn, buttonAllEditModeOff, buttonCollapseExpandEnvir, buttonSpawnCopy, buttonClear, buttonShowProject, labelParamTargetpatternTargetIDControlHeader, labelParamControlScriptOrControllerHeader, labelParamControlSelectorsHeader, labelPatternLayers, numberBoxPatternLayers, buttonAddChannel;
 	var <>index, <playState, >closeAction,<>removeAction, <patternBoxName, envirHeader, commandPeriodHandler, <>actionPlayStateChanged, <>actionNameChanged, <>actionVolumeChanged, <volume;
 
 	classvar instanceCounter=0;
@@ -261,6 +261,19 @@ PatternBoxView : View {
 			textEnvirFieldView.visible = sender.value == 1;
 		});
 		layoutFooter.add(buttonCollapseExpandEnvir, align: \left);
+
+		buttonAllEditModeOn = ButtonFactory.createInstance(this, class: "btn-patternbox-footer", buttonString1: "editmode on");
+		buttonAllEditModeOn.action_({ |sender|
+			controllers do: { | controller| controller.editMode = true; };
+		});
+		layoutFooter.add(buttonAllEditModeOn);
+
+		buttonAllEditModeOff = ButtonFactory.createInstance(this, class: "btn-patternbox-footer", buttonString1: "editmode off");
+		buttonAllEditModeOff.action_({ |sender|
+			controllers do: { | controller| controller.editMode = false; };
+		});
+
+		layoutFooter.add(buttonAllEditModeOff);
 
 		layoutFooter.add(nil);
 

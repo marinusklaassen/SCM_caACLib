@@ -145,16 +145,9 @@ PatternBoxParamView : View {
 		buttonSwitchEditingMode.maxWidth = 24;
 		buttonSwitchEditingMode.states = [[""] ++ Color.yellow.dup(2)];
 		buttonSwitchEditingMode.action = {
-			if (patternBoxParamControlSectionView.editMode, {
-				patternBoxParamControlSectionView.editMode =  false;
-				if (patternBoxParamControlSectionView.controlItems.size == 0, {
-					patternBoxParamControlSectionView.visible = false;
-				});
-			},{
-				patternBoxParamControlSectionView.editMode = true;
-				patternBoxParamControlSectionView.visible = true;
-			});
+			this.editMode = patternBoxParamControlSectionView.editMode.not;
 		};
+
 		mainLayout.add(buttonSwitchEditingMode, align: \top);
 
 		buttonRandomizeControls = Button();
@@ -232,6 +225,17 @@ PatternBoxParamView : View {
 		});
 	}
 
+	editMode_ { |mode|
+		if (mode, {
+			patternBoxParamControlSectionView.editMode = true;
+			patternBoxParamControlSectionView.visible = true;
+		}, {
+			patternBoxParamControlSectionView.editMode =  false;
+			if (patternBoxParamControlSectionView.controlItems.size == 0, {
+				patternBoxParamControlSectionView.visible = false;
+			});
+		});
+	}
 	randomize {
 		patternBoxParamControlSectionView.randomize();
 	}
