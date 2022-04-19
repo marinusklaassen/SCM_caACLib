@@ -86,8 +86,7 @@ ButtonFactory {
 			newInstance.fixedSize_(13)
 		});
 		if (class.contains("btn-collapse-expand"), {
-			newInstance = Button()
-			.states_([["show global edit"], ["hide global edit"]]);
+     		newInstance.states = [["toggle envir editor", Color.black, Color.black.alpha_(0.05)], ["toggle envir editor", Color.black, Color.black.alpha_(0.05)]];
 		});
 
 		^newInstance;

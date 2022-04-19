@@ -182,11 +182,8 @@ PatternBoxView : View {
 
 		layoutMain.add(presetView);
 
-		buttonCollapseExpandEnvir = ButtonFactory.createInstance(this, class: "btn-collapse-expand");
-		layoutMain.add(buttonCollapseExpandEnvir, align: \right);
-
-		textEnvirFieldView = TextViewFactory.createInstance(this, class: "text-patternbox-environment-script");
-
+	    textEnvirFieldView = TextViewFactory.createInstance(this, class: "text-patternbox-environment-script");
+        textEnvirFieldView.visible = false;
 		textEnvirFieldView.string = model[\envirText];
 		textEnvirFieldView.keyDownAction = {| ... args| // maak duidelijker wat hier gebeurt.
 			var bool = args[2] == 524288;
@@ -201,10 +198,6 @@ PatternBoxView : View {
 			};
 		};
 		model.addDependant(dependants[\textEnvirFieldView]);
-
-		buttonCollapseExpandEnvir.action_({ |sender|
-			textEnvirFieldView.visible = sender.value == 1;
-		});
 
 	    layoutMain.add(textEnvirFieldView);
 
@@ -262,6 +255,13 @@ PatternBoxView : View {
 		numberBoxPatternLayers.action = { | sender | this.actionChangeLayers(sender.value) };
 
 		layoutFooter.add(numberBoxPatternLayers, align: \left);
+
+		buttonCollapseExpandEnvir = ButtonFactory.createInstance(this, class: "btn-collapse-expand");
+		buttonCollapseExpandEnvir.action_({ |sender|
+			textEnvirFieldView.visible = sender.value == 1;
+		});
+		layoutFooter.add(buttonCollapseExpandEnvir, align: \left);
+
 		layoutFooter.add(nil);
 
 		buttonAddChannel = ButtonFactory.createInstance(this, class: "btn-add");
@@ -401,6 +401,7 @@ PatternBoxView : View {
 			patternBoxParamView.loadState(patternBoxParamState);
 		};
 		textEnvirFieldView.visible = state[\envirTextVisible] == true;
+		buttonCollapseExpandEnvir = if (state[\envirTextVisible] == true, 1, 0);
 		numberBoxPatternLayers.value = state[\layers];
 		this.actionChangeLayers(state[\layers]);
 	}
@@ -414,3 +415,4 @@ PatternBoxView : View {
 		CmdPeriod.remove(commandPeriodHandler);
 	}
 }
+
