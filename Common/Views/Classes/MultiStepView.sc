@@ -10,24 +10,39 @@
  * AUTHOR: Marinus Klaassen (2012, 2021Q3)
  *
  * EXAMPLE:
-a = MultiStepView().front
+a = MultiStepView().front().editMode_(true)
 b = a.getState();
 a.editMode = true;
 a.randomize
 a.loadState(b);
 */
 
-
 MultiStepView : View {
-	var  <spec, <>name, <stepCount = 0, <mainLayout, stepsLayout, buttonSteps, <>proxySteps, numberBoxStepCount, labelStepCount;
+	var  <spec, <useSpec, <>name, <stepCount = 0, <mainLayout, stepsLayout, buttonSteps, <>proxySteps, numberBoxStepCount, labelSteps, textFieldValueOff, footerView, footerLayout, textFieldValueOn;
+	var valueOff, valueOn;
 
 	*new { | parent, bounds |
 		^super.new(parent, bounds).init;
 	}
 
 	editMode_ { |mode|
-		numberBoxStepCount.visible = mode;
-		labelStepCount.visible = mode;
+		footerView.visible = mode;
+	}
+
+	valueOff_ { |value|
+		// reformat this
+		if (value.asSymbol() == value.asInteger().asSymbol(), { value = value.asInteger(); });
+		valueOff = value;
+		textFieldValueOff.string = value;
+		buttonSteps do: { |button,i | proxySteps[i] =  if (button.value == 0, valueOff, valueOn); };
+	}
+
+	valueOn_ { |value|
+	    // duplicate code. reformat this
+		if (value.asSymbol() == value.asInteger().asSymbol(), { value = value.asInteger(); });
+		valueOn = value;
+		textFieldValueOn.string = value;
+		buttonSteps do: { |button, i| proxySteps[i] = if (button.value == 0, valueOff, valueOn); };
 	}
 
 	stepCount_ { |argStepCount|
@@ -45,7 +60,7 @@ MultiStepView : View {
 		var newButtonStep = Button()
 		.states_([["_", nil, Color.black.alpha_(0.5)], ["_", nil, Color.red.alpha_(0.5)]])
 		  .minWidth_(30)
-		.action_({ |sender| proxySteps[index] = sender.value; });
+		.action_({ |sender| proxySteps[index] = if (sender.value == 0, valueOff, valueOn); proxySteps;  } );
 		buttonSteps.add(newButtonStep);
 		proxySteps.add(initVal);
 		stepsLayout.add(newButtonStep);
@@ -70,10 +85,12 @@ MultiStepView : View {
 	}
 
 	init {
+		valueOff = 0;
+		valueOn = 1;
 		proxySteps = List();
 		buttonSteps = List();
 
-		mainLayout = GridLayout();
+		mainLayout = VLayout();
 		mainLayout.margins = 0!4;
 		this.layout = mainLayout;
 
@@ -81,23 +98,48 @@ MultiStepView : View {
 		stepsLayout.margins = 0!4;
 		stepsLayout.spacing = 2;
 
-		mainLayout.addSpanning(stepsLayout, 0, 0, columnSpan: 2);
+		mainLayout.add(stepsLayout);
 
-		labelStepCount = StaticText();
-		labelStepCount.string = "Step amount:";
-		labelStepCount.maxWidth = 100;
+		footerView = View();
 
-		mainLayout.add(labelStepCount, 1, 0);
+		footerLayout = HLayout();
+		footerLayout.margins = 0!4;
+		footerView.layout = footerLayout;
+		mainLayout.add(footerView);
+
+		labelSteps = StaticText();
+		labelSteps.string = "Steps:";
+		labelSteps.minWidth = 40;
+		labelSteps.maxWidth = 40;
+
+		footerLayout.add(labelSteps);
 
 		numberBoxStepCount = NumberBox();
         numberBoxStepCount.decimals = 0;
 		numberBoxStepCount.clipLo = 1;
 		numberBoxStepCount.clipHi = 128;
 		numberBoxStepCount.action = { |sender| this.stepCount_(sender.value); };
-		numberBoxStepCount.maxWidth = 50;
-		mainLayout.add(numberBoxStepCount, 1, 1, align: \left);
+		numberBoxStepCount.minWidth = 30;
+		numberBoxStepCount.maxWidth = 30;
+		footerLayout.add(numberBoxStepCount);
 
-		mainLayout.add(nil, 1, 2);
+		footerLayout.add(StaticText().string_(" - "));
+
+		textFieldValueOff = TextField();
+		textFieldValueOff.string = valueOff;
+		textFieldValueOff.action = { | sender | this.valueOff = sender.string; };
+		textFieldValueOff.minWidth = 80;
+		textFieldValueOff.maxWidth = 80;
+		footerLayout.add(textFieldValueOff);
+
+		textFieldValueOn = TextField();
+		textFieldValueOn.string = valueOn;
+		textFieldValueOn.action = { | sender | this.valueOn = sender.string; };
+		textFieldValueOn.minWidth = 80;
+		textFieldValueOn.maxWidth = 80;
+		footerLayout.add(textFieldValueOn);
+
+		footerLayout.add(nil);
 
 		this.stepCount = 8;
 		this.editMode = false;
@@ -112,6 +154,7 @@ MultiStepView : View {
 	getState {
 		var state = Dictionary();
 		state[\stepValues] = proxySteps collect: { |buttonStep| buttonStep.value; };
+		state[\buttonStateValues] = [valueOff, valueOn];
 		^state;
     }
 
@@ -119,6 +162,12 @@ MultiStepView : View {
 		// indien size is minder dan pop en remove het aantal.
 		if (state.notNil, {
 			this.stepCount = state[\stepValues].size;
+			if (state[\buttonStateValues][0].notNil, {
+				this.valueOff = state[\buttonStateValues][0];
+			});
+			if (state[\buttonStateValues][1].notNil, {
+				this.valueOn = state[\buttonStateValues][1];
+			});
 			state[\stepValues] do: { |value, i|
 				buttonSteps[i].value = value;
 				proxySteps[i] = value;

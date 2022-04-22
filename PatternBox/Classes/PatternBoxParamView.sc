@@ -21,7 +21,7 @@ a = PatternBoxParamView().front;
 PatternBoxParamView : View {
 	var <>patternBoxContext, buttonDelete, <scriptFieldView, dragBothPanel, setValueFunction, dependants, <paramController, <name, <>currentLayerIndex, <>currentWidgetType, <>currentWidgetIndex, previousLayer;
 	var <>actionNameChanged, <>removeAction, <>index, <>paramProxy, <>controllerProxies, <>scriptFunc, <>actionButtonDelete, <>rangeSliderAction, <>sliderAction, <>actionPatternScriptChanged, <>actionPatternTargetIDChanged;
-	var layoutStackControlSection, controlNoControl, controlSlider, controlRangeSlider, <keyName, <patternTargetID, mainLayout, textpatternTargetID, textPatternKeyname, layoutScriptControllerSection, scorePatternScriptEditorView;
+	var layoutStackControlSection, controlNoControl, controlSlider, controlRangeSlider, <keyName, mainLayout, textpatternTargetID, textPatternKeyname, layoutScriptControllerSection, scorePatternScriptEditorView;
 	var canInterpret = false, patternBoxParamControlSectionView, buttonSelectScriptView, buttonSelectScriptOrSpecOpControlStack, buttonSwitchEditingMode, buttonRandomizeControls;
 	var <>actionMoveParamView, prBeginDragAction, prCanReceiveDragHandler, prReceiveDragHandler, <>actionInsertPatternBox;
 
@@ -32,11 +32,6 @@ PatternBoxParamView : View {
 	keyName_ { | string |
 		textPatternKeyname.string = string;
 		keyName = string;
-	}
-
-	patternTargetID_ { | string |
-		textpatternTargetID.string = string;
-		patternTargetID = string;
 	}
 
 	initialize { | patternBoxContext |
@@ -65,20 +60,9 @@ PatternBoxParamView : View {
 
 		dragBothPanel = DragBoth();
 		dragBothPanel.maxWidth = 24;
-		dragBothPanel.background = Color.blue.alpha_(0.3);
+		dragBothPanel.background = Color.black.alpha_(0.5);
 		dragBothPanel.toolTip = this.toolTip;
 		mainLayout.add(dragBothPanel, align: \top);
-
-		textpatternTargetID = TextFieldFactory.createInstance(this, "text-patternboxpatterntargetid");
-		textpatternTargetID.toolTip = "Set the target ID of the pbind. For each unique ID a pbind is constructed.";
-		textpatternTargetID.action = { | sender |
-			var patternTargetIDStripped = sender.string.stripWhiteSpace();
-			this.patternTargetID = patternTargetIDStripped;
-			textpatternTargetID.string = patternTargetIDStripped;
-			actionPatternTargetIDChanged.value(this);
-		};
-
-		mainLayout.add(textpatternTargetID, align: \top);
 
 		textPatternKeyname = TextFieldFactory.createInstance(this, "text-patternboxparamview");
 		textPatternKeyname.toolTip = "The key where a fixed value, a pattern or controls (via pattern proxies) can be assigned.";
@@ -185,8 +169,7 @@ PatternBoxParamView : View {
 		this.setDragAndDropBehavior(buttonSelectScriptView);
 		this.setDragAndDropBehavior(buttonSwitchEditingMode);
 		this.setDragAndDropBehavior(buttonRandomizeControls);
-		this.setDragAndDropBehavior(textpatternTargetID);
-		this.setDragAndDropBehavior(textPatternKeyname);
+     	this.setDragAndDropBehavior(textPatternKeyname);
 		this.setDragAndDropBehavior(scriptFieldView.textEditing);
 	}
 
@@ -206,7 +189,8 @@ PatternBoxParamView : View {
 				scriptFieldView.clearError();
 				proxies = patternBoxParamControlSectionView.getProxies();
 				proxies.postln;
-				proxies[\env] = patternBoxContext.model[\environment];
+				patternBoxContext.postln;
+				proxies[\env] = patternBoxContext.context.model[\environment];
 				keyValuesProxyPairs = proxies.getPairs();
 				keyValuesProxyPairs do: { |item, i|
 					if (i % 2 == 0, {
@@ -214,6 +198,7 @@ PatternBoxParamView : View {
 					});
 				};
 				funcAsString = "{ |" + paramString + "|" +  scriptFieldView.string + "}";
+				funcAsString.postln;
 				func = interpret(funcAsString);
 			};
 			if (func.notNil) {
@@ -243,7 +228,6 @@ PatternBoxParamView : View {
 	getState {
 		var state = Dictionary();
 		state[\type] = "PatternBoxParam";
-		state[\patternTargetID] = patternTargetID;
 		state[\paramName] = keyName;
 		state[\patternBoxParamControlSectionView] = patternBoxParamControlSectionView.getState();
 		state[\scriptView] = scriptFieldView.getState();
@@ -252,10 +236,8 @@ PatternBoxParamView : View {
 
 	loadState { |state|
 		canInterpret = false;
-		this.patternTargetID = state[\patternTargetID];
 		this.keyName = state[\paramName];
 		actionNameChanged.value(this);
-		actionPatternTargetIDChanged.value(this);
 		patternBoxParamControlSectionView.loadState(state[\patternBoxParamControlSectionView]);
 		scriptFieldView.loadState(state[\scriptView]);
 		canInterpret = true;

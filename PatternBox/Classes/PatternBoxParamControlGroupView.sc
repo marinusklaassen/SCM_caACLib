@@ -101,7 +101,6 @@ PatternBoxParamControlGroupView : View {
 		^state;
 	}
 
-
 	loadState { |state|
 		controlItems do: { |item| item.remove; };
 		controlItems.clear;

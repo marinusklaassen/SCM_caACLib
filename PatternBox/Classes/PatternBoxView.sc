@@ -18,10 +18,10 @@ a.keys do: { |key| a[key.postln].postln }
 */
 
 PatternBoxView : View {
-	var <>lemurClient, <presetView, <controllers, <playingStream, <dictionaryPbindsByPatternTargetID;
-	var mixerAmpProxy, eventStreamProxy, <eventStream, controllerProxies, eventParProxy, setValueFunction, <model, dependants, parentView;
-	var scoreGui, mixerGui, <scoreControlMixerChannelView,layoutMain,layoutHeader,layoutFooter,scrollViewControls,layoutControlHeaderLabels,layoutChannels,textpatternBoxName, buttonPlay, buttonRandomize, presetView, textEnvirFieldView;
-	var layoutControlHeaderLabels,labelParamNameControlHeader, errorLabelEnvirFieldView, buttonAllEditModeOn, buttonAllEditModeOff, buttonCollapseExpandEnvir, buttonSpawnCopy, buttonClear, buttonShowProject, labelParamTargetpatternTargetIDControlHeader, labelParamControlScriptOrControllerHeader, labelParamControlSelectorsHeader, labelPatternLayers, numberBoxPatternLayers, buttonAddChannel;
+	var <>lemurClient, <presetView, <bindViews, <playingStream;
+	var mixerAmpProxy, eventStreamProxy, <eventStream, eventParProxy, setValueFunction, <model, dependants, parentView;
+	var layoutMain, layoutHeader, layoutFooter, scrollViewBodyBindViews, layoutControlHeaderLabels,layoutBindViews,textpatternBoxName, buttonPlay, buttonRandomize, presetView, textEnvirFieldView;
+	var layoutControlHeaderLabels,labelParamNameControlHeader, errorLabelEnvirFieldView, buttonAllEditModeOn, buttonAllEditModeOff, buttonCollapseExpandEnvir, labelParamTargetpatternTargetIDControlHeader, labelParamControlScriptOrControllerHeader, labelParamControlSelectorsHeader, labelPatternLayers, numberBoxPatternLayers, buttonAddBindView;
 	var <>index, <playState, >closeAction,<>removeAction, <patternBoxName, envirHeader, commandPeriodHandler, <>actionPlayStateChanged, <>actionNameChanged, <>actionVolumeChanged, <volume;
 
 	classvar instanceCounter=0;
@@ -33,8 +33,6 @@ PatternBoxView : View {
 	initialize { |lemurClient|
 
 		this.lemurClient = lemurClient;
-
-		controllerProxies = IdentityDictionary();
 
 		mixerAmpProxy = PatternProxy();
 		mixerAmpProxy.source = 1;
@@ -84,8 +82,8 @@ PatternBoxView : View {
 
 				if (environment.notNil) {
 					model[\environment] = environment;
-					controllers do: { |controller|
-						controller.regenerateAndInterpretedParamScript();
+					bindViews do: { |bindView|
+						bindView.rebuildPatterns();
 					};
 
 				} {
@@ -123,11 +121,9 @@ PatternBoxView : View {
 
 		CmdPeriod.add(commandPeriodHandler);
 
-		controllers = List();
+		bindViews = List();
 
-		dictionaryPbindsByPatternTargetID = IdentityDictionary();
 		this.initializeView();
-
 	}
 
 	initializeView {
@@ -182,8 +178,8 @@ PatternBoxView : View {
 
 		layoutMain.add(presetView);
 
-	    textEnvirFieldView = TextViewFactory.createInstance(this, class: "text-patternbox-environment-script");
-        textEnvirFieldView.visible = false;
+		textEnvirFieldView = TextViewFactory.createInstance(this, class: "text-patternbox-environment-script");
+		textEnvirFieldView.visible = false;
 		textEnvirFieldView.string = model[\envirText];
 		textEnvirFieldView.keyDownAction = {| ... args| // maak duidelijker wat hier gebeurt.
 			var bool = args[2] == 524288;
@@ -199,7 +195,7 @@ PatternBoxView : View {
 		};
 		model.addDependant(dependants[\textEnvirFieldView]);
 
-	    layoutMain.add(textEnvirFieldView);
+		layoutMain.add(textEnvirFieldView);
 
 		errorLabelEnvirFieldView = MessageLabelViewFactory.createInstance(this, class: "message-error");
 		layoutMain.add(errorLabelEnvirFieldView, align: \right);
@@ -208,10 +204,6 @@ PatternBoxView : View {
 		layoutControlHeaderLabels.margins = [5, 5, 5, 0];
 
 		labelParamTargetpatternTargetIDControlHeader = StaticTextFactory.createInstance(this, class: "columnlabel-patternbox-move", labelText: "DRS");
-		layoutControlHeaderLabels.add(labelParamTargetpatternTargetIDControlHeader, align: \left);
-
-
-		labelParamTargetpatternTargetIDControlHeader = StaticTextFactory.createInstance(this, class: "columnlabel-patternbox-ptid", labelText: "PTRID");
 		layoutControlHeaderLabels.add(labelParamTargetpatternTargetIDControlHeader, align: \left);
 
 		labelParamNameControlHeader = StaticTextFactory.createInstance(this, class: "columnlabel-patternbox", labelText: "NAME");
@@ -225,22 +217,22 @@ PatternBoxView : View {
 
 		layoutMain.add(layoutControlHeaderLabels);
 
-		layoutChannels = VLayout([nil, stretch:1, align: \bottom]); // workaround. insert before stretchable space.
-		layoutChannels.margins_([0,0,0,0]);
-		layoutChannels.spacing_(2);
+		layoutBindViews = VLayout([nil, stretch:1, align: \bottom]); // workaround. insert before stretchable space.
+		layoutBindViews.margins_([0,0,0,0]);
+		layoutBindViews.spacing_(2);
 
-		scrollViewControls = ScrollViewFactory.createInstance(this);
-		scrollViewControls.canvas.layout = layoutChannels;
-		scrollViewControls.canvas.canReceiveDragHandler = {  |view, x, y|
-			View.currentDrag.isKindOf(PatternBoxParamView);
+		scrollViewBodyBindViews = ScrollViewFactory.createInstance(this);
+		scrollViewBodyBindViews.canvas.layout = layoutBindViews;
+		scrollViewBodyBindViews.canvas.canReceiveDragHandler = {  |view, x, y|
+			View.currentDrag.isKindOf(PatternBoxBindView);
 		};
-		scrollViewControls.canvas.receiveDragHandler = { |view, x, y|
-			var targetPosition = controllers.size - 1;
-			controllers.remove(View.currentDrag);
-			controllers.insert(targetPosition, View.currentDrag);
-			layoutChannels.insert(View.currentDrag, targetPosition);
+		scrollViewBodyBindViews.canvas.receiveDragHandler = { |view, x, y|
+			var targetPosition = bindViews.size - 1;
+			bindViews.remove(View.currentDrag);
+			bindViews.insert(targetPosition, View.currentDrag);
+			layoutBindViews.insert(View.currentDrag, targetPosition);
 		};
-		layoutMain.add(scrollViewControls);
+		layoutMain.add(scrollViewBodyBindViews);
 
 		layoutFooter = HLayout();
 
@@ -264,98 +256,77 @@ PatternBoxView : View {
 
 		buttonAllEditModeOn = ButtonFactory.createInstance(this, class: "btn-patternbox-footer", buttonString1: "editmode on");
 		buttonAllEditModeOn.action_({ |sender|
-			controllers do: { | controller| controller.editMode = true; };
+			bindViews do: { | bindView| bindView.editMode = true; };
 		});
 		layoutFooter.add(buttonAllEditModeOn);
 
 		buttonAllEditModeOff = ButtonFactory.createInstance(this, class: "btn-patternbox-footer", buttonString1: "editmode off");
 		buttonAllEditModeOff.action_({ |sender|
-			controllers do: { | controller| controller.editMode = false; };
+			bindViews do: { | bindView| bindView.editMode = false; };
 		});
 
 		layoutFooter.add(buttonAllEditModeOff);
 
 		layoutFooter.add(nil);
 
-		buttonAddChannel = ButtonFactory.createInstance(this, class: "btn-add");
-		buttonAddChannel.toolTip = "Add a new PatternBox key controller.";
-		buttonAddChannel.action = { this.addParamView(); };
+		buttonAddBindView = ButtonFactory.createInstance(this, class: "btn-add");
+		buttonAddBindView.toolTip = "Add a new PatternBox binding";
+		buttonAddBindView.action = { this.addBindView(); };
 
-		layoutFooter.add(buttonAddChannel, align: \right);
+		layoutFooter.add(buttonAddBindView, align: \right);
 	}
 
-	rebuildParallelPatternStreams { |sender|
-		dictionaryPbindsByPatternTargetID = Dictionary();
-		if (sender.paramProxy.isNil, {
-			sender.paramProxy = PatternProxy(1) });
-		controllers do: { |patternBoxParamView|
-			var patternTargetID = if (patternBoxParamView.patternTargetID.size > 0, { patternBoxParamView.patternTargetID.asSymbol; }, { \default; });
-			if (dictionaryPbindsByPatternTargetID[patternTargetID].isNil, {
-				dictionaryPbindsByPatternTargetID[patternTargetID] = Dictionary();
-			});
-			dictionaryPbindsByPatternTargetID[patternTargetID][patternBoxParamView.keyName.asSymbol] = patternBoxParamView.paramProxy;
-		};
-		if (dictionaryPbindsByPatternTargetID.size == 0, {
-			eventStreamProxy.source = Pbind();
-		},
-		{
-			var pbinds = List();
-			dictionaryPbindsByPatternTargetID.values do: { | pbindForTargetDict |
-				pbinds.add(Pbind(*pbindForTargetDict.getPairs));
-			};
-			eventStreamProxy.source = Ppar(pbinds);
-		});
+	rebuildPatterns {
+		var patterns = bindViews collect: { |bindView| bindView.bindSource };
+		if (patterns.size == 0, { patterns.add(Pbind()); });
+		eventStreamProxy.source = Ppar(patterns);
 	}
 
-	addParamView { |positionInLayout|
-		var paramChannel = PatternBoxParamView(this);
+	addBindView { |positionInLayout|
+		var newBindView = PatternBoxBindView(this);
 
-		paramChannel.actionPatternTargetIDChanged = { |sender|
-			this.rebuildParallelPatternStreams(sender);
+		newBindView.actionOnBindChanged = { |sender|
+			this.rebuildPatterns();
 		};
 
-		paramChannel.actionNameChanged = { |sender|
-			this.rebuildParallelPatternStreams(sender);
-		};
-
-		paramChannel.actionButtonDelete = { | sender|
-			controllers.remove(sender);
+		newBindView.actionButtonDelete = { | sender|
+			bindViews.remove(sender);
 			sender.remove(); // Remove itself from the layout.
-			this.rebuildParallelPatternStreams(sender);
+			this.rebuildPatterns();
 		};
 
-		paramChannel.actionInsertPatternBox = { |sender, insertType|
-			var positionInLayout = controllers.indexOf(sender);
+		newBindView.actionInsertPatternBoxBindView = { |sender, insertType|
+			var positionInLayout = bindViews.indexOf(sender);
 			if (insertType == "INSERT_AFTER", {
 				positionInLayout = positionInLayout + 1;
 			});
-			this.addParamView(positionInLayout);
+			this.addBindView(positionInLayout);
 		};
 
-		paramChannel.actionMoveParamView = { |dragDestinationObject, dragObject|
+		newBindView.actionMoveBindView = { |dragDestinationObject, dragObject|
 			var targetPosition;
 			if (dragDestinationObject !==  dragObject, {
-				targetPosition = controllers.indexOf(dragDestinationObject);
-				controllers.remove(dragObject);
-				controllers.insert(targetPosition, dragObject);
-				layoutChannels.insert(dragObject, targetPosition);
+				targetPosition = bindViews.indexOf(dragDestinationObject);
+				bindViews.remove(dragObject);
+				bindViews.insert(targetPosition, dragObject);
+				layoutBindViews.insert(dragObject, targetPosition);
 			});
 		};
 
 		if (positionInLayout.notNil, {
-			layoutChannels.insert(paramChannel, positionInLayout);
-			controllers = controllers.insert(positionInLayout, paramChannel);
+			layoutBindViews.insert(newBindView, positionInLayout);
+			bindViews = bindViews.insert(positionInLayout, newBindView);
 		},{
-			layoutChannels.insert(paramChannel, controllers.size);
-			controllers = controllers.add(paramChannel);
+			layoutBindViews.insert(newBindView, bindViews.size);
+			bindViews = bindViews.add(newBindView);
 		});
-
-		^paramChannel;
+		this.rebuildPatterns();
+		^newBindView;
 	}
 
 	randomize {
-		controllers do: { |patternBoxParamView|
-			patternBoxParamView.randomize();
+		bindViews do: { |bindView|
+			bindView.randomize();
 		}
 	}
 
@@ -384,8 +355,8 @@ PatternBoxView : View {
 		});
 		state[\layers] = numberBoxPatternLayers.value;
 		state[\envirText] = model[\envirText];
-		state[\controllerStates] = controllers collect: { | controller |
-			controller.getState();
+		state[\bindViewStates] = bindViews collect: { | bindView |
+			bindView.getState();
 		};
 		state[\envirTextVisible] = textEnvirFieldView.visible;
 		^state;
@@ -397,26 +368,34 @@ PatternBoxView : View {
 			this.volume = state[\volume];
 		});
 		setValueFunction[\envirText].value(state[\envirText]);
+
 		// Remove the scores that are to many.
-		if (state[\controllerStates].size < controllers.size, {
-			var amountToMany = controllers.size - state[\controllerStates].size;
+		if (state[\bindViewStates].size < bindViews.size, {
+			var amountToMany = bindViews.size - state[\bindViewStates].size;
 			amountToMany do: {
-				controllers.pop().dispose()
+				bindViews.pop().dispose()
 			};
 		});
-		state[\controllerStates] do: { |patternBoxParamState, position|
-			var patternBoxParamView;
-			if (controllers[position].isNil, {
-				patternBoxParamView = this.addParamView();
+
+		state[\bindViewStates] do: { |patternBoxParamState, position|
+
+			var bindViewCreateOrUpdate;
+			bindViews[position].postln;
+
+			if (bindViews[position].isNil, {
+				bindViewCreateOrUpdate =  this.addBindView();
 			}, {
-				patternBoxParamView = controllers[position];
+				bindViewCreateOrUpdate = bindViews[position];
 			});
-			patternBoxParamView.loadState(patternBoxParamState);
+			patternBoxParamState.postln;
+			bindViewCreateOrUpdate.loadState(patternBoxParamState);
 		};
+
 		textEnvirFieldView.visible = state[\envirTextVisible] == true;
 		buttonCollapseExpandEnvir = if (state[\envirTextVisible] == true, 1, 0);
 		numberBoxPatternLayers.value = state[\layers];
 		this.actionChangeLayers(state[\layers]);
+		this.rebuildPatterns();
 	}
 
 	dispose {
@@ -428,4 +407,5 @@ PatternBoxView : View {
 		CmdPeriod.remove(commandPeriodHandler);
 	}
 }
+
 

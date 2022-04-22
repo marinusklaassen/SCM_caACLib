@@ -66,6 +66,13 @@ ButtonFactory {
 			newInstance.fixedHeight = 30;
 			newInstance.fixedWidth = 70;
 		});
+
+		if (class.contains("btn-add-param"), {
+			newInstance = AddButton();
+			newInstance.background = Color.black.alpha_(0);
+			newInstance.fixedSize_(15)
+		});
+
 		if (class.contains("btn-large"),{
 			newInstance.font = Font("Menlo", 14);
 			newInstance.minHeight = 60;
