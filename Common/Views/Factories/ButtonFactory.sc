@@ -70,7 +70,19 @@ ButtonFactory {
 		if (class.contains("btn-add-param"), {
 			newInstance = AddButton();
 			newInstance.background = Color.black.alpha_(0);
-			newInstance.fixedSize_(15)
+			newInstance.fixedSize_(20)
+		});
+
+		if (class.contains("btn-delete"), {
+			newInstance = DeleteButton();
+			newInstance.background = Color.black.alpha_(0);
+			newInstance.fixedSize_(12)
+		});
+
+		if (class.contains("btn-delete-group"), {
+			newInstance = DeleteButton();
+			newInstance.background = Color.black.alpha_(0);
+			newInstance.fixedSize_(16)
 		});
 
 		if (class.contains("btn-large"),{
@@ -87,11 +99,7 @@ ButtonFactory {
 			newInstance = Button().icon_(Image.openSVG(PathName.new(PatternBoxView.filenameSymbol.asString).pathOnly ++ "sliders-icon.svg", 50@50)).iconSize_(24).front;
 			newInstance.minWidth_(50).maxWidth_(45).minHeight_(50);
 		});
-		if (class.contains("btn-delete"), {
-			newInstance = DeleteButton();
-			newInstance.background = Color.black.alpha_(0);
-			newInstance.fixedSize_(13)
-		});
+
 		if (class.contains("btn-collapse-expand"), {
      		newInstance.states = [["toggle envir editor", Color.black, Color.black.alpha_(0.05)], ["toggle envir editor", Color.black, Color.black.alpha_(0.05)]];
 		});

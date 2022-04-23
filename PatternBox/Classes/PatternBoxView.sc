@@ -219,7 +219,7 @@ PatternBoxView : View {
 
 		layoutBindViews = VLayout([nil, stretch:1, align: \bottom]); // workaround. insert before stretchable space.
 		layoutBindViews.margins_([0,0,0,0]);
-		layoutBindViews.spacing_(2);
+		layoutBindViews.spacing_(5);
 
 		scrollViewBodyBindViews = ScrollViewFactory.createInstance(this);
 		scrollViewBodyBindViews.canvas.layout = layoutBindViews;

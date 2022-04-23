@@ -27,7 +27,7 @@ PatternBoxParamControlGroupView : View {
 		mainLayout = VLayout();
 		this.layout = mainLayout;
 		buttonAdd = ButtonFactory.createInstance(this, class: "btn-add");
-		buttonAdd.fixedSize_(20);
+		buttonAdd.fixedSize_(16);
 		buttonAdd.toolTip = "Add a control";
 		buttonAdd.action_({ this.onButtonClick_AddPatternBoxParamControlItemView() });
 		buttonAdd.visible = false;

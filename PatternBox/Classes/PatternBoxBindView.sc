@@ -18,7 +18,7 @@ a.keys do: { |key| a[key.postln].postln }
 */
 
 PatternBoxBindView : View {
-	var paramViews, mainLayout, layoutParams, headerLayout, dragBothPanel, textFieldTitle, buttonAddParamView, buttonDelete;
+	var paramViews, mainLayout, bodyLayout, headerLayout, headerView, dragBothPanel, textFieldTitle, buttonAddParamView, buttonDelete;
 	var <title, <bindSource, <context;
 	var <>actionOnBindChanged, <>actionButtonDelete, <>actionInsertPatternBoxBindView, <>actionMoveBindView;
 	var prBeginDragAction, prCanReceiveDragHandler, prReceiveDragHandler; // workaround drag and drop
@@ -46,13 +46,16 @@ PatternBoxBindView : View {
 
 	initializeView {
 		mainLayout = VLayout();
-
+		mainLayout.margins = [0, 0, 0, 10];
+		mainLayout.spacing = 2;
 		this.layout = mainLayout;
 		this.background = Color.black.alpha_(0.1);
+		headerView = View();
+		headerView.background = Color.blue.alpha_(0.2);
 		headerLayout = HLayout();
-		headerLayout.margins = [5, 5, 20, 5];
-
-		mainLayout.add(headerLayout);
+		headerLayout.margins = [5, 10, 20, 10];
+		headerView.layout = headerLayout;
+		mainLayout.add(headerView);
 
 		dragBothPanel = DragBoth();
 		dragBothPanel.maxWidth = 24;
@@ -69,16 +72,17 @@ PatternBoxBindView : View {
 		buttonAddParamView.action = { this.addParamView(); };
 		headerLayout.add(buttonAddParamView);
 
-		buttonDelete = ButtonFactory.createInstance(this, class: "btn-delete");
+		buttonDelete = ButtonFactory.createInstance(this, class: "btn-delete-group");
 		buttonDelete.toolTip = "Remove this patter bind view.";
 		buttonDelete.action = {
 			if (actionButtonDelete.notNil, { actionButtonDelete.value(this) });
 		};
 		headerLayout.add(buttonDelete);
 
-		layoutParams = VLayout();
-		layoutParams.margins = 0!4;
-		mainLayout.add(layoutParams);
+		bodyLayout = VLayout();
+		bodyLayout.spacing = 2;
+		bodyLayout.margins = [10,0,0,0];
+		mainLayout.add(bodyLayout);
 
 		// Start drag & drop workaround
 		prBeginDragAction =  { |view, x, y|
@@ -136,15 +140,15 @@ PatternBoxBindView : View {
 				targetPosition = paramViews.indexOf(dragDestinationObject);
 				paramViews.remove(dragObject);
 				paramViews.insert(targetPosition, dragObject);
-				layoutParams.insert(dragObject, targetPosition);
+				bodyLayout.insert(dragObject, targetPosition);
 			});
 		};
 
 		if (positionInLayout.notNil, {
-			layoutParams.insert(paramChannel, positionInLayout);
+			bodyLayout.insert(paramChannel, positionInLayout);
 			paramViews = paramViews.insert(positionInLayout, paramChannel);
 		},{
-			layoutParams.insert(paramChannel, paramViews.size);
+			bodyLayout.insert(paramChannel, paramViews.size);
 			paramViews = paramViews.add(paramChannel);
 		});
 
