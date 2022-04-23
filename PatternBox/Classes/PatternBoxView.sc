@@ -361,16 +361,12 @@ PatternBoxView : View {
 		});
 
 		state[\bindViewStates] do: { |patternBoxParamState, position|
-
 			var bindViewCreateOrUpdate;
-			bindViews[position].postln;
-
 			if (bindViews[position].isNil, {
 				bindViewCreateOrUpdate =  this.addBindView();
 			}, {
 				bindViewCreateOrUpdate = bindViews[position];
 			});
-			patternBoxParamState.postln;
 			bindViewCreateOrUpdate.loadState(patternBoxParamState);
 		};
 

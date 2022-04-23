@@ -71,6 +71,7 @@ PresetView : View {
 			name = menu.item;
 			textPresetName.string = menu.item;
 		};
+
 		popupPresetSelector.minWidth = 150;
 		popupPresetSelector.maxWidth = 150;
 		layoutControls.add(popupPresetSelector);

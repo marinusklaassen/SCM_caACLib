@@ -60,6 +60,7 @@ PatternBoxParamView : View {
 
 		dragBothPanel = DragBoth();
 		dragBothPanel.maxWidth = 24;
+		dragBothPanel.minWidth = 24;
 		dragBothPanel.background = Color.black.alpha_(0.5);
 		dragBothPanel.toolTip = this.toolTip;
 		mainLayout.add(dragBothPanel, align: \top);
@@ -188,8 +189,6 @@ PatternBoxParamView : View {
 			try {
 				scriptFieldView.clearError();
 				proxies = patternBoxParamControlSectionView.getProxies();
-				proxies.postln;
-				patternBoxContext.postln;
 				proxies[\env] = patternBoxContext.context.model[\environment];
 				keyValuesProxyPairs = proxies.getPairs();
 				keyValuesProxyPairs do: { |item, i|
@@ -198,7 +197,6 @@ PatternBoxParamView : View {
 					});
 				};
 				funcAsString = "{ |" + paramString + "|" +  scriptFieldView.string + "}";
-				funcAsString.postln;
 				func = interpret(funcAsString);
 			};
 			if (func.notNil) {
