@@ -21,7 +21,7 @@ PatternBoxView : View {
 	var <>lemurClient, <presetView, <bindViews, <playingStream;
 	var mixerAmpProxy, eventStreamProxy, <eventStream, eventParProxy, setValueFunction, <model, dependants, parentView;
 	var layoutMain, layoutHeader, layoutFooter, scrollViewBodyBindViews, layoutControlHeaderLabels,layoutBindViews,textpatternBoxName, buttonPlay, buttonRandomize, presetView, textEnvirFieldView;
-	var layoutControlHeaderLabels,labelParamNameControlHeader, errorLabelEnvirFieldView, buttonAllEditModeOn, buttonAllEditModeOff, buttonCollapseExpandEnvir, labelParamTargetpatternTargetIDControlHeader, labelParamControlScriptOrControllerHeader, labelParamControlSelectorsHeader, labelPatternLayers, numberBoxPatternLayers, buttonAddBindView;
+	var layoutControlHeaderLabels,labelParamNameControlHeader, errorLabelEnvirFieldView, buttonAllEditModeOn, buttonAllEditModeOff, buttonCollapseExpandEnvir, labelParamTargetpatternTargetIDControlHeader, labelParamControlScriptOrControllerHeader, labelParamControlSelectorsHeader, buttonAddBindView;
 	var <>index, <playState, >closeAction,<>removeAction, <patternBoxName, envirHeader, commandPeriodHandler, <>actionPlayStateChanged, <>actionNameChanged, <>actionVolumeChanged, <volume;
 
 	classvar instanceCounter=0;
@@ -38,9 +38,7 @@ PatternBoxView : View {
 		mixerAmpProxy.source = 1;
 		eventStreamProxy = PatternProxy();
 		eventStreamProxy.source = Pbind(\dur, 1);
-		eventParProxy = PatternProxy();
-		eventParProxy.source = Ppar([eventStreamProxy]);
-		eventStream = Pmul(\amp, mixerAmpProxy, eventParProxy); // In de toekomst via een routing synth. ivm insert, sends etc.
+		eventStream = Pmul(\amp, mixerAmpProxy, eventStreamProxy); // In de toekomst via een routing synth. ivm insert, sends etc.
 
 		instanceCounter = instanceCounter + 1;
 
@@ -238,16 +236,6 @@ PatternBoxView : View {
 
 		layoutMain.add(layoutFooter);
 
-		labelPatternLayers = StaticTextFactory.createInstance(this, labelText: "layers:");
-
-		layoutFooter.add(labelPatternLayers, align: \left);
-
-		numberBoxPatternLayers = NumberBoxFactory.createInstance(this, class: "numberbox-patternbox-layers");
-
-		numberBoxPatternLayers.action = { | sender | this.actionChangeLayers(sender.value) };
-
-		layoutFooter.add(numberBoxPatternLayers, align: \left);
-
 		buttonCollapseExpandEnvir = ButtonFactory.createInstance(this, class: "btn-collapse-expand");
 		buttonCollapseExpandEnvir.action_({ |sender|
 			textEnvirFieldView.visible = sender.value == 1;
@@ -334,10 +322,6 @@ PatternBoxView : View {
 		setValueFunction.value(\volume, volume);
 	}
 
-	actionChangeLayers { |argLayers|
-		eventParProxy.source = Ppar({eventStreamProxy}!argLayers);
-	}
-
 	play {
 		setValueFunction[\buttonPlay].value(1);
 	}
@@ -353,7 +337,6 @@ PatternBoxView : View {
 			state[\patternBoxName] = patternBoxName;
 			state[\volume] = volume;
 		});
-		state[\layers] = numberBoxPatternLayers.value;
 		state[\envirText] = model[\envirText];
 		state[\bindViewStates] = bindViews collect: { | bindView |
 			bindView.getState();
@@ -393,8 +376,7 @@ PatternBoxView : View {
 
 		textEnvirFieldView.visible = state[\envirTextVisible] == true;
 		buttonCollapseExpandEnvir = if (state[\envirTextVisible] == true, 1, 0);
-		numberBoxPatternLayers.value = state[\layers];
-		this.actionChangeLayers(state[\layers]);
+
 		this.rebuildPatterns();
 	}
 

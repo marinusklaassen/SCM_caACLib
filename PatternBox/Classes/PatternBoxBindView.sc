@@ -18,8 +18,8 @@ a.keys do: { |key| a[key.postln].postln }
 */
 
 PatternBoxBindView : View {
-	var paramViews, mainLayout, bodyLayout, headerLayout, headerView, dragBothPanel, textFieldTitle, buttonAddParamView, buttonDelete;
-	var <title, <bindSource, <context;
+	var paramViews, mainLayout, bodyLayout, headerLayout, headerView, dragBothPanel, textFieldTitle, numberBoxParallelLayers, buttonAddParamView, buttonDelete;
+	var <title, <bindSource, <context, <parallelLayers;
 	var <>actionOnBindChanged, <>actionButtonDelete, <>actionInsertPatternBoxBindView, <>actionMoveBindView;
 	var prBeginDragAction, prCanReceiveDragHandler, prReceiveDragHandler; // workaround drag and drop
 
@@ -31,17 +31,26 @@ PatternBoxBindView : View {
 		title = argTitle;
 		textFieldTitle.string = title;
 		this.toolTip = title;
+
 	}
 
 	editMode_ { |mode|
 		paramViews do: { |paramView| paramView.editMode = mode; };
 	}
 
+	parallelLayers_ { |layers|
+		parallelLayers = layers;
+		numberBoxParallelLayers.value = layers;
+		this.rebuildPatterns();
+	}
+
 	initialize { |argContext|
 		context = argContext;
+		parallelLayers = 1;
 		paramViews = List();
 		bindSource = PatternProxy(1);
 		bindSource.source = Pbind();
+
 	}
 
 	initializeView {
@@ -65,7 +74,14 @@ PatternBoxBindView : View {
 
 		textFieldTitle = TextFieldFactory.createInstance(this, class: "patternbox-bindview-name");
 		textFieldTitle.action = { |sender| this.title = sender.string; };
+		textFieldTitle.keyUpAction = textFieldTitle.action;
 		headerLayout.add(textFieldTitle);
+
+		numberBoxParallelLayers = NumberBoxFactory.createInstance(this, class: "numberbox-patternbox-layers");
+		numberBoxParallelLayers.value = parallelLayers;
+		numberBoxParallelLayers.toolTip = "Amount of parallel pattern streams";
+		numberBoxParallelLayers.action = { | sender | this.parallelLayers = sender.value; };
+		headerLayout.add(numberBoxParallelLayers);
 
 		buttonAddParamView = ButtonFactory.createInstance(this, class: "btn-add-param");
 		buttonAddParamView.toolTip = "Add a new PatternBox parameter";
@@ -100,6 +116,9 @@ PatternBoxBindView : View {
 		this.setDragAndDropBehavior(this);
 		this.setDragAndDropBehavior(dragBothPanel);
 		this.setDragAndDropBehavior(textFieldTitle);
+		this.setDragAndDropBehavior(numberBoxParallelLayers);
+		this.setDragAndDropBehavior(buttonAddParamView);
+		this.setDragAndDropBehavior(buttonDelete);
 	}
 
 	initialized {
@@ -111,7 +130,6 @@ PatternBoxBindView : View {
 		object.canReceiveDragHandler = prCanReceiveDragHandler;
 		object.receiveDragHandler = prReceiveDragHandler;
 	}
-
 
 	addParamView { |positionInLayout|
 		var paramChannel = PatternBoxParamView(this);
@@ -157,6 +175,7 @@ PatternBoxBindView : View {
 
 	rebuildPatterns {
 		var keyValuePairPatterns = List();
+		var newPbind;
 		paramViews do: { |paramView |
 			keyValuePairPatterns.add(paramView.keyName.asSymbol);
 			keyValuePairPatterns.add(paramView.paramProxy;);
@@ -165,7 +184,12 @@ PatternBoxBindView : View {
 			bindSource.source = Pbind();
 		},
 		{
-			bindSource.source = Pbind(*keyValuePairPatterns.asArray());
+			newPbind = Pbind(*keyValuePairPatterns.asArray());
+			if (parallelLayers > 1, {
+				bindSource.source = Ppar({newPbind}!parallelLayers);
+			},{
+				bindSource.source = newPbind;
+			});
 		});
 	}
 
@@ -179,6 +203,7 @@ PatternBoxBindView : View {
 		var state = Dictionary();
 		state[\type] = "PatternBoxBindView";
 		state[\title] = title;
+		state[\parallelLayers] = parallelLayers;
 		state[\paramViewStates] = paramViews collect: { | paramView |
 			paramView.getState();
 		};
@@ -187,6 +212,7 @@ PatternBoxBindView : View {
 
 	loadState { |state|
 		this.title = state[\title];
+		this.parallelLayers = if (state[\parallelLayers].isNil, 1, state[\parallelLayers]);
 		// Remove the scores that are to many.
 		if (state[\paramViewStates].size < paramViews.size, {
 			var amountToMany = paramViews.size - state[\paramViewStates].size;
@@ -210,3 +236,4 @@ PatternBoxBindView : View {
 		this.remove();
 	}
 }
+
