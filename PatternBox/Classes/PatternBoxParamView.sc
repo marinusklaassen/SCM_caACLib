@@ -19,14 +19,14 @@ a = PatternBoxParamView().front;
 */
 
 PatternBoxParamView : View {
-	var <>patternBoxContext, buttonDelete, <scriptFieldView, dragBothPanel, setValueFunction, dependants, <paramController, <name, <>currentLayerIndex, <>currentWidgetType, <>currentWidgetIndex, previousLayer;
+	var <>context, buttonDelete, <scriptFieldView, dragBothPanel, setValueFunction, dependants, <paramController, <name, <>currentLayerIndex, <>currentWidgetType, <>currentWidgetIndex, previousLayer;
 	var <>actionNameChanged, <>removeAction, <>index, <>paramProxy, <>controllerProxies, <>scriptFunc, <>actionButtonDelete, <>rangeSliderAction, <>sliderAction, <>actionPatternScriptChanged, <>actionPatternTargetIDChanged;
 	var layoutStackControlSection, controlNoControl, controlSlider, controlRangeSlider, <keyName, mainLayout, textpatternTargetID, textPatternKeyname, layoutScriptControllerSection, scorePatternScriptEditorView;
 	var canInterpret = false, patternBoxParamControlSectionView, buttonSelectScriptView, buttonSelectScriptOrSpecOpControlStack, buttonSwitchEditingMode, buttonRandomizeControls;
 	var <>actionMoveParamView, prBeginDragAction, prCanReceiveDragHandler, prReceiveDragHandler, <>actionInsertPatternBox;
 
-	*new { | patternBoxContext, parent, bounds |
-		^super.new(parent, bounds).initialize(patternBoxContext);
+	*new { | context, parent, bounds |
+		^super.new(parent, bounds).initialize(context);
 	}
 
 	keyName_ { | string |
@@ -34,8 +34,8 @@ PatternBoxParamView : View {
 		keyName = string;
 	}
 
-	initialize { | patternBoxContext |
-		this.patternBoxContext = patternBoxContext;
+	initialize { | context |
+		this.context = context;
 		paramProxy = PatternProxy(1); // patternProxy
 		this.initializeView();
 		canInterpret = true;
@@ -157,11 +157,17 @@ PatternBoxParamView : View {
 		};
 
 		prCanReceiveDragHandler = {  |view, x, y|
-			View.currentDrag.isKindOf(PatternBoxParamView);
+			var canReceive = View.currentDrag.isKindOf(PatternBoxParamView);
+			if (View.currentDrag.isKindOf(PatternBoxParamView), {
+				if ((View.currentDrag.context != context) && (View.currentDrag.keyName.size > 0), {
+						context.paramViews do: { |view| if (canReceive, { canReceive = View.currentDrag.keyName != view.keyName; }) };
+				});
+			});
+			canReceive;
 		};
 
 		prReceiveDragHandler = { |view, x, y|
-			if (actionMoveParamView.notNil, { actionMoveParamView.value(this, View.currentDrag); });
+			if (actionMoveParamView.notNil && View.currentDrag.isKindOf(PatternBoxParamView), { actionMoveParamView.value(this, View.currentDrag); });
 		};
 
 		this.setDragAndDropBehavior(this);
@@ -170,7 +176,7 @@ PatternBoxParamView : View {
 		this.setDragAndDropBehavior(buttonSelectScriptView);
 		this.setDragAndDropBehavior(buttonSwitchEditingMode);
 		this.setDragAndDropBehavior(buttonRandomizeControls);
-     	this.setDragAndDropBehavior(textPatternKeyname);
+		this.setDragAndDropBehavior(textPatternKeyname);
 		this.setDragAndDropBehavior(scriptFieldView.textEditing);
 	}
 
@@ -181,7 +187,6 @@ PatternBoxParamView : View {
 		object.receiveDragHandler = prReceiveDragHandler;
 	}
 
-
 	regenerateAndInterpretedParamScript {
 		// Evalueer deze code ook bij wijziging van een UI control
 		var func, funcAsString, proxies, paramString, keyValuesProxyPairs;
@@ -189,7 +194,7 @@ PatternBoxParamView : View {
 			try {
 				scriptFieldView.clearError();
 				proxies = patternBoxParamControlSectionView.getProxies();
-				proxies[\env] = patternBoxContext.context.model[\environment];
+				proxies[\env] = context.context.model[\environment];
 				keyValuesProxyPairs = proxies.getPairs();
 				keyValuesProxyPairs do: { |item, i|
 					if (i % 2 == 0, {

@@ -18,7 +18,7 @@ a.keys do: { |key| a[key.postln].postln }
 */
 
 PatternBoxBindView : View {
-	var paramViews, mainLayout, bodyLayout, headerLayout, headerView, dragBothPanel, textFieldTitle, numberBoxParallelLayers, buttonAddParamView, buttonDelete;
+	var <paramViews, mainLayout, bodyLayout, headerLayout, headerView, dragBothPanel, textFieldTitle, numberBoxParallelLayers, buttonAddParamView, buttonDelete;
 	var <title, <bindSource, <context, <parallelLayers;
 	var <>actionOnBindChanged, <>actionButtonDelete, <>actionInsertPatternBoxBindView, <>actionMoveBindView;
 	var prBeginDragAction, prCanReceiveDragHandler, prReceiveDragHandler; // workaround drag and drop
@@ -50,7 +50,6 @@ PatternBoxBindView : View {
 		paramViews = List();
 		bindSource = PatternProxy(1);
 		bindSource.source = Pbind();
-
 	}
 
 	initializeView {
@@ -107,6 +106,7 @@ PatternBoxBindView : View {
 
 		prCanReceiveDragHandler = {  |view, x, y|
 			View.currentDrag.isKindOf(PatternBoxBindView);
+
 		};
 
 		prReceiveDragHandler = { |view, x, y|
@@ -155,10 +155,24 @@ PatternBoxBindView : View {
 		paramChannel.actionMoveParamView = { |dragDestinationObject, dragObject|
 			var targetPosition;
 			if (dragDestinationObject !==  dragObject, {
-				targetPosition = paramViews.indexOf(dragDestinationObject);
-				paramViews.remove(dragObject);
-				paramViews.insert(targetPosition, dragObject);
-				bodyLayout.insert(dragObject, targetPosition);
+				if (dragDestinationObject.context != dragObject.context, {
+						dragObject.context.paramViews.remove(dragObject);
+				});
+				paramViews do: { |view, i|
+					if (dragDestinationObject == view, {
+						targetPosition = i;
+					});
+				};
+				if( targetPosition.notNil, {
+					if (dragDestinationObject.context == dragObject.context, {
+						paramViews.remove(dragObject);
+					}, {
+						targetPosition = targetPosition + 1; // testje
+					});
+					dragObject.context = this;
+					paramViews.insert(targetPosition, dragObject);
+					bodyLayout.insert(dragObject, targetPosition);
+				});
 			});
 		};
 
