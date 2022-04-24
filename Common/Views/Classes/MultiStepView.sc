@@ -19,7 +19,7 @@ a.loadState(b);
 
 MultiStepView : View {
 	var  <spec, <useSpec, <>name, <stepCount = 0, <mainLayout, stepsLayout, buttonSteps, <>proxySteps, numberBoxStepCount, labelSteps, textFieldValueOff, footerView, footerLayout, textFieldValueOn;
-	var valueOff, valueOn;
+	var <valueOff, <valueOn;
 
 	*new { | parent, bounds |
 		^super.new(parent, bounds).init;
@@ -31,7 +31,7 @@ MultiStepView : View {
 
 	valueOff_ { |value|
 		// reformat this
-		if (value.asSymbol() == value.asInteger().asSymbol(), { value = value.asInteger(); });
+		if (value.asSymbol() == value.asInteger().asSymbol(), { value = value.asInteger(); }, { value = value.asSymbol; });
 		valueOff = value;
 		textFieldValueOff.string = value;
 		buttonSteps do: { |button,i | proxySteps[i] =  if (button.value == 0, valueOff, valueOn); };
@@ -39,7 +39,7 @@ MultiStepView : View {
 
 	valueOn_ { |value|
 	    // duplicate code. reformat this
-		if (value.asSymbol() == value.asInteger().asSymbol(), { value = value.asInteger(); });
+		if (value.asSymbol() == value.asInteger().asSymbol(), { value = value.asInteger(); }, { value = value.asSymbol; });
 		valueOn = value;
 		textFieldValueOn.string = value;
 		buttonSteps do: { |button, i| proxySteps[i] = if (button.value == 0, valueOff, valueOn); };
@@ -153,11 +153,11 @@ MultiStepView : View {
 
 	getState {
 		var state = Dictionary();
-		state[\stepValues] = proxySteps collect: { |buttonStep| buttonStep.value; };
+		state[\stepValues] = buttonSteps collect: { |buttonStep| buttonStep.value; };
 		state[\buttonStateValues] = [valueOff, valueOn];
 		^state;
     }
-
+//  [ note, rest, note, rest, rest, note, rest, note ]
     loadState { |state|
 		// indien size is minder dan pop en remove het aantal.
 		if (state.notNil, {
@@ -169,8 +169,7 @@ MultiStepView : View {
 				this.valueOn = state[\buttonStateValues][1];
 			});
 			state[\stepValues] do: { |value, i|
-				buttonSteps[i].value = value;
-				proxySteps[i] = value;
+				buttonSteps[i].valueAction = value;
 			};
 		});
     }
