@@ -18,7 +18,7 @@ a.keys do: { |key| a[key.postln].postln }
 */
 
 PatternBoxBindView : View {
-	var <paramViews, mainLayout, bodyLayout, headerLayout, headerView, dragBothPanel, textFieldTitle, numberBoxParallelLayers, buttonAddParamView, buttonDelete;
+	var <paramViews, mainLayout, bodyLayout, headerLayout, headerView, buttonRandomize, dragBothPanel, textFieldTitle, numberBoxParallelLayers, buttonAddParamView, buttonDelete;
 	var <title, <bindSource, <context, <parallelLayers;
 	var <>actionOnBindChanged, <>actionButtonDelete, <>actionInsertPatternBoxBindView, <>actionMoveBindView;
 	var prBeginDragAction, prCanReceiveDragHandler, prReceiveDragHandler; // workaround drag and drop
@@ -75,6 +75,16 @@ PatternBoxBindView : View {
 		textFieldTitle.action = { |sender| this.title = sender.string; };
 		textFieldTitle.keyUpAction = textFieldTitle.action;
 		headerLayout.add(textFieldTitle);
+
+		buttonRandomize = Button();
+		buttonRandomize.toolTip = "Randomize";
+		buttonRandomize.maxWidth = 24;
+		buttonRandomize.states = [[""] ++ Color.black.dup(2)];
+		buttonRandomize.action = {
+			this.randomize();
+
+		};
+		headerLayout.add(buttonRandomize);
 
 		numberBoxParallelLayers = NumberBoxFactory.createInstance(this, class: "numberbox-patternbox-layers");
 		numberBoxParallelLayers.value = parallelLayers;

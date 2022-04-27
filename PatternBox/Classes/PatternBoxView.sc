@@ -20,7 +20,7 @@ a.keys do: { |key| a[key.postln].postln }
 PatternBoxView : View {
 	var <>lemurClient, <presetView, <bindViews, <playingStream;
 	var mixerAmpProxy, eventStreamProxy, <eventStream, eventParProxy, setValueFunction, <model, dependants, parentView;
-	var layoutMain, layoutHeader, layoutFooter, scrollViewBodyBindViews, layoutControlHeaderLabels,layoutBindViews,textpatternBoxName, buttonPlay, buttonRandomize, presetView, textEnvirFieldView;
+	var layoutMain, layoutHeader, envirChangeRequiresRecompilation, layoutFooter, scrollViewBodyBindViews, layoutControlHeaderLabels,layoutBindViews,textpatternBoxName, buttonPlay, buttonRandomize, presetView, textEnvirFieldView;
 	var layoutControlHeaderLabels,labelParamNameControlHeader, errorLabelEnvirFieldView, buttonAllEditModeOn, buttonAllEditModeOff, buttonCollapseExpandEnvir, labelParamTargetpatternTargetIDControlHeader, labelParamControlScriptOrControllerHeader, labelParamControlSelectorsHeader, buttonAddBindView;
 	var <>index, <playState, >closeAction,<>removeAction, <patternBoxName, envirHeader, commandPeriodHandler, <>actionPlayStateChanged, <>actionNameChanged, <>actionVolumeChanged, <volume;
 
@@ -39,7 +39,7 @@ PatternBoxView : View {
 		eventStreamProxy = PatternProxy();
 		eventStreamProxy.source = Pbind(\dur, 1);
 		eventStream = Pmul(\amp, mixerAmpProxy, eventStreamProxy); // In de toekomst via een routing synth. ivm insert, sends etc.
-
+		envirChangeRequiresRecompilation = true;
 		instanceCounter = instanceCounter + 1;
 
 		patternBoxName = "Box" + instanceCounter;
@@ -80,11 +80,12 @@ PatternBoxView : View {
 
 				if (environment.notNil) {
 					model[\environment] = environment;
-					bindViews do: { |bindView|
-						bindView.compileAll();
-						bindView.rebuildPatterns();
+					if (envirChangeRequiresRecompilation == true) {
+						bindViews do: { |bindView|
+							bindView.compileAll();
+							bindView.rebuildPatterns();
+						};
 					};
-
 				} {
 					errorLabelEnvirFieldView.string = "Invalid input."
 				};
@@ -351,7 +352,6 @@ PatternBoxView : View {
 			setValueFunction[\patternBoxName].value(state[\patternBoxName]);
 			this.volume = state[\volume];
 		});
-		setValueFunction[\envirText].value(state[\envirText]);
 
 		// Remove the scores that are to many.
 		if (state[\bindViewStates].size < bindViews.size, {
@@ -360,6 +360,9 @@ PatternBoxView : View {
 				bindViews.pop().dispose()
 			};
 		});
+		envirChangeRequiresRecompilation = false;
+		setValueFunction[\envirText].value(state[\envirText]);
+		envirChangeRequiresRecompilation = true;
 
 		state[\bindViewStates] do: { |patternBoxParamState, position|
 			var bindViewCreateOrUpdate;
@@ -373,6 +376,7 @@ PatternBoxView : View {
 
 		textEnvirFieldView.visible = state[\envirTextVisible] == true;
 		buttonCollapseExpandEnvir = if (state[\envirTextVisible] == true, 1, 0);
+
 
 		this.rebuildPatterns();
 	}

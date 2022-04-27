@@ -60,7 +60,7 @@ PatternBoxProjectItemView : View {
 		dragBothPanel = DragBoth();
 		dragBothPanel.minHeight = 50;
 		dragBothPanel.maxWidth = 12.5;
-		dragBothPanel.background = Color.blue.alpha_(0.3);
+		dragBothPanel.background = Color.black.alpha_(0.5);
 		dragBothPanel.toolTip = this.toolTip;
 		mainLayout.addSpanning(dragBothPanel, 0, 0, rowSpan: 2);
 
