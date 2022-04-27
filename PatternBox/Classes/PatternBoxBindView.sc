@@ -207,6 +207,10 @@ PatternBoxBindView : View {
 		});
 	}
 
+	compileAll {
+		paramViews do: { |view| view.regenerateAndInterpretedParamScript(); };
+	}
+
 	randomize {
 		paramViews do: { |patternBoxParamView|
 			patternBoxParamView.randomize();

@@ -81,6 +81,7 @@ PatternBoxView : View {
 				if (environment.notNil) {
 					model[\environment] = environment;
 					bindViews do: { |bindView|
+						bindView.compileAll();
 						bindView.rebuildPatterns();
 					};
 
