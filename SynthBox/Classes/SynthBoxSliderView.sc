@@ -10,8 +10,8 @@ SynthBoxSliderView(bounds:400@50).front();
 */
 
 SynthBoxSliderView : View {
-	var model, dependants, <>spec, <name, midiResp, midiFlag, <>bMidiInvert;
-    var <mainLayout, <labelName, <sliderView, <numberBoxValue, <toggleMidiLearn, <toggleMidiInvert, <mappedValue;
+	var model, dependants, <>spec, <name, midiResp, midiFlag, <>bMidiInvert, mappedValue, <canRandomize;
+    var <mainLayout, <labelName, <sliderView, <numberBoxValue, <toggleMidiLearn, <toggleMidiInvert, buttonMuteRandomization;
 
 	*new { |argName, argSpec, parent, bounds|
 		^super.new(parent, bounds).initialize(argName,argSpec);
@@ -24,6 +24,7 @@ SynthBoxSliderView : View {
 		name = argName;
 		midiFlag = 0;
 		bMidiInvert = false;
+		canRandomize = true;
 		model = (value: 0.0);
 		model[\setValueFunction] = { |value|
 			model[\value] = value;
@@ -51,7 +52,13 @@ SynthBoxSliderView : View {
 
 		numberBoxValue = NumberBoxFactory.createInstance(this, class: "numberbox-synthbox-mapped-value");
 		numberBoxValue.action = { |sender| model[\setValueFunction].value(spec.unmap(sender.value)) };
-	    mainLayout.add(numberBoxValue);
+		mainLayout.add(numberBoxValue);
+
+		buttonMuteRandomization = ButtonFactory.createInstance(this, class: "btn-mute-randomizer");
+		buttonMuteRandomization.action = { |sender|
+			if (sender.value == 1) { canRandomize=false } { canRandomize=true; }
+		};
+		mainLayout.add(buttonMuteRandomization);
 
 		toggleMidiLearn = ButtonFactory.createInstance(this, class: "btn-toggle-midiswitch", buttonString1: "ON", buttonString2: "OFF");
 		toggleMidiLearn.action = { |sender|
@@ -61,10 +68,9 @@ SynthBoxSliderView : View {
 
 		toggleMidiInvert  = ButtonFactory.createInstance(this, class: "btn-toggle-midiinvert", buttonString1: "ø", buttonString2: "ø");
 		toggleMidiInvert.action = { arg sender; bMidiInvert = sender.value == 1; };
-
 		mainLayout.add(toggleMidiInvert, align: \top);
 
-		dependants[\updateView] = {|theChanger, what, val|
+		dependants[\updateView] = {|theChanger, what, val|∂
 			sliderView.value_(val);
 			numberBoxValue.value_(spec.map(val));
 		};
@@ -106,6 +112,10 @@ SynthBoxSliderView : View {
 		name = argName;
 	}
 
+	randomize {
+		if (this.canRandomize, { this.value_(1.0.rand) });
+	}
+
 	getState  {
 		var state = Dictionary();
 		state[\name] = this.name;
@@ -117,5 +127,4 @@ SynthBoxSliderView : View {
 		this.name = state[\name];
 		this.value = state[\value];
 	}
-
 }

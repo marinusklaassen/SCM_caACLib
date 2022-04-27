@@ -52,9 +52,9 @@ ButtonFactory {
 			newInstance.states = [[buttonString1], [buttonString2]];
 		});
 		if (class == "btn-toggle-midiswitch", {
-			newInstance.maxWidth = 30;
-			newInstance.states = [["mb", Color.black, Color.clear.alpha_(0.1)], ["mb"]];
-			newInstance.toolTip = "MIDI binding";
+			newInstance.maxWidth = 28;
+			newInstance.states = [["ML", Color.black, Color.clear.alpha_(0.1)], ["mb"]];
+			newInstance.toolTip = "Bind MIDI to controller";
 		});
 		if (class == "btn-toggle-midiinvert", {
 			newInstance.fixedSize = 16;
@@ -106,6 +106,12 @@ ButtonFactory {
 		if (class.contains("btn-patternbox-footer"), {
      		 newInstance.states = [[buttonString1, Color.black, Color.black.alpha_(0.05)]];
 		});
+		if(class.contains("btn-mute-randomizer"), {
+			newInstance.maxWidth = 18;
+			newInstance.states = [["", Color.black, Color.clear.alpha_(0.1)], ["", Color.black, Color.black]];
+			newInstance.toolTip = "Mute controller randomizer";
+		});
+
 		^newInstance;
 	}
 }

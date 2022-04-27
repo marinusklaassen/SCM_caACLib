@@ -36,7 +36,7 @@ SynthBoxView : View {
 		controlPanel.mainLayout.margins = 0!4;
 		controlPanel.randomAction = {
 			controlViews do: { |element|
-				if (element.isKindOf(SynthBoxSliderView)) { element.value_(1.0.rand) }
+				if (element.isKindOf(SynthBoxSliderView)) { element.randomize() }
 			}
 		};
 
