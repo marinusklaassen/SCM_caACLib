@@ -17,10 +17,11 @@ m.model[\envirText]
 a.keys do: { |key| a[key.postln].postln }
 */
 
+
 PatternBoxBindView : View {
 	var <paramViews, mainLayout, bodyLayout, headerLayout, headerView, buttonRandomize, dragBothPanel, textFieldTitle, numberBoxParallelLayers, buttonAddParamView, buttonDelete;
-	var <title, <bindSource, <context, <parallelLayers;
-	var <>actionOnBindChanged, <>actionButtonDelete, <>actionInsertPatternBoxBindView, <>actionMoveBindView;
+	var <title, <bindSource, <context, muteState, <parallelLayers;
+	var <>actionOnBindChanged, <>actionButtonDelete, currentPattern, toggleMute, <>actionInsertPatternBoxBindView, <>actionMoveBindView;
 	var prBeginDragAction, prCanReceiveDragHandler, prReceiveDragHandler; // workaround drag and drop
 
 	*new { |context, parent, bounds|
@@ -31,7 +32,26 @@ PatternBoxBindView : View {
 		title = argTitle;
 		textFieldTitle.string = title;
 		this.toolTip = title;
+	}
 
+	setMuteState { |state|
+		if (muteState != state, {
+			muteState = state;
+			toggleMute.value = state;
+			if (muteState == 1, {
+				bindSource.source = Pset(\type, \rest, currentPattern);
+			},{
+				bindSource.source = currentPattern;
+			});
+		});
+	}
+
+	mute {
+		this.setMuteState(1);
+	}
+
+	unmute {
+		this.setMuteState(0);
 	}
 
 	editMode_ { |mode|
@@ -46,10 +66,12 @@ PatternBoxBindView : View {
 
 	initialize { |argContext|
 		context = argContext;
+		muteState = 0;
 		parallelLayers = 1;
 		paramViews = List();
+		currentPattern = Pbind();
 		bindSource = PatternProxy(1);
-		bindSource.source = Pbind();
+		bindSource.source = currentPattern;
 	}
 
 	initializeView {
@@ -82,9 +104,17 @@ PatternBoxBindView : View {
 		buttonRandomize.states = [[""] ++ Color.black.dup(2)];
 		buttonRandomize.action = {
 			this.randomize();
-
 		};
-		headerLayout.add(buttonRandomize);
+
+		toggleMute = Button();
+		toggleMute.toolTip = "Randomize";
+		toggleMute.maxWidth = 24;
+		toggleMute.states = [["M", Color.black, Color.black.alpha_(0.1)], ["M", Color.black, Color.red]];
+		toggleMute.action = { |sender|
+			this.setMuteState(sender.value);
+		};
+
+		headerLayout.add(toggleMute);
 
 		numberBoxParallelLayers = NumberBoxFactory.createInstance(this, class: "numberbox-patternbox-layers");
 		numberBoxParallelLayers.value = parallelLayers;
@@ -166,7 +196,7 @@ PatternBoxBindView : View {
 			var targetPosition;
 			if (dragDestinationObject !==  dragObject, {
 				if (dragDestinationObject.context != dragObject.context, {
-						dragObject.context.paramViews.remove(dragObject);
+					dragObject.context.paramViews.remove(dragObject);
 				});
 				paramViews do: { |view, i|
 					if (dragDestinationObject == view, {
@@ -205,16 +235,17 @@ PatternBoxBindView : View {
 			keyValuePairPatterns.add(paramView.paramProxy;);
 		};
 		if (keyValuePairPatterns.size == 0, {
-			bindSource.source = Pbind();
+			currentPattern = Pbind();
 		},
 		{
-			newPbind = Pbind(*keyValuePairPatterns.asArray());
+			currentPattern = Pbind(*keyValuePairPatterns.asArray());
 			if (parallelLayers > 1, {
-				bindSource.source = Ppar({newPbind}!parallelLayers);
-			},{
-				bindSource.source = newPbind;
+
+				currentPattern = Ppar({currentPattern}!parallelLayers);
 			});
 		});
+		this.setMuteState(muteState);
+		bindSource.source = currentPattern;
 	}
 
 	compileAll {
@@ -235,6 +266,7 @@ PatternBoxBindView : View {
 		state[\paramViewStates] = paramViews collect: { | paramView |
 			paramView.getState();
 		};
+		state[\muteState] = muteState;
 		^state;
 	}
 
@@ -242,6 +274,12 @@ PatternBoxBindView : View {
 		this.title = state[\title];
 		this.parallelLayers = if (state[\parallelLayers].isNil, 1, state[\parallelLayers]);
 		// Remove the scores that are to many.
+		if (state[\muteState].notNil, {
+			this.setMuteState(state[\muteState]);
+		},{
+		   	this.setMuteState(0);
+	    });
+
 		if (state[\paramViewStates].size < paramViews.size, {
 			var amountToMany = paramViews.size - state[\paramViewStates].size;
 			amountToMany do: {
