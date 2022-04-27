@@ -307,14 +307,11 @@ PatternBoxView : View {
 			bindViews do: {  |bindView|
 				if (bindView != sender, {
 					if (sender.soloState == 1, {
-						bindView.muteStateBeforeSolo = bindView.muteState;
-						bindView.mute();
+						bindView.setSoloState(0, skipAction: true);
+						bindView.setMuteState(1, skipAction: true);
 					},
 					{
-						if(bindView.muteStateBeforeSolo == 0, {
-							bindView.unmute();
-						});
-
+						bindView.setMuteState(0, skipAction: true);
 					});
 				});
 			};

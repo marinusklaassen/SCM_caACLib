@@ -15,6 +15,8 @@ a = m.getState()
 m.loadState(a);
 m.model[\envirText]
 a.keys do: { |key| a[key.postln].postln }
+
+
 */
 
 
@@ -22,7 +24,7 @@ PatternBoxBindView : View {
 	var <paramViews, mainLayout, bodyLayout, headerLayout, headerView, buttonRandomize, dragBothPanel, textFieldTitle, numberBoxParallelLayers, buttonAddParamView, buttonDelete;
 	var <title, <bindSource, <context, <muteState, <parallelLayers;
 	var <>actionOnBindChanged, <>actionButtonDelete, currentPattern, toggleMute, toggleSolo, <soloState, <>actionInsertPatternBoxBindView, <>actionMoveBindView;
-	var prBeginDragAction, <>muteStateBeforeSolo, prCanReceiveDragHandler, prReceiveDragHandler, <>actionOnSoloStateChanged; // workaround drag and drop
+	var prBeginDragAction, prCanReceiveDragHandler, prReceiveDragHandler, <>actionOnSoloStateChanged; // workaround drag and drop
 
 	*new { |context, parent, bounds|
 		^super.new(parent, bounds).initialize(context).initializeView().initialized();
@@ -35,27 +37,25 @@ PatternBoxBindView : View {
 	}
 
 	// rename to setSoloStateAction?
-	setSoloState { |state|
-		if (soloState != state, {
-			soloState = state;
-			if (soloState == 1, {
-				this.unmute();
-			});
+	setSoloState { |state, skipAction|
+		soloState = state;
+		toggleSolo.value = state;
+		if (soloState == 1, {
+			this.unmute();
+		});
+		if (skipAction.isNil, {
 			if (actionOnSoloStateChanged.notNil, { actionOnSoloStateChanged.value(this); });
 		});
-		toggleSolo.value = state;
 	}
 
-	setMuteState { |state|
-		if (muteState != state, {
-			muteState = state;
-			toggleMute.value = state;
-			if (muteState == 1, {
-				this.setSoloState(0);
-				bindSource.source = Pset(\type, \rest, currentPattern);
-			},{
-				bindSource.source = currentPattern;
-			});
+	setMuteState { |state, skipAction|
+		muteState = state;
+		toggleMute.value = state;
+		if (muteState == 1, {
+			// if (skipSoloState.isNil, { this.setSoloState(0); });
+			bindSource.source = Pset(\type, \rest, currentPattern);
+		},{
+			bindSource.source = currentPattern;
 		});
 	}
 
@@ -79,8 +79,8 @@ PatternBoxBindView : View {
 
 	initialize { |argContext|
 		context = argContext;
+		soloState = 0;
 		muteState = 0;
-		muteStateBeforeSolo = muteState;
 		parallelLayers = 1;
 		paramViews = List();
 		currentPattern = Pbind();
@@ -119,6 +119,8 @@ PatternBoxBindView : View {
 		buttonRandomize.action = {
 			this.randomize();
 		};
+
+		headerLayout.add(buttonRandomize);
 
 		toggleSolo = Button();
 		toggleSolo.toolTip = "Solo this bind view";
@@ -180,6 +182,9 @@ PatternBoxBindView : View {
 		this.setDragAndDropBehavior(this);
 		this.setDragAndDropBehavior(dragBothPanel);
 		this.setDragAndDropBehavior(textFieldTitle);
+		this.setDragAndDropBehavior(buttonRandomize);
+		this.setDragAndDropBehavior(toggleMute);
+		this.setDragAndDropBehavior(toggleSolo);
 		this.setDragAndDropBehavior(numberBoxParallelLayers);
 		this.setDragAndDropBehavior(buttonAddParamView);
 		this.setDragAndDropBehavior(buttonDelete);
@@ -292,7 +297,6 @@ PatternBoxBindView : View {
 		};
 		state[\muteState] = muteState;
 		state[\soloState] = soloState;
-		state[\muteStateBeforeSolo] = muteStateBeforeSolo;
 		^state;
 	}
 
@@ -301,19 +305,14 @@ PatternBoxBindView : View {
 		this.parallelLayers = if (state[\parallelLayers].isNil, 1, state[\parallelLayers]);
 		// Remove the scores that are to many.
 		if (state[\muteState].notNil, {
-			this.setMuteState(state[\muteState]);
+			this.setMuteState(state[\muteState], skipAction: true);
 		},{
-		   	this.setMuteState(0);
-	    });
+			this.setMuteState(0, skipAction: true);
+		});
 		if (state[\soloState].notNil, {
-			this.setSoloState(state[\soloState]);
+			this.setSoloState(state[\soloState], skipAction: true);
 		},{
-		   	this.setSoloState(0);
-	    });
-		if (state[\muteStateBeforeSolo].notNil, {
-			muteStateBeforeSolo = state[\muteStateBeforeSolo];
-		},{
-			muteStateBeforeSolo = 0;
+			this.setSoloState(0, skipAction: true);
 		});
 		if (state[\paramViewStates].size < paramViews.size, {
 			var amountToMany = paramViews.size - state[\paramViewStates].size;
