@@ -303,6 +303,23 @@ PatternBoxView : View {
 			});
 		};
 
+		newBindView.actionOnSoloStateChanged = { |sender|
+			bindViews do: {  |bindView|
+				if (bindView != sender, {
+					if (sender.soloState == 1, {
+						bindView.muteStateBeforeSolo = bindView.muteState;
+						bindView.mute();
+					},
+					{
+						if(bindView.muteStateBeforeSolo == 0, {
+							bindView.unmute();
+						});
+
+					});
+				});
+			};
+		};
+
 		if (positionInLayout.notNil, {
 			layoutBindViews.insert(newBindView, positionInLayout);
 			bindViews = bindViews.insert(positionInLayout, newBindView);
@@ -376,7 +393,6 @@ PatternBoxView : View {
 
 		textEnvirFieldView.visible = state[\envirTextVisible] == true;
 		buttonCollapseExpandEnvir = if (state[\envirTextVisible] == true, 1, 0);
-
 
 		this.rebuildPatterns();
 	}

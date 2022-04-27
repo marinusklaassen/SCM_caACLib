@@ -20,9 +20,9 @@ a.keys do: { |key| a[key.postln].postln }
 
 PatternBoxBindView : View {
 	var <paramViews, mainLayout, bodyLayout, headerLayout, headerView, buttonRandomize, dragBothPanel, textFieldTitle, numberBoxParallelLayers, buttonAddParamView, buttonDelete;
-	var <title, <bindSource, <context, muteState, <parallelLayers;
-	var <>actionOnBindChanged, <>actionButtonDelete, currentPattern, toggleMute, <>actionInsertPatternBoxBindView, <>actionMoveBindView;
-	var prBeginDragAction, prCanReceiveDragHandler, prReceiveDragHandler; // workaround drag and drop
+	var <title, <bindSource, <context, <muteState, <parallelLayers;
+	var <>actionOnBindChanged, <>actionButtonDelete, currentPattern, toggleMute, toggleSolo, <soloState, <>actionInsertPatternBoxBindView, <>actionMoveBindView;
+	var prBeginDragAction, <>muteStateBeforeSolo, prCanReceiveDragHandler, prReceiveDragHandler, <>actionOnSoloStateChanged; // workaround drag and drop
 
 	*new { |context, parent, bounds|
 		^super.new(parent, bounds).initialize(context).initializeView().initialized();
@@ -34,11 +34,24 @@ PatternBoxBindView : View {
 		this.toolTip = title;
 	}
 
+	// rename to setSoloStateAction?
+	setSoloState { |state|
+		if (soloState != state, {
+			soloState = state;
+			if (soloState == 1, {
+				this.unmute();
+			});
+			if (actionOnSoloStateChanged.notNil, { actionOnSoloStateChanged.value(this); });
+		});
+		toggleSolo.value = state;
+	}
+
 	setMuteState { |state|
 		if (muteState != state, {
 			muteState = state;
 			toggleMute.value = state;
 			if (muteState == 1, {
+				this.setSoloState(0);
 				bindSource.source = Pset(\type, \rest, currentPattern);
 			},{
 				bindSource.source = currentPattern;
@@ -67,6 +80,7 @@ PatternBoxBindView : View {
 	initialize { |argContext|
 		context = argContext;
 		muteState = 0;
+		muteStateBeforeSolo = muteState;
 		parallelLayers = 1;
 		paramViews = List();
 		currentPattern = Pbind();
@@ -106,8 +120,18 @@ PatternBoxBindView : View {
 			this.randomize();
 		};
 
+		toggleSolo = Button();
+		toggleSolo.toolTip = "Solo this bind view";
+		toggleSolo.maxWidth = 24;
+		toggleSolo.states = [["S", Color.black, Color.black.alpha_(0.1)], ["S", Color.black, Color.yellow]];
+		toggleSolo.action = { |sender|
+			this.setSoloState(sender.value);
+		};
+
+		headerLayout.add(toggleSolo);
+
 		toggleMute = Button();
-		toggleMute.toolTip = "Randomize";
+		toggleMute.toolTip = "Mute";
 		toggleMute.maxWidth = 24;
 		toggleMute.states = [["M", Color.black, Color.black.alpha_(0.1)], ["M", Color.black, Color.red]];
 		toggleMute.action = { |sender|
@@ -267,6 +291,8 @@ PatternBoxBindView : View {
 			paramView.getState();
 		};
 		state[\muteState] = muteState;
+		state[\soloState] = soloState;
+		state[\muteStateBeforeSolo] = muteStateBeforeSolo;
 		^state;
 	}
 
@@ -279,7 +305,16 @@ PatternBoxBindView : View {
 		},{
 		   	this.setMuteState(0);
 	    });
-
+		if (state[\soloState].notNil, {
+			this.setSoloState(state[\soloState]);
+		},{
+		   	this.setSoloState(0);
+	    });
+		if (state[\muteStateBeforeSolo].notNil, {
+			muteStateBeforeSolo = state[\muteStateBeforeSolo];
+		},{
+			muteStateBeforeSolo = 0;
+		});
 		if (state[\paramViewStates].size < paramViews.size, {
 			var amountToMany = paramViews.size - state[\paramViewStates].size;
 			amountToMany do: {
