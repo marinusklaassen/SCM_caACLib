@@ -25,12 +25,12 @@ PatternBoxProjectItemView : View {
 	var volume = 1, <patternBoxName, playState = 0, lemurClient;
 	var prCanReceiveDragHandler, prReceiveDragHandler, prBeginDragAction;
 
-    *new { |parent, bounds, lemurClient|
-        ^super.new(parent, bounds).initialize(lemurClient);
-    }
+	*new { |parent, bounds, lemurClient|
+		^super.new(parent, bounds).initialize(lemurClient);
+	}
 
-    initialize { |lemurClient|
-        lemurClient = lemurClient;
+	initialize { |lemurClient|
+		lemurClient = lemurClient;
 		patternBoxView = PatternBoxView(lemurClient: patternBoxView, bounds: Rect(100, 100, 600, 800));
 		patternBoxView.actionNameChanged = { |sender| this.onPatternBoxNameChanged(sender); };
 		patternBoxView.actionPlayStateChanged = { |sender| this.onPatternBoxPlayStateChanged(sender); };
@@ -38,10 +38,10 @@ PatternBoxProjectItemView : View {
 		onCommandPeriodFunc = { this.onCommandPeriod();};
 		CmdPeriod.add(onCommandPeriodFunc);
 		this.initializeView();
-    }
+	}
 
 	initializeView {
-        mainLayout = GridLayout();
+		mainLayout = GridLayout();
 		mainLayout.margins_([5,2,20,2]);
 		mainLayout.vSpacing_(0);
 		this.toolTip = "Press CMD + drag to move this item to another position.";
@@ -74,13 +74,13 @@ PatternBoxProjectItemView : View {
 		.value_(volume)
 		.labelText_(patternBoxView.patternBoxName)
 		.action_({ |sender | this.onSliderVolumeChanged(sender.value); });
-        mainLayout.addSpanning(sliderVolume, 0, 2, rowSpan: 2);
+		mainLayout.addSpanning(sliderVolume, 0, 2, rowSpan: 2);
 		mainLayout.setColumnStretch(1, 1);
 
 		buttonShowPatternBox = ButtonFactory.createInstance(this, class: "btn-patternboxprojectitemview-showpatternbox");
 		buttonShowPatternBox.action = { |sender| this.onButtonShowPatternBox(sender); };
 		buttonShowPatternBox.toolTip = "Bring the PatternBox editor to the front.";
-        layout.addSpanning(buttonShowPatternBox, 0, 3, rowSpan: 2);
+		layout.addSpanning(buttonShowPatternBox, 0, 3, rowSpan: 2);
 
 		buttonRemove = ButtonFactory.createInstance(this, class: "btn-delete");
 		buttonRemove.action = { |sender| this.onButtonRemove(sender); };
@@ -150,27 +150,27 @@ PatternBoxProjectItemView : View {
 		this.dispose();
 	}
 
-    getState {
-        var state = Dictionary();
-        state[\type] = "PatternBoxProjectItemView";
+	getState {
+		var state = Dictionary();
+		state[\type] = "PatternBoxProjectItemView";
 		state[\patternBoxState] = patternBoxView.getState();
-        state[\patternBoxName] = patternBoxName;
-        state[\volume] = volume;
-        ^state;
-    }
+		state[\patternBoxName] = patternBoxName;
+		state[\volume] = volume;
+		^state;
+	}
 
-    loadState { |state|
-       state[\type] = "PatternBoxProjectItemView";
-	   patternBoxView.loadState(state[\patternBoxState]);
-       patternBoxName = state[\patternBoxName];
-	   sliderVolume.labelText = patternBoxName;
-	   volume = state[\volume];
-	   sliderVolume.value = volume;
-    }
+	loadState { |state|
+		state[\type] = "PatternBoxProjectItemView";
+		patternBoxView.loadState(state[\patternBoxState]);
+		patternBoxName = state[\patternBoxName];
+		sliderVolume.labelText = patternBoxName;
+		volume = state[\volume];
+		sliderVolume.value = volume;
+	}
 
-    dispose {
-        this.remove(); // removes itselfs from the layout
-        CmdPeriod.remove(onCommandPeriodFunc);
+	dispose {
+		this.remove(); // removes itselfs from the layout
+		CmdPeriod.remove(onCommandPeriodFunc);
 		if (actionRemove.notNil, { actionRemove.value(); });
-    }
+	}
 }

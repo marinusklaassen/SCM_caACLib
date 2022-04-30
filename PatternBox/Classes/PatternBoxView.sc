@@ -63,7 +63,7 @@ PatternBoxView : View {
 			};
 		};
 
-		setValueFunction [\volume] = { |volume|
+		setValueFunction[\volume] = { |volume|
 			mixerAmpProxy.source = volume;
 			model[\volume] = volume;
 			model.changed(\volume, volume);
@@ -106,7 +106,7 @@ PatternBoxView : View {
 
 		dependants[\buttonPlay] =  {|theChanger, what, value|
 			if (what == \buttonPlay) {
-				if (value > 0) {
+					if (value > 0) {
 					playingStream = eventStream.play(quant: 1);
 
 				} { playingStream.stop };
@@ -335,7 +335,7 @@ PatternBoxView : View {
 	}
 
 	volume_ { |volume|
-		setValueFunction.value(\volume, volume);
+		setValueFunction[\volume].value(volume);
 	}
 
 	play {
