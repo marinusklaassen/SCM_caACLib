@@ -42,11 +42,11 @@ PatternBoxProjectView : View {
 
 		layoutPatternBoxItems = VLayout([nil, stretch:1, align: \bottom]); // workaround. insert before stretchable space.
 		layoutPatternBoxItems.margins = 0!4;
-		layoutPatternBoxItems.spacing = 2;
+		layoutPatternBoxItems.spacing = 5;
 
 		scrollViewPatternBoxItems = ScrollViewFactory.createInstance(this);
 		scrollViewPatternBoxItems.canvas.layout = layoutPatternBoxItems;
-
+		scrollViewPatternBoxItems.background = Color.black.alpha_(0.1);
 		scrollViewPatternBoxItems.canvas.canReceiveDragHandler = {  |view, x, y|
 			View.currentDrag.isKindOf(PatternBoxProjectItemView);
 		};

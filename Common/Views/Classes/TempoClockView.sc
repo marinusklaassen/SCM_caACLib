@@ -40,7 +40,7 @@ TempoClockView : View {
 		this.name = "BPM";
 
 		labelTempoClock = StaticTextFactory.createInstance(this);
-		labelTempoClock.string = "Global tempo in BPM:";
+		labelTempoClock.string = "Tempo [BPM]:";
 
 		this.layout.add(labelTempoClock, align: \left);
 

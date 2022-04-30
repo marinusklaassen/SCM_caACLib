@@ -244,13 +244,13 @@ PatternBoxView : View {
 		});
 		layoutFooter.add(buttonCollapseExpandEnvir, align: \left);
 
-		buttonAllEditModeOn = ButtonFactory.createInstance(this, class: "btn-patternbox-footer", buttonString1: "editmode on");
+		buttonAllEditModeOn = ButtonFactory.createInstance(this, class: "btn-patternbox-footer", buttonString1: "show edit all");
 		buttonAllEditModeOn.action_({ |sender|
 			bindViews do: { | bindView| bindView.editMode = true; };
 		});
 		layoutFooter.add(buttonAllEditModeOn);
 
-		buttonAllEditModeOff = ButtonFactory.createInstance(this, class: "btn-patternbox-footer", buttonString1: "editmode off");
+		buttonAllEditModeOff = ButtonFactory.createInstance(this, class: "btn-patternbox-footer", buttonString1: "hide edit all");
 		buttonAllEditModeOff.action_({ |sender|
 			bindViews do: { | bindView| bindView.editMode = false; };
 		});

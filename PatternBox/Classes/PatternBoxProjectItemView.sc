@@ -42,11 +42,11 @@ PatternBoxProjectItemView : View {
 
 	initializeView {
 		mainLayout = GridLayout();
-		mainLayout.margins_([5,2,20,2]);
+		mainLayout.margins_([5,5,20,5]);
 		mainLayout.vSpacing_(0);
 		this.toolTip = "Press CMD + drag to move this item to another position.";
 		this.layout = mainLayout;
-		this.background = Color.black.alpha_(0.2);
+		this.background = Color.blue.alpha_(0.2);
 
 		this.setContextMenuActions(
 			MenuAction("Insert row before", {

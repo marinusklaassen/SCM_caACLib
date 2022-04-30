@@ -28,7 +28,8 @@ NumberBoxFactory {
 		}
 		{ class == "numberbox-patternbox-layers" }
 		{
-			newInstance.background_(Color.white);
+			newInstance.background_(Color.black.alpha_(0.1));
+			newInstance.align = \center;
 			newInstance.clipLo = 1;
 			newInstance.clipHi = 20;
 			newInstance.maxWidth = 23;

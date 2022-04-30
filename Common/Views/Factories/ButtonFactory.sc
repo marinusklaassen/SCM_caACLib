@@ -92,19 +92,22 @@ ButtonFactory {
 		if (class.contains("toggle-play-patternboxprojectitemview"), {
 			newInstance.font = Font("Menlo", 24);
 			newInstance.minWidth_(50).maxWidth_(45).minHeight_(50);
-			newInstance.states_([["▶"], ["◼"]]);
+			newInstance.states_([["▶", Color.black, Color.black.alpha_(0.1)], ["◼", Color.black, Color.black.alpha_(0.1)]]);
 		});
 		if (class.contains("btn-patternboxprojectitemview-showpatternbox"), {
+			newInstance = Button();
+			newInstance.states_([["", Color.black, Color.black.alpha_(0.1)]]);
+			newInstance.icon_(Image.openSVG(PathName.new(PatternBoxView.filenameSymbol.asString).pathOnly ++ "sliders-icon.svg", 50@50)).iconSize_(24);
 			newInstance.font = Font("Menlo", 28);
-			newInstance = Button().icon_(Image.openSVG(PathName.new(PatternBoxView.filenameSymbol.asString).pathOnly ++ "sliders-icon.svg", 50@50)).iconSize_(24).front;
+			newInstance.background = Color.black.alpha_(0.1);
 			newInstance.minWidth_(50).maxWidth_(45).minHeight_(50);
 		});
 
 		if (class.contains("btn-collapse-expand"), {
-     		newInstance.states = [["toggle envir editor", Color.black, Color.black.alpha_(0.05)], ["toggle envir editor", Color.black, Color.black.alpha_(0.05)]];
+     		newInstance.states = [["show/hide editor", Color.black, Color.black.alpha_(0)], ["toggle editor", Color.black, Color.black.alpha_(0)]];
 		});
 		if (class.contains("btn-patternbox-footer"), {
-     		 newInstance.states = [[buttonString1, Color.black, Color.black.alpha_(0.05)]];
+     		 newInstance.states = [[buttonString1, Color.black, Color.black.alpha_(0)]];
 		});
 		if(class.contains("btn-mute-randomizer"), {
 			newInstance.maxWidth = 18;
