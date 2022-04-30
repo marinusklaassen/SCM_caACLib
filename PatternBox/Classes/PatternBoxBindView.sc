@@ -23,7 +23,7 @@ a.keys do: { |key| a[key.postln].postln }
 PatternBoxBindView : View {
 	var <paramViews, mainLayout, bodyLayout, headerLayout, headerView, buttonRandomize, dragBothPanel, textFieldTitle, numberBoxParallelLayers, buttonAddParamView, buttonDelete;
 	var <title, <bindSource, <context, <muteState, <parallelLayers;
-	var <>actionOnBindChanged, <>actionButtonDelete, currentPattern, toggleMute, toggleSolo, <soloState, <>actionInsertPatternBoxBindView, <>actionMoveBindView;
+	var <>actionOnBindChanged, <>actionInsertBindView, <>actionButtonDelete, currentPattern, toggleMute, toggleSolo, <soloState, <>actionInsertPatternBoxBindView, <>actionMoveBindView;
 	var prBeginDragAction, prCanReceiveDragHandler, prReceiveDragHandler, <>actionOnSoloStateChanged; // workaround drag and drop
 
 	*new { |context, parent, bounds|
@@ -89,6 +89,13 @@ PatternBoxBindView : View {
 	}
 
 	initializeView {
+
+		this.setContextMenuActions(
+			MenuAction("Duplicate binding", {
+				if (actionInsertBindView.notNil, { actionInsertBindView.value(this, "INSERT_AFTER_DUPLICATIE"); });
+			})
+		);
+
 		mainLayout = VLayout();
 		mainLayout.margins = [0, 0, 0, 10];
 		mainLayout.spacing = 2;

@@ -317,6 +317,19 @@ PatternBoxView : View {
 			};
 		};
 
+		newBindView.actionInsertBindView = { |sender, type|
+			if (type == "INSERT_AFTER_DUPLICATIE",
+			{
+					var newPosition = bindViews.indexOf(sender);
+					var state = sender.getState();
+					newPosition = newPosition + 1;
+					if (state[\title].notNil, {
+						state[\title] = state[\title] + " - COPY";
+					});
+					this.addBindView(newPosition).loadState(state);
+			});
+	    };
+
 		if (positionInLayout.notNil, {
 			layoutBindViews.insert(newBindView, positionInLayout);
 			bindViews = bindViews.insert(positionInLayout, newBindView);
