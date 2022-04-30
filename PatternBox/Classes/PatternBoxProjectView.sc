@@ -95,18 +95,29 @@ PatternBoxProjectView : View {
 		});
 	}
 
-	addPatternBox { |positionInLayout|
+	addPatternBox { |positionInLayout, sourcePatterBoxItemView, duplicate|
 		var patternBoxProjectItemView = PatternBoxProjectItemView(lemurClient);
+		if(duplicate == true, {
+			var state = sourcePatterBoxItemView.getState();
+			state[\patternBoxName] = state[\patternBoxName] + " - COPY";
+			patternBoxProjectItemView.loadState(state);
+		});
+
 		patternBoxProjectItemView.actionRemove = { | sender |
 			patternBoxProjectItemViews.remove(patternBoxProjectItemView);
 		};
 
 		patternBoxProjectItemView.actionInsertPatternBox = { |sender, insertType|
 			var positionInLayout = patternBoxProjectItemViews.indexOf(sender);
+			var duplicate = false;
 			if (insertType == "INSERT_AFTER", {
 				positionInLayout = positionInLayout + 1;
 			});
-			this.addPatternBox(positionInLayout);
+			if (insertType == "INSERT_AFTER_DUPLICATIE", {
+				positionInLayout = positionInLayout + 1;
+				duplicate = true;
+			});
+			this.addPatternBox(positionInLayout, sender, duplicate);
 		};
 
 		patternBoxProjectItemView.actionMovePatternBox = { |dragDestinationObject, dragObject|

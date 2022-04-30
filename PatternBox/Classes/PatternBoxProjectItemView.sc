@@ -20,7 +20,7 @@ a.keys do: { |key| a[key.postln].postln }
 
 PatternBoxProjectItemView : View {
 
-	var mainLayout, patternBoxView, togglePlay, dragBothPanel, sliderVolume, buttonShowPatternBox, buttonRemove, buttonMoveUp, buttonMoveDown;
+	var mainLayout, <patternBoxView, togglePlay, dragBothPanel, sliderVolume, buttonShowPatternBox, buttonRemove, buttonMoveUp, buttonMoveDown;
 	var onCommandPeriodFunc, <>actionRemove, <>actionInsertPatternBox, <>actionMovePatternBox;
 	var volume = 1, <patternBoxName, playState = 0, lemurClient;
 	var prCanReceiveDragHandler, prReceiveDragHandler, prBeginDragAction;
@@ -49,11 +49,14 @@ PatternBoxProjectItemView : View {
 		this.background = Color.blue.alpha_(0.2);
 
 		this.setContextMenuActions(
-			MenuAction("Insert row before", {
+			MenuAction("Insert new PatternBox down", {
 				if (actionInsertPatternBox.notNil, { actionInsertPatternBox.value(this, "INSERT_BEFORE"); });
 			}),
-			MenuAction("Insert row after", {
+			MenuAction("Insert new PatternBox up", {
 				if (actionInsertPatternBox.notNil, { actionInsertPatternBox.value(this, "INSERT_AFTER"); });
+			}),
+			MenuAction("Duplicate PatternBox", {
+				if (actionInsertPatternBox.notNil, { actionInsertPatternBox.value(this, "INSERT_AFTER_DUPLICATIE"); });
 			})
 		);
 
