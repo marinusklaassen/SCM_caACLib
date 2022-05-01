@@ -321,6 +321,13 @@ PatternBoxView : View {
 			};
 		};
 
+		newBindView.actionRestartPatterns = { |sender|
+			if (playState > 0) {
+				playingStream.stop();
+				playingStream.start();
+			};
+		};
+
 		newBindView.actionInsertBindView = { |sender, type|
 			if (type == "INSERT_AFTER_DUPLICATIE",
 			{

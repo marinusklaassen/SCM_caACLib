@@ -15,16 +15,13 @@ a = m.getState()
 m.loadState(a);
 m.model[\envirText]
 a.keys do: { |key| a[key.postln].postln }
-
-
 */
-
 
 PatternBoxBindView : View {
 	var <paramViews, mainLayout, bodyLayout, headerLayout, headerView, buttonRandomize, dragBothPanel, textFieldTitle, numberBoxParallelLayers, buttonAddParamView, buttonDelete;
 	var <title, <bindSource, <context, <muteState, <parallelLayers;
-	var <>actionOnBindChanged, <>actionInsertBindView, <>actionButtonDelete, currentPattern, toggleMute, toggleSolo, <soloState, <>actionInsertPatternBoxBindView, <>actionMoveBindView;
-	var prBeginDragAction, prCanReceiveDragHandler, prReceiveDragHandler, <>actionOnSoloStateChanged; // workaround drag and drop
+	var <>actionOnBindChanged, <>actionRestartPatterns, <>actionInsertBindView, <>actionButtonDelete, currentPattern, toggleMute, toggleSolo, <soloState, <>actionInsertPatternBoxBindView, <>actionMoveBindView;
+	var availablePatternModes, prBeginDragAction, patternMode, popupMenuPatternMode, prCanReceiveDragHandler, prReceiveDragHandler, <>actionOnSoloStateChanged; // workaround drag and drop
 
 	*new { |context, parent, bounds|
 		^super.new(parent, bounds).initialize(context).initializeView().initialized();
@@ -45,6 +42,13 @@ PatternBoxBindView : View {
 		});
 		if (skipAction.isNil, {
 			if (actionOnSoloStateChanged.notNil, { actionOnSoloStateChanged.value(this); });
+		});
+	}
+
+	setPatternMode { |mode|
+		if (patternMode != mode, {
+			popupMenuPatternMode.value = availablePatternModes.indexOf(mode);
+			this.rebuildPatterns();
 		});
 	}
 
@@ -84,6 +88,8 @@ PatternBoxBindView : View {
 		parallelLayers = 1;
 		paramViews = List();
 		currentPattern = Pbind();
+		patternMode = \Pbind;
+		availablePatternModes =  [\Pbind, \Pmono];
 		bindSource = PatternProxy(1);
 		bindSource.source = currentPattern;
 	}
@@ -118,6 +124,15 @@ PatternBoxBindView : View {
 		textFieldTitle.action = { |sender| this.title = sender.string; };
 		textFieldTitle.keyUpAction = textFieldTitle.action;
 		headerLayout.add(textFieldTitle);
+
+		popupMenuPatternMode = PopUpMenuFactory.createInstance(this);
+		popupMenuPatternMode.items = availablePatternModes;
+		popupMenuPatternMode.value = 0;
+		popupMenuPatternMode.action = { | sender |
+			this.setPatternMode(sender.item);
+		};
+
+		headerLayout.add(popupMenuPatternMode);
 
 		buttonRandomize = Button();
 		buttonRandomize.toolTip = "Randomize";
@@ -270,11 +285,27 @@ PatternBoxBindView : View {
 			keyValuePairPatterns.add(paramView.keyName.asSymbol);
 			keyValuePairPatterns.add(paramView.paramProxy;);
 		};
+
 		if (keyValuePairPatterns.size == 0, {
-			currentPattern = Pbind();
+			switch (patternMode,
+				\Pbind, { currentPattern = Pbind(); },
+				\Pmono, { currentPattern = Pmono(\default); });
 		},
 		{
-			currentPattern = Pbind(*keyValuePairPatterns.asArray());
+			switch (patternMode,
+				\Pbind, { currentPattern = Pbind(*keyValuePairPatterns.asArray()); },
+				\Pmono, {
+					var arrayKeyValues, instrumentName = \default, instrumentIndex = keyValuePairPatterns.indexOf(\instrument);
+
+					if (instrumentIndex.notNil, {
+						instrumentName = keyValuePairPatterns[instrumentIndex + 1];
+						keyValuePairPatterns.remove(instrumentIndex); // remove instrument key name
+						keyValuePairPatterns.remove(instrumentIndex); // remove instrument key value
+					});
+					arrayKeyValues = keyValuePairPatterns.asArray().insert(0, instrumentName);
+					currentPattern = Pmono(*arrayKeyValues);
+					if (actionRestartPatterns.notNil, { actionRestartPatterns.value(this); });
+			});
 			if (parallelLayers > 1, {
 
 				currentPattern = Ppar({currentPattern}!parallelLayers);
@@ -304,6 +335,7 @@ PatternBoxBindView : View {
 		};
 		state[\muteState] = muteState;
 		state[\soloState] = soloState;
+		state[\patternMode] = patternMode;
 		^state;
 	}
 
@@ -311,6 +343,7 @@ PatternBoxBindView : View {
 		this.title = state[\title];
 		this.parallelLayers = if (state[\parallelLayers].isNil, 1, state[\parallelLayers]);
 		// Remove the scores that are to many.
+		this.setPatternMode(if(state[\patternMode].isNil, \Pbind, state[\patternMode]));
 		if (state[\muteState].notNil, {
 			this.setMuteState(state[\muteState], skipAction: true);
 		},{
