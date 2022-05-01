@@ -118,8 +118,12 @@ PatternBoxProjectItemView : View {
 	}
 
 	onPatternBoxNameChanged { |sender|
-		sliderVolume.labelText = sender.patternBoxName;
-		patternBoxName = sender.patternBoxName;
+		this.setName(sender.patternBoxName);
+	}
+
+	setName { |name|
+		sliderVolume.labelText = name;
+		patternBoxName = name;
 		this.setDragAndDropBehavior(this);
 		this.setDragAndDropBehavior(dragBothPanel);
 		this.setDragAndDropBehavior(togglePlay);
@@ -163,12 +167,10 @@ PatternBoxProjectItemView : View {
 	}
 
 	loadState { |state|
-		state[\type] = "PatternBoxProjectItemView";
 		patternBoxView.loadState(state[\patternBoxState]);
-		patternBoxName = state[\patternBoxName];
-		sliderVolume.labelText = patternBoxName;
-		volume = state[\volume];
-		sliderVolume.value = volume;
+		this.setName(state[\patternBoxName]);
+		patternBoxView.setName(state[\patternBoxName]);
+		sliderVolume.value = state[\volume];
 	}
 
 	dispose {

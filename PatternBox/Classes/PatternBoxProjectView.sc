@@ -169,8 +169,4 @@ PatternBoxProjectView : View {
 				};
 		});
 	}
-
-
-
-
 }

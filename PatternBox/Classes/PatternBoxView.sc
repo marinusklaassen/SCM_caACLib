@@ -30,6 +30,10 @@ PatternBoxView : View {
 		^super.new(parent, bounds).initialize(lemurClient);
 	}
 
+	setName { |name|
+		setValueFunction[\patternBoxName].value(name);
+	}
+
 	initialize { |lemurClient|
 
 		this.lemurClient = lemurClient;
@@ -375,11 +379,10 @@ PatternBoxView : View {
 	}
 
 	loadState { |state, skipProjectStuf|
-		if (skipProjectStuf == true, {
-			setValueFunction[\patternBoxName].value(state[\patternBoxName]);
-			this.volume = state[\volume];
-		});
-
+		if (skipProjectStuf != true, {
+			this.setName(state[\patternBoxName]);
+			setValueFunction[\volume].value(state[\volume]);
+    	});
 		// Remove the scores that are to many.
 		if (state[\bindViewStates].size < bindViews.size, {
 			var amountToMany = bindViews.size - state[\bindViewStates].size;
