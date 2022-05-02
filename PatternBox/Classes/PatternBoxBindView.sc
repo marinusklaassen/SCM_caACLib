@@ -47,6 +47,7 @@ PatternBoxBindView : View {
 
 	setPatternMode { |mode|
 		if (patternMode != mode, {
+			patternMode = mode;
 			popupMenuPatternMode.value = availablePatternModes.indexOf(mode);
 			this.rebuildPatterns();
 		});
@@ -229,6 +230,11 @@ PatternBoxBindView : View {
 			this.rebuildPatterns(sender);
 		};
 
+		paramChannel.actionPatternScriptChanged = { |sender|
+			if ((sender.keyName.asSymbol == \instrument) && (patternMode == \Pmono),
+				{ this.rebuildPatterns(); });
+		};
+
 		paramChannel.actionButtonDelete = { | sender|
 			paramViews.remove(sender);
 			sender.remove(); // Remove itself from the layout.
@@ -279,11 +285,11 @@ PatternBoxBindView : View {
 	}
 
 	rebuildPatterns {
-		var keyValuePairPatterns = List();
+		var keyValuePairPatterns = Dictionary();
 		var newPbind;
 		paramViews do: { |paramView |
-			keyValuePairPatterns.add(paramView.keyName.asSymbol);
-			keyValuePairPatterns.add(paramView.paramProxy;);
+			paramView.keyName.postln;
+			keyValuePairPatterns[paramView.keyName.asSymbol] = paramView.paramProxy;
 		};
 
 		if (keyValuePairPatterns.size == 0, {
@@ -293,21 +299,18 @@ PatternBoxBindView : View {
 		},
 		{
 			switch (patternMode,
-				\Pbind, { currentPattern = Pbind(*keyValuePairPatterns.asArray()); },
+				\Pbind, { currentPattern = Pbind(*keyValuePairPatterns.asKeyValuePairs().asArray()); },
 				\Pmono, {
-					var arrayKeyValues, instrumentName = \default, instrumentIndex = keyValuePairPatterns.indexOf(\instrument);
-
-					if (instrumentIndex.notNil, {
-						instrumentName = keyValuePairPatterns[instrumentIndex + 1];
-						keyValuePairPatterns.remove(instrumentIndex); // remove instrument key name
-						keyValuePairPatterns.remove(instrumentIndex); // remove instrument key value
+					var arrayKeyValues, instrumentName = \default;
+					if (keyValuePairPatterns[\instrument].notNil, {
+						instrumentName = keyValuePairPatterns[\instrument].asStream.next;
+						keyValuePairPatterns[\instrument] = nil;
 					});
-					arrayKeyValues = keyValuePairPatterns.asArray().insert(0, instrumentName);
+					arrayKeyValues = keyValuePairPatterns.asKeyValuePairs().insert(0, instrumentName);
 					currentPattern = Pmono(*arrayKeyValues);
 					if (actionRestartPatterns.notNil, { actionRestartPatterns.value(this); });
 			});
 			if (parallelLayers > 1, {
-
 				currentPattern = Ppar({currentPattern}!parallelLayers);
 			});
 		});

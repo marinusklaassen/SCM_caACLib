@@ -207,6 +207,7 @@ PatternBoxParamView : View {
 			if (func.notNil) {
 				this.scriptFunc = func;
 				paramProxy.source = func.performKeyValuePairs(\value, keyValuesProxyPairs);
+				actionPatternScriptChanged.value(this);
 			} {
 				scriptFieldView.setError("Invalid input.");
 			};
