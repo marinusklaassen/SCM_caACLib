@@ -287,9 +287,10 @@ PatternBoxBindView : View {
 	rebuildPatterns {
 		var keyValuePairPatterns = Dictionary();
 		var newPbind;
-		paramViews do: { |paramView |
-			paramView.keyName.postln;
-			keyValuePairPatterns[paramView.keyName.asSymbol] = paramView.paramProxy;
+		paramViews do: { |paramView|
+			if (paramView.keyName.notEmpty && paramView.scriptFieldView.string.stripWhiteSpace().notEmpty, {
+				keyValuePairPatterns[paramView.keyName.asSymbol] = paramView.paramProxy;
+			});
 		};
 
 		if (keyValuePairPatterns.size == 0, {

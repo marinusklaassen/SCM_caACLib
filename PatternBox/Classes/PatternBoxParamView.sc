@@ -187,11 +187,16 @@ PatternBoxParamView : View {
 		object.receiveDragHandler = prReceiveDragHandler;
 	}
 
+	isKeyNameChanged {
+		^textPatternKeyname.string != keyName;
+	}
+
 	regenerateAndInterpretedParamScript {
 		// Evalueer deze code ook bij wijziging van een UI control
 		var func, funcAsString, proxies, paramString, keyValuesProxyPairs;
-		if (canInterpret  && scriptFieldView.string.notNil, {
+		if (canInterpret  && scriptFieldView.string.stripWhiteSpace().notEmpty, {
 			try {
+
 				scriptFieldView.clearError();
 				proxies = patternBoxParamControlSectionView.getProxies();
 				proxies[\env] = context.context.model[\environment];
@@ -207,6 +212,10 @@ PatternBoxParamView : View {
 			if (func.notNil) {
 				this.scriptFunc = func;
 				paramProxy.source = func.performKeyValuePairs(\value, keyValuesProxyPairs);
+				if (this.isKeyNameChanged(), {
+					this.keyName = textPatternKeyname.string;
+					actionNameChanged.value(this);
+				});
 				actionPatternScriptChanged.value(this);
 			} {
 				scriptFieldView.setError("Invalid input.");
