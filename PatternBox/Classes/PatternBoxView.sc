@@ -37,7 +37,7 @@ PatternBoxView : View {
 	initialize { |lemurClient|
 
 		this.lemurClient = lemurClient;
-
+		playState =  0;
 		mixerAmpProxy = PatternProxy();
 		mixerAmpProxy.source = 1;
 		eventStreamProxy = PatternProxy();
@@ -322,9 +322,9 @@ PatternBoxView : View {
 		};
 
 		newBindView.actionRestartPatterns = { |sender|
-			if (playState > 0) {
-				playingStream.stop();
-				playingStream.start();
+			if (playingStream.isPlaying) {
+				playingStream.stop;
+				playingStream = eventStream.play(quant: 0.25);
 			};
 		};
 

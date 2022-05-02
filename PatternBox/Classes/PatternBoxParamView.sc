@@ -16,6 +16,7 @@ TODO:
 Slider en range value hernoemen naar gewoon value & range (KISS).
 
 a = PatternBoxParamView().front;
+
 */
 
 PatternBoxParamView : View {
@@ -23,7 +24,7 @@ PatternBoxParamView : View {
 	var <>actionNameChanged, <>removeAction, <>index, <>paramProxy, <>controllerProxies, <>scriptFunc, <>actionButtonDelete, <>rangeSliderAction, <>sliderAction, <>actionPatternScriptChanged, <>actionPatternTargetIDChanged;
 	var layoutStackControlSection, controlNoControl, controlSlider, controlRangeSlider, <keyName, mainLayout, textpatternTargetID, textPatternKeyname, layoutScriptControllerSection, scorePatternScriptEditorView;
 	var canInterpret = false, patternBoxParamControlSectionView, buttonSelectScriptView, buttonSelectScriptOrSpecOpControlStack, buttonSwitchEditingMode, buttonRandomizeControls;
-	var <>actionMoveParamView, prBeginDragAction, prCanReceiveDragHandler, prReceiveDragHandler, <>actionInsertPatternBox;
+	var <>actionMoveParamView, <isPbind, <pbind, prBeginDragAction, prCanReceiveDragHandler, prReceiveDragHandler, <>actionInsertPatternBox;
 
 	*new { | context, parent, bounds |
 		^super.new(parent, bounds).initialize(context);
@@ -193,28 +194,37 @@ PatternBoxParamView : View {
 
 	regenerateAndInterpretedParamScript {
 		// Evalueer deze code ook bij wijziging van een UI control
-		var func, funcAsString, proxies, paramString, keyValuesProxyPairs;
+		var func, funcAsString, proxies, paramString = "", keyValuesProxyPairs;
 		if (canInterpret  && scriptFieldView.string.stripWhiteSpace().notEmpty, {
 			try {
 
 				scriptFieldView.clearError();
 				proxies = patternBoxParamControlSectionView.getProxies();
-				proxies[\env] = context.context.model[\environment];
+				if (context.notNil, {
+					proxies[\env] = context.context.model[\environment]; });
 				keyValuesProxyPairs = proxies.getPairs();
 				keyValuesProxyPairs do: { |item, i|
 					if (i % 2 == 0, {
 						paramString = paramString ++ if(i == 0, "", " , ") ++ item;
 					});
 				};
-				funcAsString = "{ |" + paramString + "|" +  scriptFieldView.string + "}";
+				if (paramString.notEmpty, {
+					paramString = "|"+paramString+"|";
+				});
+				funcAsString = "{ " + paramString +  scriptFieldView.string + "}";
 				func = interpret(funcAsString);
 			};
 			if (func.notNil) {
+				var result = func.performKeyValuePairs(\value, keyValuesProxyPairs);
+				isPbind = result.isKindOf(Pbind);
+				pbind = nil;
+				if (isPbind == true, {
+					pbind = result;
+				});
 				this.scriptFunc = func;
-				paramProxy.source = func.performKeyValuePairs(\value, keyValuesProxyPairs);
+				paramProxy.source = result;
 				if (this.isKeyNameChanged(), {
 					this.keyName = textPatternKeyname.string;
-					actionNameChanged.value(this);
 				});
 				actionPatternScriptChanged.value(this);
 			} {

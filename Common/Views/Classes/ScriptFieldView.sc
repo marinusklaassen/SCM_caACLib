@@ -27,6 +27,7 @@ ScriptFieldView : View {
 
 	// Instance initialization
 	initialize {
+		string = "";
 		this.initializeModelAndEvents();
 		this.initializeView();
 	}

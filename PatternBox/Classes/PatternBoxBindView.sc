@@ -91,8 +91,9 @@ PatternBoxBindView : View {
 		currentPattern = Pbind();
 		patternMode = \Pbind;
 		availablePatternModes =  [\Pbind, \Pmono];
-		bindSource = PatternProxy(1);
+		bindSource = PatternProxy();
 		bindSource.source = currentPattern;
+		bindSource.asStream.next();
 	}
 
 	initializeView {
@@ -231,8 +232,7 @@ PatternBoxBindView : View {
 		};
 
 		paramChannel.actionPatternScriptChanged = { |sender|
-			if ((sender.keyName.asSymbol == \instrument) && (patternMode == \Pmono),
-				{ this.rebuildPatterns(); });
+			this.rebuildPatterns();
 		};
 
 		paramChannel.actionButtonDelete = { | sender|
@@ -286,13 +286,20 @@ PatternBoxBindView : View {
 
 	rebuildPatterns {
 		var keyValuePairPatterns = Dictionary();
+		var pbindPairsList = List();
 		var newPbind;
 		paramViews do: { |paramView|
+			if (paramView.isPbind == true, {
+				if (paramView.pbind.patternpairs.notEmpty(),
+				{
+					pbindPairsList.add(paramView.pbind.patternpairs);
+				});
+			},{
 			if (paramView.keyName.notEmpty && paramView.scriptFieldView.string.stripWhiteSpace().notEmpty, {
-				keyValuePairPatterns[paramView.keyName.asSymbol] = paramView.paramProxy;
+					keyValuePairPatterns[paramView.keyName.asSymbol] = paramView.paramProxy;
+				});
 			});
 		};
-
 		if (keyValuePairPatterns.size == 0, {
 			switch (patternMode,
 				\Pbind, { currentPattern = Pbind(); },
@@ -309,14 +316,17 @@ PatternBoxBindView : View {
 					});
 					arrayKeyValues = keyValuePairPatterns.asKeyValuePairs().insert(0, instrumentName);
 					currentPattern = Pmono(*arrayKeyValues);
-					if (actionRestartPatterns.notNil, { actionRestartPatterns.value(this); });
 			});
-			if (parallelLayers > 1, {
-				currentPattern = Ppar({currentPattern}!parallelLayers);
-			});
+		});
+		pbindPairsList do: { |patternpairs|
+			currentPattern = Pbindf(*asArray([currentPattern] ++ patternpairs));
+		};
+		if (parallelLayers > 1, {
+			currentPattern = Ppar({currentPattern}!parallelLayers);
 		});
 		this.setMuteState(muteState);
 		bindSource.source = currentPattern;
+		if (actionRestartPatterns.notNil, { actionRestartPatterns.value(this); });
 	}
 
 	compileAll {
