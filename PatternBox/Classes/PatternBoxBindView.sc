@@ -18,8 +18,8 @@ a.keys do: { |key| a[key.postln].postln }
 */
 
 PatternBoxBindView : View {
-	var <paramViews, mainLayout, bodyLayout, headerLayout, headerView, buttonRandomize, dragBothPanel, textFieldTitle, numberBoxParallelLayers, buttonAddParamView, buttonDelete;
-	var <title, <bindSource, <context, <muteState, <parallelLayers;
+	var <paramViews, mainLayout, bodyLayout, bodyContainer, headerLayout, headerView, buttonCollapsable, buttonRandomize, dragBothPanel, textFieldTitle, numberBoxParallelLayers, buttonAddParamView, buttonDelete;
+	var <title, <bindSource, <context, <muteState, <parallelLayers, collapsableState;
 	var <>actionOnBindChanged, <>actionRestartPatterns, <>actionInsertBindView, <>actionButtonDelete, currentPattern, toggleMute, toggleSolo, <soloState, <>actionInsertPatternBoxBindView, <>actionMoveBindView;
 	var availablePatternModes, prBeginDragAction, patternMode, popupMenuPatternMode, prCanReceiveDragHandler, prReceiveDragHandler, <>actionOnSoloStateChanged; // workaround drag and drop
 
@@ -64,6 +64,12 @@ PatternBoxBindView : View {
 		});
 	}
 
+	setBodyIsVisible { |visible|
+		bodyContainer.visible = visible;
+		collapsableState = visible;
+		buttonCollapsable.value = if(visible, 1, 0);
+	}
+
 	mute {
 		this.setMuteState(1);
 	}
@@ -86,6 +92,7 @@ PatternBoxBindView : View {
 		context = argContext;
 		soloState = 0;
 		muteState = 0;
+		collapsableState = false;
 		parallelLayers = 1;
 		paramViews = List();
 		currentPattern = Pbind();
@@ -126,6 +133,15 @@ PatternBoxBindView : View {
 		textFieldTitle.action = { |sender| this.title = sender.string; };
 		textFieldTitle.keyUpAction = textFieldTitle.action;
 		headerLayout.add(textFieldTitle);
+
+		buttonCollapsable = Button();
+		buttonCollapsable.toolTip = "Expand or collapse all param views";
+		buttonCollapsable.maxWidth = 24;
+		buttonCollapsable.states = [["▲", nil, Color.clear.alpha_(0)], ["▼", nil, Color.clear.alpha_(0)]];
+		buttonCollapsable.action = { | sender |
+			this.setBodyIsVisible(if(sender.value == 1, true, false));
+		};
+		headerLayout.add(buttonCollapsable);
 
 		popupMenuPatternMode = PopUpMenuFactory.createInstance(this);
 		popupMenuPatternMode.items = availablePatternModes;
@@ -187,7 +203,11 @@ PatternBoxBindView : View {
 		bodyLayout = VLayout();
 		bodyLayout.spacing = 2;
 		bodyLayout.margins = [10,0,0,0];
-		mainLayout.add(bodyLayout);
+
+		bodyContainer = View();
+		bodyContainer.layout = bodyLayout;
+
+		mainLayout.add(bodyContainer);
 
 		// Start drag & drop workaround
 		prBeginDragAction =  { |view, x, y|
@@ -281,6 +301,8 @@ PatternBoxBindView : View {
 			paramViews = paramViews.add(paramChannel);
 		});
 
+		this.setBodyIsVisible(true);
+
 		^paramChannel;
 	}
 
@@ -291,11 +313,11 @@ PatternBoxBindView : View {
 		paramViews do: { |paramView|
 			if (paramView.isPbind == true, {
 				if (paramView.pbind.patternpairs.notEmpty(),
-				{
-					pbindPairsList.add(paramView.pbind.patternpairs);
+					{
+						pbindPairsList.add(paramView.pbind.patternpairs);
 				});
 			},{
-			if (paramView.keyName.notEmpty && paramView.scriptFieldView.string.stripWhiteSpace().notEmpty, {
+				if (paramView.keyName.notEmpty && paramView.scriptFieldView.string.stripWhiteSpace().notEmpty, {
 					keyValuePairPatterns[paramView.keyName.asSymbol] = paramView.paramProxy;
 				});
 			});
@@ -350,6 +372,7 @@ PatternBoxBindView : View {
 		state[\muteState] = muteState;
 		state[\soloState] = soloState;
 		state[\patternMode] = patternMode;
+		state[\collapsableState] = collapsableState;
 		^state;
 	}
 
@@ -383,6 +406,11 @@ PatternBoxBindView : View {
 			});
 			newParamView.loadState(paramViewState);
 		};
+		if (state[\collapsableState].notNil, {
+			this.setBodyIsVisible(state[\collapsableState]);
+		},{
+			this.setBodyIsVisible(true);
+		});
 	}
 
 	dispose {

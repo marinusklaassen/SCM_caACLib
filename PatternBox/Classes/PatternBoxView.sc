@@ -20,7 +20,7 @@ a.keys do: { |key| a[key.postln].postln }
 PatternBoxView : View {
 	var <>lemurClient, <presetView, <bindViews, <playingStream;
 	var mixerAmpProxy, eventStreamProxy, <eventStream, eventParProxy, setValueFunction, <model, dependants, parentView;
-	var layoutMain, layoutHeader, envirChangeRequiresRecompilation, layoutFooter, scrollViewBodyBindViews, layoutControlHeaderLabels,layoutBindViews,textpatternBoxName, buttonPlay, buttonRandomize, presetView, textEnvirFieldView;
+	var layoutMain, layoutHeader, envirChangeRequiresRecompilation, layoutFooter, buttonExpandAll, buttonCollapseAll, scrollViewBodyBindViews, layoutControlHeaderLabels,layoutBindViews,textpatternBoxName, buttonPlay, buttonRandomize, presetView, textEnvirFieldView;
 	var layoutControlHeaderLabels,labelParamNameControlHeader, errorLabelEnvirFieldView, buttonAllEditModeOn, buttonAllEditModeOff, buttonCollapseExpandEnvir, labelParamTargetpatternTargetIDControlHeader, labelParamControlScriptOrControllerHeader, labelParamControlSelectorsHeader, buttonAddBindView;
 	var <>index, <playState, >closeAction,<>removeAction, <patternBoxName, envirHeader, commandPeriodHandler, <>actionPlayStateChanged, <>actionNameChanged, <>actionVolumeChanged, <volume;
 
@@ -110,7 +110,7 @@ PatternBoxView : View {
 
 		dependants[\buttonPlay] =  {|theChanger, what, value|
 			if (what == \buttonPlay) {
-					if (value > 0) {
+				if (value > 0) {
 					playingStream = eventStream.play(quant: 1);
 
 				} { playingStream.stop };
@@ -261,6 +261,20 @@ PatternBoxView : View {
 
 		layoutFooter.add(buttonAllEditModeOff);
 
+		buttonExpandAll = ButtonFactory.createInstance(this, class: "btn-patternbox-footer", buttonString1: "expand all");
+		buttonExpandAll.action_({ |sender|
+			bindViews do: { | bindView| bindView.setBodyIsVisible(true); };
+		});
+
+		layoutFooter.add(buttonExpandAll);
+
+		buttonCollapseAll = ButtonFactory.createInstance(this, class: "btn-patternbox-footer", buttonString1: "collapse all");
+		buttonCollapseAll.action_({ |sender|
+			bindViews do: { | bindView| bindView.setBodyIsVisible(false); };
+		});
+
+		layoutFooter.add(buttonCollapseAll);
+
 		layoutFooter.add(nil);
 
 		buttonAddBindView = ButtonFactory.createInstance(this, class: "btn-add");
@@ -330,7 +344,7 @@ PatternBoxView : View {
 
 		newBindView.actionInsertBindView = { |sender, type|
 			if (type == "INSERT_AFTER_DUPLICATIE",
-			{
+				{
 					var newPosition = bindViews.indexOf(sender);
 					var state = sender.getState();
 					newPosition = newPosition + 1;
@@ -339,7 +353,7 @@ PatternBoxView : View {
 					});
 					this.addBindView(newPosition).loadState(state);
 			});
-	    };
+		};
 
 		if (positionInLayout.notNil, {
 			layoutBindViews.insert(newBindView, positionInLayout);
@@ -389,7 +403,7 @@ PatternBoxView : View {
 		if (skipProjectStuf != true, {
 			this.setName(state[\patternBoxName]);
 			setValueFunction[\volume].value(state[\volume]);
-    	});
+		});
 		// Remove the scores that are to many.
 		if (state[\bindViewStates].size < bindViews.size, {
 			var amountToMany = bindViews.size - state[\bindViewStates].size;
