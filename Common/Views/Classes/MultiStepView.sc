@@ -17,7 +17,7 @@ a.randomize
 a.loadState(b);
 */
 
-MultiStepView : View {
+MultiStepView : SCMViewBase {
 	var  <spec, <useSpec, <>name, <stepCount = 0, <mainLayout, stepsLayout, buttonSteps, <>proxySteps, numberBoxStepCount, labelSteps, textFieldValueOff, footerView, footerLayout, textFieldValueOn;
 	var <valueOff, <valueOn;
 
@@ -87,6 +87,7 @@ MultiStepView : View {
 	init {
 		valueOff = 0;
 		valueOn = 1;
+		needsControlSpec = false;
 		proxySteps = List();
 		buttonSteps = List();
 

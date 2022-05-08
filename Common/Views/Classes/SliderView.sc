@@ -12,7 +12,7 @@ a.value = 0;
 * AUTHOR: Marinus Klaassen (2012, 2021Q3)
 */
 
-SliderView : View {
+SliderView : SCMViewBase {
 	var <spec, <labelText, <value = 0, <valueMapped, valueProxy, valueMappedProxy;
 	var <mainLayoutView, <sliderView, <labelView, <numberBoxView, unitView, controlSpecView;
 

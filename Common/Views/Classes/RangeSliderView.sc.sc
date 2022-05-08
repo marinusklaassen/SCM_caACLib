@@ -10,7 +10,7 @@
  * AUTHOR: Marinus Klaassen (2012, 2021Q3)
  */
 
-RangeSliderView : View {
+RangeSliderView : SCMViewBase {
 	var <spec, <labelText, <range, <rangeMapped, valueLoProxy, valueLoMappedProxy, valueHiProxy, valueHiMappedProxy;
 	var <mainLayoutView, <rangeSliderView, <lo, <hi, loMapped, hiMapped, proxyLo, proxyHi, controlSpecView; // spec in deze scope, print argument list.
 
@@ -37,6 +37,7 @@ RangeSliderView : View {
 
 	init {
 		spec = ControlSpec();
+		needsControlSpec = true;
 		valueLoProxy = PatternProxy();
 		valueLoMappedProxy = PatternProxy();
 		valueHiProxy = PatternProxy();

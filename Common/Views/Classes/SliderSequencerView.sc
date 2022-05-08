@@ -16,7 +16,7 @@ a.loadState(b);
 a.spec = \freq.asSpec;
  */
 
-SliderSequencerView : View {
+SliderSequencerView : SCMViewBase {
 	var <spec, <labelText, <value, valueMapped;
 	var <>name, <stepCount = 0, <mainLayout, stepsLayout, buttonSteps, <>proxySteps, sliders, numberBoxStepCount, labelStepCount;
 	var <mainLayoutView, <sliderView, <labelView, <numberBoxView, unitView, controlSpecView, proxySteps, proxyStepsMapped, sliders;
