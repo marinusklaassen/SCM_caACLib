@@ -12,7 +12,7 @@ PatternBoxProjectView(bounds:400@700).front();
 
 PatternBoxProjectView : View {
 	var patternBoxProjectItemViews, lemurClient, <eventAddPatternBox;
-	var mainLayout, footerLayout, projectSaveAndLoadView, layoutPatternBoxItems, scrollViewPatternBoxItems, buttonAddPatternBox, layoutHeader, serverControlView, tempoClockView;
+	var mainLayout, footerLayout, projectSaveAndLoadView, menuFile, layoutPatternBoxItems, scrollViewPatternBoxItems, buttonAddPatternBox, layoutHeader, serverControlView, tempoClockView;
 
 	*new { |parent, bounds, lemurClient|
 		^super.new(parent, bounds).initialize(lemurClient);
@@ -35,6 +35,9 @@ PatternBoxProjectView : View {
 		this.layout = mainLayout;
 
 		projectSaveAndLoadView = ProjectPersistanceViewFactory.createInstance(this, contextID: "PatternBoxProjectView");
+		projectSaveAndLoadView.actionChanged = { |sender| this.name = "PatternBox Project: " ++ PathName(sender.projectfile).fileName; };
+		projectSaveAndLoadView.actionClearAll = { this.clearAll(); };
+		projectSaveAndLoadView.actionNewItem = { this.invokeEvent(this.eventAddPatternBox); };
 		mainLayout.add(projectSaveAndLoadView);
 
 		serverControlView = ServerControlViewFactory.createInstance(this);
@@ -138,6 +141,10 @@ PatternBoxProjectView : View {
 			patternBoxProjectItemViews.add(patternBoxProjectItemView);
 		});
 		^patternBoxProjectItemView;
+	}
+
+	clearAll {
+		patternBoxProjectItemViews.copy do: { | patternBox| patternBox.dispose(); };
 	}
 
 	getState {

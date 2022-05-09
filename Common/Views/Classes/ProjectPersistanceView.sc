@@ -10,7 +10,7 @@ ProjectPersistanceView(bounds:400@50).front()
 */
 
 ProjectPersistanceView : View {
-	var <eventLoadProject, <eventSaveProject, <buttonLoad, <buttonSave, <buttonSaveAs, labelProjectfile, <mainLayout, <>data, <>projectfile, <>contextID;
+	var <eventLoadProject, <>actionChanged, <>actionClearAll, <>actionNewItem, <eventSaveProject, fileMenu, utilitiesMenu, buttonShowUtilitiesMenu, buttonShowSessionMenu, sessionMenu, <buttonShowFileMenu, <buttonSave, <buttonSaveAs, <labelProjectfile, <mainLayout, <>data, <>projectfile, <>contextID;
 
 	*new { |contextID, parent, bounds|
 		^super.new(parent, bounds).initialize(contextID);
@@ -19,36 +19,62 @@ ProjectPersistanceView : View {
 	initialize { |contextID|
 		this.contextID = contextID;
 		this.intializeView();
-	    this.initializeEvents();
+		this.initializeEvents();
 	}
 
 	intializeView {
 		mainLayout = GridLayout();
 		this.layout = mainLayout;
 
-		buttonLoad = ButtonFactory.createInstance(this, class: "btn-normal", buttonString1: "open")
-		.action_({ this.load(); });
-		mainLayout.add(buttonLoad, 0, 0);
+		buttonShowFileMenu = ButtonFactory.createInstance(this, class: "btn-normal", buttonString1: "File")
+		.action_({ fileMenu.front; });
 
-		buttonSave = ButtonFactory.createInstance(this, class: "btn-normal", buttonString1: "save")
-		.action_({ this.save(); });
-		mainLayout.add(buttonSave, 0, 1);
+		mainLayout.add(buttonShowFileMenu, 0, 0);
 
-		buttonSave = ButtonFactory.createInstance(this, class: "btn-normal", buttonString1: "save as")
-		.action_({ this.saveAs(); });
-		mainLayout.add(buttonSave, 0, 2);
+		buttonShowSessionMenu = ButtonFactory.createInstance(this, class: "btn-normal", buttonString1: "Session")
+		.action_({ sessionMenu.front; });
+
+		mainLayout.add(buttonShowSessionMenu, 0, 1);
+
+		buttonShowUtilitiesMenu = ButtonFactory.createInstance(this, class: "btn-normal", buttonString1: "Utilities")
+		.action_({ utilitiesMenu.front; });
+
+		mainLayout.add(buttonShowUtilitiesMenu, 0, 2);
+
+		fileMenu = Menu(
+			MenuAction("Open")
+			.action_({ this.load(); }),
+			MenuAction("Save")
+			.action_({ this.save(); }),
+			MenuAction("Save as")
+			.action_({ this.saveAs(); })
+		);
+
+		sessionMenu = Menu(
+			MenuAction("New item")
+			.action_({ if (actionNewItem.notNil, { actionNewItem.value(this); }); }),
+			MenuAction("Clear all")
+			.action_({  if (actionClearAll.notNil, { actionClearAll.value(this); });}),
+		);
+
+		utilitiesMenu = Menu(
+			MenuAction("SynthDef browser")
+			.action_({ SynthDescLib.global.browse; }),
+			MenuAction("Print control specs")
+			.action_({ Spec.specs keysValuesDo: { |spec| postln(spec); }; }),
+		);
 
 		labelProjectfile = TextFieldFactory.createInstance(this);
 		labelProjectfile.visible_(false);
 		labelProjectfile.enabled_(false);
-		mainLayout.addSpanning(labelProjectfile, row: 1, columnSpan: 3);
+		mainLayout.addSpanning(labelProjectfile, row: 1, columnSpan: 4);
 
 	}
 
 	setProjectfile { |projectfile|
 		this.projectfile = projectfile;
 		labelProjectfile.string = projectfile;
-		labelProjectfile.visible_(true);
+		if (actionChanged.notNil, { actionChanged.value(this); });
 	}
 
 	initializeEvents {
@@ -93,7 +119,7 @@ ProjectPersistanceView : View {
 	}
 
 	loadData { |data|
-        this.data = data;
+		this.data = data;
 		this.invokeEvent(this.eventLoadProject);
 	}
 
@@ -117,3 +143,4 @@ ProjectPersistanceView : View {
 		});
 	}
 }
+

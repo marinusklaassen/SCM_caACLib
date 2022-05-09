@@ -37,6 +37,7 @@ PatternBoxParamView : View {
 
 	initialize { | context |
 		this.context = context;
+		keyName = "";
 		paramProxy = PatternProxy(1); // patternProxy
 		this.initializeView();
 		canInterpret = true;

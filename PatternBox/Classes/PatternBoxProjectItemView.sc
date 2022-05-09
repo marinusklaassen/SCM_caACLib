@@ -49,14 +49,17 @@ PatternBoxProjectItemView : View {
 		this.background = Color.blue.alpha_(0.2);
 
 		this.setContextMenuActions(
-			MenuAction("Insert new PatternBox down", {
+			MenuAction("Insert new item above", {
 				if (actionInsertPatternBox.notNil, { actionInsertPatternBox.value(this, "INSERT_BEFORE"); });
 			}),
-			MenuAction("Insert new PatternBox up", {
+			MenuAction("Insert new item below", {
 				if (actionInsertPatternBox.notNil, { actionInsertPatternBox.value(this, "INSERT_AFTER"); });
 			}),
-			MenuAction("Duplicate PatternBox", {
+			MenuAction("Duplicate this item", {
 				if (actionInsertPatternBox.notNil, { actionInsertPatternBox.value(this, "INSERT_AFTER_DUPLICATIE"); });
+			}),
+			MenuAction("Remove this item", {
+				this.dispose();
 			})
 		);
 

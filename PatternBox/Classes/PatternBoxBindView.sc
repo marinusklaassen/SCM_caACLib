@@ -106,8 +106,17 @@ PatternBoxBindView : View {
 	initializeView {
 
 		this.setContextMenuActions(
-			MenuAction("Duplicate binding", {
+			MenuAction("Insert new binding item above", {
+				if (actionInsertBindView.notNil, { actionInsertBindView.value(this, "INSERT_BEFORE"); });
+			}),
+			MenuAction("Insert new binding item below", {
+				if (actionInsertBindView.notNil, { actionInsertBindView.value(this, "INSERT_AFTER"); });
+			}),
+			MenuAction("Duplicate this binding item", {
 				if (actionInsertBindView.notNil, { actionInsertBindView.value(this, "INSERT_AFTER_DUPLICATIE"); });
+			}),
+			MenuAction("Remove this binding item", {
+				if (actionButtonDelete.notNil, { actionButtonDelete.value(this) });
 			})
 		);
 
