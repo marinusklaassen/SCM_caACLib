@@ -11,17 +11,18 @@ a.bounds
 
 PatternBoxParamControlItemView : View {
 
-    var <>spec, <>keyName, popupSelectControl, labelControlName, controlSpecView, controlView, textFieldControlName, mainLayout, buttonRemove, <editMode, <patternProxy, <value;
+    var <>bufferpool, <>spec, <>keyName, popupSelectControl, labelControlName, controlSpecView, controlView, textFieldControlName, mainLayout, buttonRemove, <editMode, <patternProxy, <value;
     var <>actionRemove, <>actionMoveDown, <>actionMoveUp, <>actionControlItemChanged, <>actionControlNameChanged, <controlName, <>selectedControlType;
     var editMode = false;
 	var prCanReceiveDragHandler, prReceiveDragHandler, prBeginDragAction, <>actionMoveControlItem, <>actionInsertControlItem;
 
-    *new { |name, parent, bounds|
-        ^super.new(parent, bounds).initialize(name);
+    *new { |name, bufferpool, parent, bounds|
+        ^super.new(parent, bounds).initialize(name, bufferpool);
     }
 
-    initialize { |name|
+    initialize { |name, bufferpool|
         patternProxy = PatternProxy();
+		this.bufferpool = bufferpool;
         this.spec = ControlSpec();
         this.initializeView();
 		this.controlName = name;
@@ -48,7 +49,7 @@ PatternBoxParamControlItemView : View {
 		mainLayout.add(labelControlName, 0, 0);
 		popupSelectControl = PopUpMenu();
 		popupSelectControl.toolTip = "Select a control.";
-        popupSelectControl.items = ["slider", "range", "steps", "multislider" ];
+		popupSelectControl.items = ["slider", "range", "steps", "multislider", "buffer selector" ];
         popupSelectControl.action = { |sender| this.onItemChanged_PopupSelectControl(sender.item); };
         mainLayout.add(popupSelectControl, 1, 0);
         textFieldControlName = TextField();
@@ -125,13 +126,15 @@ PatternBoxParamControlItemView : View {
     }
 
     onItemChanged_PopupSelectControl { |type|
-        controlView.remove;
+		if (controlView.notNil, { controlView.dispose.remove; });
 		selectedControlType = type;
         case
 		{ type == "slider" } { controlView = SliderView(); }
 		{ type == "range" } { controlView = RangeSliderView(); }
 		{ type == "steps" } {controlView = MultiStepView(); }
-		{ type == "multislider" } { controlView = SliderSequencerView(); };
+		{ type == "multislider" } { controlView = SliderSequencerView(); }
+		{ type == "buffer selector" } { controlView = bufferpool.createBufferSelectorView(); };
+
 		controlView.name = this.controlName;
 		controlView.spec = spec;
 		controlView.uiMode(\brief);

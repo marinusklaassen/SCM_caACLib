@@ -20,14 +20,14 @@ a = PatternBoxParamView().front;
 */
 
 PatternBoxParamView : View {
-	var <>context, buttonDelete, <scriptFieldView, dragBothPanel, setValueFunction, dependants, <paramController, <name, <>currentLayerIndex, <>currentWidgetType, <>currentWidgetIndex, previousLayer;
+	var <>bufferpool, <>context, buttonDelete, <scriptFieldView, dragBothPanel, setValueFunction, dependants, <paramController, <name, <>currentLayerIndex, <>currentWidgetType, <>currentWidgetIndex, previousLayer;
 	var <>actionNameChanged, <>removeAction, <>index, <>paramProxy, <>controllerProxies, <>scriptFunc, <>actionButtonDelete, <>rangeSliderAction, <>sliderAction, <>actionPatternScriptChanged, <>actionPatternTargetIDChanged;
 	var layoutStackControlSection, controlNoControl, controlSlider, controlRangeSlider, <keyName, mainLayout, textpatternTargetID, textPatternKeyname, layoutScriptControllerSection, scorePatternScriptEditorView;
 	var canInterpret = false, patternBoxParamControlSectionView, buttonSelectScriptView, buttonSelectScriptOrSpecOpControlStack, buttonSwitchEditingMode, buttonRandomizeControls;
 	var <>actionMoveParamView, <isPbind, <pbind, prBeginDragAction, prCanReceiveDragHandler, prReceiveDragHandler, <>actionInsertPatternBox;
 
-	*new { | context, parent, bounds |
-		^super.new(parent, bounds).initialize(context);
+	*new { | context, bufferpool, parent, bounds |
+		^super.new(parent, bounds).initialize(context, bufferpool);
 	}
 
 	keyName_ { | string |
@@ -35,8 +35,9 @@ PatternBoxParamView : View {
 		keyName = string;
 	}
 
-	initialize { | context |
+	initialize { | context, bufferpool |
 		this.context = context;
+		this.bufferpool = bufferpool;
 		keyName = "";
 		paramProxy = PatternProxy(1); // patternProxy
 		this.initializeView();
@@ -92,7 +93,7 @@ PatternBoxParamView : View {
 
 		layoutScriptControllerSection.add(scriptFieldView);
 
-		patternBoxParamControlSectionView = PatternBoxParamControlGroupView();
+		patternBoxParamControlSectionView = PatternBoxParamControlGroupView(bufferpool: bufferpool);
 		patternBoxParamControlSectionView.layout.margins = 0!4;
 		patternBoxParamControlSectionView.visible = false;
 		patternBoxParamControlSectionView.editMode = false;

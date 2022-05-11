@@ -18,13 +18,13 @@ a.keys do: { |key| a[key.postln].postln }
 */
 
 PatternBoxBindView : View {
-	var <paramViews, mainLayout, bodyLayout, bodyContainer, headerLayout, headerView, buttonCollapsable, buttonRandomize, dragBothPanel, textFieldTitle, numberBoxParallelLayers, buttonAddParamView, buttonDelete;
+	var <>bufferpool, <paramViews, mainLayout, bodyLayout, bodyContainer, headerLayout, headerView, buttonCollapsable, buttonRandomize, dragBothPanel, textFieldTitle, numberBoxParallelLayers, buttonAddParamView, buttonDelete;
 	var <title, <bindSource, <context, <muteState, <parallelLayers, collapsableState;
 	var <>actionOnBindChanged, <>actionRestartPatterns, <>actionInsertBindView, <>actionButtonDelete, currentPattern, toggleMute, toggleSolo, <soloState, <>actionInsertPatternBoxBindView, <>actionMoveBindView;
 	var availablePatternModes, prBeginDragAction, patternMode, popupMenuPatternMode, prCanReceiveDragHandler, prReceiveDragHandler, <>actionOnSoloStateChanged; // workaround drag and drop
 
-	*new { |context, parent, bounds|
-		^super.new(parent, bounds).initialize(context).initializeView().initialized();
+	*new { |context, bufferpool, parent, bounds|
+		^super.new(parent, bounds).initialize(context, bufferpool).initializeView().initialized();
 	}
 
 	title_ { |argTitle|
@@ -88,7 +88,8 @@ PatternBoxBindView : View {
 		this.rebuildPatterns();
 	}
 
-	initialize { |argContext|
+	initialize { |argContext, bufferpool|
+		this.bufferpool = bufferpool;
 		context = argContext;
 		soloState = 0;
 		muteState = 0;
@@ -126,7 +127,7 @@ PatternBoxBindView : View {
 		this.layout = mainLayout;
 		this.background = Color.black.alpha_(0.1);
 		headerView = View();
-		headerView.background = Color.blue.alpha_(0.2);
+		headerView.background = Color(0.45490196078431, 0.55686274509804, 0.87843137254902);
 		headerLayout = HLayout();
 		headerLayout.margins = [5, 10, 20, 10];
 		headerView.layout = headerLayout;
@@ -224,8 +225,14 @@ PatternBoxBindView : View {
 		};
 
 		prCanReceiveDragHandler = {  |view, x, y|
-			View.currentDrag.isKindOf(PatternBoxBindView);
+			/*
+			var canRecieve = false;
+			if (View.currentDrag.isKindOf(String), {
+				canRecieve = PathName(View.currentDrag).isFile;
+		    });
 
+			View.currentDrag.isKindOf(PatternBoxBindView);
+			*/
 		};
 
 		prReceiveDragHandler = { |view, x, y|
@@ -254,7 +261,7 @@ PatternBoxBindView : View {
 	}
 
 	addParamView { |positionInLayout|
-		var paramChannel = PatternBoxParamView(this);
+		var paramChannel = PatternBoxParamView(this, bufferpool: this.bufferpool);
 
 		paramChannel.actionNameChanged = { |sender|
 			this.rebuildPatterns(sender);

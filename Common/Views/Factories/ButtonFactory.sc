@@ -21,22 +21,22 @@ ButtonFactory {
 			newInstance.maxWidth = 45;
 		});
 		if (class == "btn-danger", {
-			colorPallete.button = Color.red.alpha_(0.5);
+			colorPallete.button = Color.red.alpha_(0.6);
 			colorPallete.buttonText = Color.black;
 			newInstance.palette_(colorPallete);
 		});
 		if (class == "btn-warning", {
-			colorPallete.button = Color.new255(255,140,0).alpha_(0.5);
+			colorPallete.button = Color.new255(255,140,0).alpha_(0.8);
 			colorPallete.buttonText = Color.black;
 			newInstance.palette_(colorPallete);
 		});
 		if (class == "btn-success", {
-			colorPallete.button = Color.green.alpha_(0.5);
+			colorPallete.button = Color.green.alpha_(0.7);
 			colorPallete.buttonText = Color.black;
 			newInstance.palette_(colorPallete);
 		});
 		if (class == "btn-primary", {
-			colorPallete.button = Color.blue.alpha_(0.5);
+			colorPallete.button = Color.blue.alpha_(0.6);
 			colorPallete.buttonText = Color.white;
 			newInstance.palette_(colorPallete);
 		});

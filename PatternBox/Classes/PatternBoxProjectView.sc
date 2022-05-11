@@ -11,16 +11,15 @@ PatternBoxProjectView(bounds:400@700).front();
 */
 
 PatternBoxProjectView : View {
-	var patternBoxProjectItemViews, lemurClient, <eventAddPatternBox;
-	var mainLayout, footerLayout, projectSaveAndLoadView, menuFile, layoutPatternBoxItems, scrollViewPatternBoxItems, buttonAddPatternBox, layoutHeader, serverControlView, tempoClockView;
+	var patternBoxProjectItemViews, <eventAddPatternBox;
+	var mainLayout, footerLayout, <>bufferpool, projectSaveAndLoadView, menuFile, layoutPatternBoxItems, scrollViewPatternBoxItems, buttonAddPatternBox, layoutHeader, serverControlView, tempoClockView;
 
-	*new { |parent, bounds, lemurClient|
-		^super.new(parent, bounds).initialize(lemurClient);
+	*new { |parent, bounds|
+		^super.new(parent, bounds).initialize();
 	}
 
-	initialize { |lemurClient|
+	initialize {
 		patternBoxProjectItemViews = List();
-		lemurClient = lemurClient;
 		this.initializeEvents();
 		this.initializeView();
 		this.registerEventHandlers();
@@ -34,10 +33,15 @@ PatternBoxProjectView : View {
 		mainLayout = VLayout();
 		this.layout = mainLayout;
 
+		bufferpool = BufferPoolView(bounds: 700@700);
+
 		projectSaveAndLoadView = ProjectPersistanceViewFactory.createInstance(this, contextID: "PatternBoxProjectView");
 		projectSaveAndLoadView.actionChanged = { |sender| this.name = "PatternBox Project: " ++ PathName(sender.projectfile).fileName; };
 		projectSaveAndLoadView.actionClearAll = { this.clearAll(); };
 		projectSaveAndLoadView.actionNewItem = { this.invokeEvent(this.eventAddPatternBox); };
+
+		projectSaveAndLoadView.addView(Button().string_("Bufferpool").action_({ bufferpool.front; }));
+
 		mainLayout.add(projectSaveAndLoadView);
 
 		serverControlView = ServerControlViewFactory.createInstance(this);
@@ -99,7 +103,7 @@ PatternBoxProjectView : View {
 	}
 
 	addPatternBox { |positionInLayout, sourcePatterBoxItemView, duplicate|
-		var patternBoxProjectItemView = PatternBoxProjectItemView(lemurClient);
+		var patternBoxProjectItemView = PatternBoxProjectItemView(bufferpool: bufferpool);
 		if(duplicate == true, {
 			var state = sourcePatterBoxItemView.getState();
 			state[\patternBoxName] = state[\patternBoxName] + " - COPY";
@@ -151,6 +155,7 @@ PatternBoxProjectView : View {
 		var state = Dictionary();
 		state[\type] = "PatternBoxProjectView";
 		state[\patternBoxProjectItemViewsStates] = patternBoxProjectItemViews.collect({ |patternBoxProjectItemView| patternBoxProjectItemView.getState(); });
+		state[\patternBoxBufferpool] = bufferpool.getState();
 		^state;
 	}
 
@@ -158,6 +163,7 @@ PatternBoxProjectView : View {
 		var patternBoxProjectItemView;
 		if (state.isKindOf(Dictionary) && state[\type] == "PatternBoxProjectView",
 			{
+				if (state[\patternBoxBufferpool].notNil, { bufferpool.loadState(state[\patternBoxBufferpool]); });
 				// Remove the patternBoxViews that are to many.
 				if (state[\patternBoxProjectItemViewsStates].size < patternBoxProjectItemViews.size, {
 					var amountToMany = patternBoxProjectItemViews.size - state[\patternBoxProjectItemViewsStates].size;

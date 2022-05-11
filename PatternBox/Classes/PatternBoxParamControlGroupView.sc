@@ -11,13 +11,14 @@ a.bounds
 
 PatternBoxParamControlGroupView : View {
 
-	var mainLayout, buttonAdd, <controlItems, <editMode, <>controlNameDefault, <>actionControlCRUD;
+	var <>bufferpool, mainLayout, buttonAdd, <controlItems, <editMode, <>controlNameDefault, <>actionControlCRUD;
 
-	*new { |parent, bounds|
-		^super.new(parent, bounds).initialize();
+	*new { |bufferpool, parent, bounds|
+		^super.new(parent, bounds).initialize(bufferpool);
 	}
 
-	initialize {
+	initialize { |bufferpool|
+		this.bufferpool = bufferpool;
 		controlNameDefault = "default";
 		controlItems = List();
 		this.initializeView();
@@ -42,7 +43,7 @@ PatternBoxParamControlGroupView : View {
 	}
 
 	onButtonClick_AddPatternBoxParamControlItemView { |state, positionInLayout|
-		var controlItem = PatternBoxParamControlItemView(name: "control" ++ (controlItems.size + 1));
+		var controlItem = PatternBoxParamControlItemView(name: "control" ++ (controlItems.size + 1), bufferpool: bufferpool);
 		controlItem.actionRemove = { |sender|
 			controlItems.remove(sender);
 			controlItem.remove();

@@ -18,7 +18,7 @@ a.keys do: { |key| a[key.postln].postln }
 */
 
 PatternBoxView : View {
-    var <>lemurClient, <presetView, <bindViews, <playingStream;
+    var <>bufferpool, <>lemurClient, <presetView, <bindViews, <playingStream;
     var mixerAmpProxy, eventStreamProxy, <eventStream, eventParProxy, setValueFunction, <model, dependants, parentView;
     var layoutMain, layoutHeader, envirChangeRequiresRecompilation, layoutFooter, buttonExpandAll, buttonCollapseAll, scrollViewBodyBindViews, layoutControlHeaderLabels,layoutBindViews,textpatternBoxName, buttonPlay, buttonRandomize, presetView, textEnvirFieldView;
     var layoutControlHeaderLabels,labelParamNameControlHeader, errorLabelEnvirFieldView, buttonAllEditModeOn, buttonAllEditModeOff, buttonCollapseExpandEnvir, labelParamTargetpatternTargetIDControlHeader, labelParamControlScriptOrControllerHeader, labelParamControlSelectorsHeader, buttonAddBindView;
@@ -26,17 +26,16 @@ PatternBoxView : View {
 
     classvar instanceCounter=0;
 
-    *new { |parent, bounds, lemurClient|
-        ^super.new(parent, bounds).initialize(lemurClient);
+    *new { |parent, bounds, bufferpool|
+        ^super.new(parent, bounds).initialize(bufferpool);
     }
 
     setName { |name|
         setValueFunction[\patternBoxName].value(name);
     }
 
-    initialize { |lemurClient|
-
-        this.lemurClient = lemurClient;
+    initialize { |bufferpool|
+        this.bufferpool = bufferpool;
         playState =  0;
         mixerAmpProxy = PatternProxy();
         mixerAmpProxy.source = 1;
@@ -291,7 +290,7 @@ PatternBoxView : View {
     }
 
     addBindView { |positionInLayout|
-        var newBindView = PatternBoxBindView(this);
+        var newBindView = PatternBoxBindView(this, bufferpool: bufferpool);
 
         newBindView.actionOnBindChanged = { |sender|
             this.rebuildPatterns();

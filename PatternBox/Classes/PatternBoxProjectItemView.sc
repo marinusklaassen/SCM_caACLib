@@ -20,18 +20,18 @@ a.keys do: { |key| a[key.postln].postln }
 
 PatternBoxProjectItemView : View {
 
-	var mainLayout, <patternBoxView, togglePlay, dragBothPanel, sliderVolume, buttonShowPatternBox, buttonRemove, buttonMoveUp, buttonMoveDown;
+	var <>bufferpool, mainLayout, <patternBoxView, togglePlay, dragBothPanel, sliderVolume, buttonShowPatternBox, buttonRemove, buttonMoveUp, buttonMoveDown;
 	var onCommandPeriodFunc, <>actionRemove, <>actionInsertPatternBox, <>actionMovePatternBox;
 	var volume = 1, <patternBoxName, playState = 0, lemurClient;
 	var prCanReceiveDragHandler, prReceiveDragHandler, prBeginDragAction;
 
-	*new { |parent, bounds, lemurClient|
-		^super.new(parent, bounds).initialize(lemurClient);
+	*new { |parent, bounds, bufferpool|
+		^super.new(parent, bounds).initialize(bufferpool);
 	}
 
-	initialize { |lemurClient|
-		lemurClient = lemurClient;
-		patternBoxView = PatternBoxView(lemurClient: patternBoxView, bounds: Rect(100, 100, 600, 800));
+	initialize { |bufferpool|
+		this.bufferpool = bufferpool;
+		patternBoxView = PatternBoxView(bufferpool: bufferpool, bounds: Rect(100, 100, 700, 800));
 		patternBoxView.actionNameChanged = { |sender| this.onPatternBoxNameChanged(sender); };
 		patternBoxView.actionPlayStateChanged = { |sender| this.onPatternBoxPlayStateChanged(sender); };
 		patternBoxName = patternBoxView.patternBoxName;
@@ -46,7 +46,7 @@ PatternBoxProjectItemView : View {
 		mainLayout.vSpacing_(0);
 		this.toolTip = "Press CMD + drag to move this item to another position.";
 		this.layout = mainLayout;
-		this.background = Color.blue.alpha_(0.2);
+		this.background = Color(0.45490196078431, 0.55686274509804, 0.87843137254902);
 
 		this.setContextMenuActions(
 			MenuAction("Insert new item above", {

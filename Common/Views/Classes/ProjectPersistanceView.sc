@@ -22,6 +22,10 @@ ProjectPersistanceView : View {
 		this.initializeEvents();
 	}
 
+	addView { |view|
+		mainLayout.add(view, 0, 3);
+	}
+
 	intializeView {
 		mainLayout = GridLayout();
 		this.layout = mainLayout;
