@@ -41,10 +41,10 @@ BufferPoolItemView : View {
 		this.background = Color(0.45490196078431, 0.55686274509804, 0.87843137254902);
 
 		dragBothPanel = DragBoth();
-		dragBothPanel.maxWidth = 24;
+		dragBothPanel.fixedWidth = 24;
 		dragBothPanel.background = Color.black.alpha_(0.5);
 		dragBothPanel.toolTip = this.toolTip;
-		mainLayout.add(dragBothPanel);
+		mainLayout.add(dragBothPanel, align: \top);
 
 		mainLayout.add(StaticText().string_("-"));
 
@@ -69,7 +69,7 @@ BufferPoolItemView : View {
 
 		buttonPlay = Button();
 		buttonPlay.string = "play";
-		buttonPlay.action = { buffer.postln; buffer.play; };
+		buttonPlay.action = { buffer.play; };
 		mainLayout.add(buttonPlay, align: \right);
 
 		buttonDelete = DeleteButton();
@@ -164,7 +164,7 @@ BufferSelectorView : SCMViewBase {
 	}
 
 	bufferpool_ { |pool|
-		bufferpool = pool.postln;
+		bufferpool = pool;
 		this.update();
 	}
 
@@ -173,7 +173,7 @@ BufferSelectorView : SCMViewBase {
 		if (popupMenuBuffers.items.size > 0, {
 			tmp = popupMenuBuffers.items[popupMenuBuffers.value];
 		});
-		popupMenuBuffers.items = bufferpool.bufferPoolItemViews collect: { |view| format("% - %", view.labelBufferNumber.string, view.labelName.string).postln;  };
+		popupMenuBuffers.items = bufferpool.bufferPoolItemViews collect: { |view| format("% - %", view.labelBufferNumber.string, view.labelName.string);  };
 		if (tmp.notNil, {
 			var index;
 			popupMenuBuffers.items do: { |item, i| if( item == tmp, { index = i; }); };

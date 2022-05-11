@@ -116,9 +116,10 @@ ScriptFieldView : View {
 	}
 
 	prSetTextFieldHeightByText { |text|
-         var lineCount = text.findAll("\n").size + 1;
-         textEditing.minHeight = Font.defaultSerifFace.size * 1.45 * lineCount;
-         textEditing.maxHeight = Font.defaultSerifFace.size * 1.45 * lineCount;
+        var lineCount = text.findAll("\n").size;
+		var height = 24 + (lineCount * 16);
+		textEditing.minHeight = height;
+		textEditing.maxHeight = height;
 	}
 
 	getState {

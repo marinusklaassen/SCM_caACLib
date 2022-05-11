@@ -16,7 +16,6 @@ TODO:
 Slider en range value hernoemen naar gewoon value & range (KISS).
 
 a = PatternBoxParamView().front;
-
 */
 
 PatternBoxParamView : View {

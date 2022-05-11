@@ -113,9 +113,9 @@ PatternBoxView : View {
                     playingStream = eventStream.play(quant: 1);
 
                 } { playingStream.stop };
+			    playState = value;
+				this.actionPlayStateChanged.value(this);
             };
-            playState = value;
-            this.actionPlayStateChanged.value(this);
         };
 
         model.addDependant(dependants[\buttonPlay]);
