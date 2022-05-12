@@ -14,6 +14,7 @@ SCMViewBase : View {
 	var <needsControlSpec = true;
 
 	dispose {
-
 	}
+
+	randomize { }
 }

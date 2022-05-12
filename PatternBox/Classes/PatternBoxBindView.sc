@@ -225,14 +225,7 @@ PatternBoxBindView : View {
 		};
 
 		prCanReceiveDragHandler = {  |view, x, y|
-			/*
-			var canRecieve = false;
-			if (View.currentDrag.isKindOf(String), {
-				canRecieve = PathName(View.currentDrag).isFile;
-		    });
-
 			View.currentDrag.isKindOf(PatternBoxBindView);
-			*/
 		};
 
 		prReceiveDragHandler = { |view, x, y|
