@@ -99,10 +99,10 @@ PatternBoxProjectItemView : View {
 		midiViewPlayButton = MIDIFuncNoteView();
 		midiViewPlayButton.visible = false;
 		midiViewPlayButton.actionNoteOff = {
-			defer({patternBoxView.stop();});
+			patternBoxView.stop();
 		};
 		midiViewPlayButton.actionNoteOn = {
-			defer({patternBoxView.play();});
+			patternBoxView.play();
 		};
 		mainLayout.addSpanning(midiViewPlayButton, 2, 1, columnSpan: 3);
 
@@ -149,7 +149,7 @@ PatternBoxProjectItemView : View {
 	}
 
 	onPatternBoxPlayStateChanged { |sender|
-		togglePlay.value = sender.playState;
+		defer({togglePlay.value = sender.playState;});
 	}
 
 	onCommandPeriod {

@@ -162,7 +162,7 @@ PatternBoxView : View {
 
         dependants[\buttonPlay] =  {|theChanger, what, value|
             if (what == \buttonPlay) {
-                buttonPlay.value = value;
+				defer({  buttonPlay.value = value; })
             };
         };
 
