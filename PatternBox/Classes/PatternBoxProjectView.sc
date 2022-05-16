@@ -12,13 +12,15 @@ PatternBoxProjectView(bounds:400@700).front();
 
 PatternBoxProjectView : View {
 	var patternBoxProjectItemViews, <eventAddPatternBox;
-	var mainLayout, footerLayout, <>bufferpool, projectSaveAndLoadView, menuFile, layoutPatternBoxItems, scrollViewPatternBoxItems, buttonAddPatternBox, layoutHeader, serverControlView, tempoClockView;
+	var mainLayout, footerLayout, <>bufferpool, toggleMIDIedit, projectSaveAndLoadView, menuFile, layoutPatternBoxItems, scrollViewPatternBoxItems, buttonAddPatternBox, layoutHeader, serverControlView, tempoClockView;
 
 	*new { |parent, bounds|
 		^super.new(parent, bounds).initialize();
 	}
 
 	initialize {
+		MIDIClient.init;
+		MIDIIn.connectAll;
 		patternBoxProjectItemViews = List();
 		this.initializeEvents();
 		this.initializeView();
@@ -73,10 +75,15 @@ PatternBoxProjectView : View {
 		tempoClockView = TempoClockViewFactory.createInstance(this);
 		footerLayout.add(tempoClockView,  align: \left);
 
+		toggleMIDIedit= ButtonFactory.createInstance(this);
+		toggleMIDIedit.states = [["Show MIDI editors", nil, Color.white.alpha_(0)], ["Hide MIDI editors", nil, Color.white.alpha_(0)]];
+		toggleMIDIedit.toolTip = "Show/hide MIDI editors";
+		toggleMIDIedit.action = { |sender| patternBoxProjectItemViews do: { |view| view.editMIDI(sender.value == 1); }};
+		footerLayout.add(toggleMIDIedit,  align: \left);
+
 		buttonAddPatternBox = ButtonFactory.createInstance(this, "btn-add");
 		buttonAddPatternBox.toolTip = "Add a new PatternBox.";
 		buttonAddPatternBox.action = { this.invokeEvent(this.eventAddPatternBox); };
-
 		footerLayout.add(buttonAddPatternBox,  align: \right);
 
 		mainLayout.add(footerLayout);

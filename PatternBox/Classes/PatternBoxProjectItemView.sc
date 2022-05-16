@@ -23,10 +23,14 @@ PatternBoxProjectItemView : View {
 	var <>bufferpool, mainLayout, <patternBoxView, togglePlay, dragBothPanel, sliderVolume, buttonShowPatternBox, buttonRemove, buttonMoveUp, buttonMoveDown;
 	var onCommandPeriodFunc, <>actionRemove, <>actionInsertPatternBox, <>actionMovePatternBox;
 	var volume = 1, <patternBoxName, playState = 0, lemurClient;
-	var prCanReceiveDragHandler, prReceiveDragHandler, prBeginDragAction;
+	var prCanReceiveDragHandler, prReceiveDragHandler, prBeginDragAction, midiViewPlayButton;
 
 	*new { |parent, bounds, bufferpool|
 		^super.new(parent, bounds).initialize(bufferpool);
+	}
+
+	editMIDI { |editMode|
+		midiViewPlayButton.visible = editMode;
 	}
 
 	initialize { |bufferpool|
@@ -43,7 +47,7 @@ PatternBoxProjectItemView : View {
 	initializeView {
 		mainLayout = GridLayout();
 		mainLayout.margins_([5,5,20,5]);
-		mainLayout.vSpacing_(0);
+		mainLayout.vSpacing_(5);
 		this.toolTip = "Press CMD + drag to move this item to another position.";
 		this.layout = mainLayout;
 		this.background = Color(0.45490196078431, 0.55686274509804, 0.87843137254902);
@@ -91,6 +95,16 @@ PatternBoxProjectItemView : View {
 		buttonRemove = ButtonFactory.createInstance(this, class: "btn-delete");
 		buttonRemove.action = { |sender| this.onButtonRemove(sender); };
 		layout.add(buttonRemove, 0, 4, align: \top);
+
+		midiViewPlayButton = MIDIFuncNoteView();
+		midiViewPlayButton.visible = false;
+		midiViewPlayButton.actionNoteOff = {
+			defer({patternBoxView.stop();});
+		};
+		midiViewPlayButton.actionNoteOn = {
+			defer({patternBoxView.play();});
+		};
+		mainLayout.addSpanning(midiViewPlayButton, 2, 1, columnSpan: 3);
 
 		// Start drag & drop beahvior workaround
 		prBeginDragAction =  { |view, x, y|
@@ -166,6 +180,7 @@ PatternBoxProjectItemView : View {
 		state[\patternBoxState] = patternBoxView.getState();
 		state[\patternBoxName] = patternBoxName;
 		state[\volume] = volume;
+		state[\midiPlayView] = midiViewPlayButton.getState();
 		^state;
 	}
 
@@ -174,11 +189,15 @@ PatternBoxProjectItemView : View {
 		this.setName(state[\patternBoxName]);
 		patternBoxView.setName(state[\patternBoxName]);
 		sliderVolume.value = state[\volume];
+		if (state[\midiPlayView].notNil, {
+			midiViewPlayButton.loadState(state[\midiPlayView]);
+		});
 	}
 
 	dispose {
 		this.remove(); // removes itselfs from the layout
 		CmdPeriod.remove(onCommandPeriodFunc);
 		if (actionRemove.notNil, { actionRemove.value(); });
+		midiViewPlayButton.dispose();
 	}
 }
