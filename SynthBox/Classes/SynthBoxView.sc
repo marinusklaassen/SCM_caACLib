@@ -48,7 +48,7 @@ SynthBoxView : View {
 	    controlViews = Dictionary();
 		tempNames = synthDesc.controlNames;
 
-		synthDesc.metadata[\hideUI] do: { |key| tempNames.removeAt(tempNames.indexOfEqual(key)) };
+		synthDesc.metadata[\hidden] do: { |key| tempNames.removeAt(tempNames.indexOfEqual(key)) };
 
 		// Collects controls
 		layoutControls = GridLayout();
@@ -67,7 +67,7 @@ SynthBoxView : View {
 			});
 			if (spec.isKindOf(ControlSpec), {
 				newView = SynthBoxSliderView(key, spec);
-				newView.action = { |sender|   if(tempToggleSynth.notNil, { tempToggleSynth.set(sender.name.asSymbol, sender.mappedValue); }); };
+				newView.action = { |sender|   if(tempToggleSynth.notNil, { tempToggleSynth.set(sender.name.asSymbol, sender.valueMapped); }); };
 			}, {
 				newView = SynthBoxNumberView(key);
 				 newView.action = { |sender|  if(tempToggleSynth.notNil, { tempToggleSynth.set(sender.name.asSymbol, sender.value); }); };
@@ -87,7 +87,7 @@ SynthBoxView : View {
 		var paramValuesArray = List(), paramValue;
 		controlViews do: { |controlView|
 			if(controlView.isKindOf(SynthBoxSliderView)) {
-				paramValue = controlView.mappedValue;
+				paramValue = controlView.valueMapped;
 				} {
 				paramValue = controlView.value;
 			};

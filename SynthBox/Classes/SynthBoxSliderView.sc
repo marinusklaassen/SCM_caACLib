@@ -10,7 +10,7 @@ SynthBoxSliderView(bounds:400@50).front();
 */
 
 SynthBoxSliderView : View {
-	var model, dependants, <>spec, <name, midiResp, midiFlag, <>bMidiInvert, mappedValue, <canRandomize;
+	var model, dependants, <>spec, <name, midiResp, midiFlag, <>bMidiInvert, <valueMapped, <canRandomize;
     var <mainLayout, <labelName, <sliderView, <numberBoxValue, <toggleMidiLearn, <toggleMidiInvert, buttonMuteRandomization;
 
 	*new { |argName, argSpec, parent, bounds|
@@ -28,7 +28,7 @@ SynthBoxSliderView : View {
 		model = (value: 0.0);
 		model[\setValueFunction] = { |value|
 			model[\value] = value;
-			mappedValue = spec.map(value);
+			valueMapped = spec.map(value);
 			model.changed(\value, value);
 
 		};
