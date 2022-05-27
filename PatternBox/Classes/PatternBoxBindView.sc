@@ -271,11 +271,16 @@ PatternBoxBindView : View {
 		};
 
 		paramChannel.actionInsertPatternBox = { |sender, insertType|
-			var positionInLayout = paramViews.indexOf(sender);
-			if (insertType == "INSERT_AFTER", {
+			var positionInLayout = paramViews.indexOf(sender), newParam;
+			if ((insertType == "INSERT_AFTER") || (insertType == "DUPLICATE_PARAM"), {
 				positionInLayout = positionInLayout + 1;
 			});
-			this.addParamView(positionInLayout);
+
+			newParam = this.addParamView(positionInLayout);
+
+			if (insertType == "DUPLICATE_PARAM", {
+				newParam.loadState(sender.getState());
+			});
 		};
 
 		paramChannel.actionMoveParamView = { |dragDestinationObject, dragObject|
@@ -293,14 +298,16 @@ PatternBoxBindView : View {
 					if (dragDestinationObject.context == dragObject.context, {
 						paramViews.remove(dragObject);
 					}, {
-						targetPosition = targetPosition + 1; // testje
+						targetPosition = targetPosition + 1;
+					    dragObject.context.rebuildPatterns();
+						dragObject.context = this;
 					});
-					dragObject.context = this;
 					paramViews.insert(targetPosition, dragObject);
 					bodyLayout.insert(dragObject, targetPosition);
+				    this.rebuildPatterns();
 				});
 			});
-		};
+    	};
 
 		if (positionInLayout.notNil, {
 			bodyLayout.insert(paramChannel, positionInLayout);

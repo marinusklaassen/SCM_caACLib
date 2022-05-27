@@ -52,11 +52,14 @@ PatternBoxParamView : View {
 		this.layout = mainLayout;
 
 		this.setContextMenuActions(
-			MenuAction("Insert param row before", {
+			MenuAction("Insert parameter before", {
 				if (actionInsertPatternBox.notNil, { actionInsertPatternBox.value(this, "INSERT_BEFORE"); });
 			}),
-			MenuAction("Insert param row after", {
+			MenuAction("Insert parameter after", {
 				if (actionInsertPatternBox.notNil, { actionInsertPatternBox.value(this, "INSERT_AFTER"); });
+			}),
+			MenuAction("Duplicate parameter", {
+				if (actionInsertPatternBox.notNil, { actionInsertPatternBox.value(this, "DUPLICATE_PARAM"); });
 			})
 		);
 
