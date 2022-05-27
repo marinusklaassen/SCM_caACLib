@@ -77,12 +77,12 @@ ServerControlView : View {
 	}
 
 	onButtonAction_RefreshMIDI {
-		MIDIClient.init;
-		MIDIIn.connectAll;
+		MIDIOutSelectorView.refresh();
+		MIDIIn.connectAll();
     }
 
     onButtonAction_Panic {
-		CmdPeriod.run;
+		CmdPeriod.run();
         Server.freeAll(evenRemote: false);
     }
 

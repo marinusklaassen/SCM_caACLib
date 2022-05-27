@@ -17,4 +17,16 @@ SCMViewBase : View {
 	}
 
 	randomize { }
+
+	spec_ { |spec|
+
+	}
+
+	uiMode { |mode|
+
+	}
+
+	editMode_ { |mode|
+
+	}
 }

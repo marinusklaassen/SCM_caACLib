@@ -1,5 +1,5 @@
 /*
-FILENAME: PatternBoxParamControlGroupView
+FILENAME: PatternBoxParamControlItemView
 
 DESCRIPTION: Select an compose widgest.
 
@@ -49,7 +49,7 @@ PatternBoxParamControlItemView : View {
 		mainLayout.add(labelControlName, 0, 0);
 		popupSelectControl = PopUpMenu();
 		popupSelectControl.toolTip = "Select a control.";
-		popupSelectControl.items = ["slider", "range", "steps", "multislider", "multiknob", "buffer selector" ];
+		popupSelectControl.items = ["slider", "range", "steps", "multislider", "multiknob", "buffer selector", "midiout selector" ];
         popupSelectControl.action = { |sender| this.onItemChanged_PopupSelectControl(sender.item); };
         mainLayout.add(popupSelectControl, 1, 0);
         textFieldControlName = TextField();
@@ -134,7 +134,8 @@ PatternBoxParamControlItemView : View {
 		{ type == "steps" } {controlView = MultiStepView(); }
 		{ type == "multislider" } { controlView = SliderSequencerView(); }
 		{ type == "multiknob" } { controlView = KnobSequencerView(); }
-		{ type == "buffer selector" } { controlView = bufferpool.createBufferSelectorView(); };
+		{ type == "buffer selector" } { controlView = bufferpool.createBufferSelectorView(); }
+		{ type == "midiout selector" } { controlView = MIDIOutSelectorView(); };
 
 		controlView.name = this.controlName;
 		controlView.spec = spec;

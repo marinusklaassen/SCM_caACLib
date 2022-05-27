@@ -143,18 +143,7 @@ BufferSelectorView : SCMViewBase {
 
 	initialize {
 		proxy = PatternProxy();
-	}
-
-	spec_ { |spec|
-
-	}
-
-	uiMode { |mode|
-
-	}
-
-	editMode_ { |mode|
-
+		needsControlSpec = false;
 	}
 
 	getProxies {

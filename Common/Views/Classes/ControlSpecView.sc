@@ -58,7 +58,7 @@ ControlSpecView : View {
 			var interpretSpec; // TODO separate method. InterpretStringAsControlSpec
 			// The user can evaluate a valid ControlSpec() or \name.asSpec.
 			try {
-				interpretSpec = rawSpecAsString.interpretPrint;
+				interpretSpec = rawSpecAsString.interpret;
 			}
 			{ interpretSpec = nil; };
 			if (interpretSpec.class == ControlSpec, {
@@ -82,6 +82,10 @@ ControlSpecView : View {
 		};
 
 		model.addDependant(dependants[\action]);
+	}
+
+	visible_ { |visible|
+		textInput.visible = visible;
 	}
 
 	initializeView {
