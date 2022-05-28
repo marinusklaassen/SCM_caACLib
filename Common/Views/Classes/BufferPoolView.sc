@@ -159,6 +159,8 @@ BufferSelectorView : SCMViewBase {
 
 	update {
 		var tmp;
+
+		try {
 		if (popupMenuBuffers.items.size > 0, {
 			tmp = popupMenuBuffers.items[popupMenuBuffers.value];
 		});
@@ -170,6 +172,9 @@ BufferSelectorView : SCMViewBase {
 		},{
 			popupMenuBuffers.valueAction  = 0;
 		});
+		} { |error|
+			postln(error);
+		}
 	}
 
 	initializeView {
@@ -311,6 +316,8 @@ BufferPoolView : SCMViewBase {
 
 	loadState { |state|
 		bufferPoolItemViews.copy do: { |item| bufferPoolItemViews.remove(item).dispose(); };
-		state[\bufferPoolItemStates] do: { |itemState| this.addBufferPoolItem(itemState[\filepath]); };
+		state[\bufferPoolItemStates] do: { |itemState|
+			this.addBufferPoolItem(itemState[\filepath]);
+		};
 	}
 }

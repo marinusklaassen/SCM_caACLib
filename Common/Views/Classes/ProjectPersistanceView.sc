@@ -117,6 +117,7 @@ ProjectPersistanceView : View {
 	load {
 		Dialog.openPanel({ |filepath|
 			var pathName = PathName(filepath.value);
+			("Loading" + pathName.fullPath).postln;
 			this.loadData(Object.readArchive(pathName.fullPath));
 			this.setProjectfile(pathName.fullPath);
 		},{ "cancelled".postln; });
