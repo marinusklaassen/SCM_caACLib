@@ -12,6 +12,7 @@
  * EXAMPLE:
 a = MultiStepView().front().editMode_(true)
 b = a.getState();
+a.proxySteps
 a.editMode = true;
 a.randomize
 a.loadState(b);
@@ -34,7 +35,7 @@ MultiStepView : SCMViewBase {
 		if (value.asSymbol() == value.asInteger().asSymbol(), { value = value.asInteger(); }, { value = value.asSymbol; });
 		valueOff = value;
 		textFieldValueOff.string = value;
-		buttonSteps do: { |button,i | proxySteps[i] =  if (button.value == 0, valueOff, valueOn); };
+		this.mapSteps();
 	}
 
 	valueOn_ { |value|
@@ -42,8 +43,13 @@ MultiStepView : SCMViewBase {
 		if (value.asSymbol() == value.asInteger().asSymbol(), { value = value.asInteger(); }, { value = value.asSymbol; });
 		valueOn = value;
 		textFieldValueOn.string = value;
-		buttonSteps do: { |button, i| proxySteps[i] = if (button.value == 0, valueOff, valueOn); };
+		this.mapSteps();
 	}
+
+	mapSteps {
+		buttonSteps do: { |button,i | proxySteps[i] =  if (button.value == 0, valueOff, valueOn); };
+	}
+
 
 	stepCount_ { |argStepCount|
 		if(argStepCount > stepCount, {
@@ -53,6 +59,7 @@ MultiStepView : SCMViewBase {
 		}));
 		numberBoxStepCount.value = argStepCount;
 		stepCount = argStepCount;
+		this.mapSteps();
 	}
 
 	addStep { |initVal = 0|
