@@ -59,16 +59,15 @@ SliderView : SCMViewBase {
 		numberBoxView = NumberBoxFactory.createInstance(this)
 		.action_({ |v|
 			var unmappedValue = this.spec.unmap(v.value);
-			value = unmappedValue;
-			this.action.value(unmappedValue);
-			sliderView.value = unmappedValue;
+			this.value = unmappedValue;
 		});
 
 		sliderView = SliderFactory.createInstance(this)
 		.orientation_(\horizontal)
 		.action_({ |sender|
 			this.value = sender.value;
-			this.action.value(sender.value); });
+
+		});
 		unitView = StaticText();
 
 		mainLayoutView.add(labelView, row: 0, column: 0, align: \left);
@@ -118,6 +117,8 @@ SliderView : SCMViewBase {
 		numberBoxView.value = valueMapped;
 		valueProxy.source = value;
 		valueMappedProxy.source = valueMapped;
+		if (this.action.notNil, {
+			this.action.value(this); })
 	}
 
 	labelText_ { |text|

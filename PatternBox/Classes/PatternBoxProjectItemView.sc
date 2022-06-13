@@ -83,7 +83,8 @@ PatternBoxProjectItemView : View {
 		.spec_(\db.asSpec)
 		.value_(volume)
 		.labelText_(patternBoxView.patternBoxName)
-		.action_({ |sender | this.onSliderVolumeChanged(sender.value); });
+		.action_({ |sender |
+			this.onSliderVolumeChanged(sender); });
 		mainLayout.addSpanning(sliderVolume, 0, 2, rowSpan: 2);
 		mainLayout.setColumnStretch(1, 1);
 
@@ -166,7 +167,7 @@ PatternBoxProjectItemView : View {
 	}
 
 	onSliderVolumeChanged { |sender|
-		patternBoxView.volume = sender.value;
+		patternBoxView.volume = dbamp(sender.valueMapped);
 		volume = sender.value;
 	}
 
