@@ -175,6 +175,10 @@ PatternBoxProjectItemView : View {
 		this.dispose();
 	}
 
+	closeView {
+		patternBoxView.close();
+	}
+
 	getState {
 		var state = Dictionary();
 		state[\type] = "PatternBoxProjectItemView";
@@ -196,6 +200,7 @@ PatternBoxProjectItemView : View {
 	}
 
 	dispose {
+		this.closeView();
 		this.remove(); // removes itselfs from the layout
 		CmdPeriod.remove(onCommandPeriodFunc);
 		if (actionRemove.notNil, { actionRemove.value(); });

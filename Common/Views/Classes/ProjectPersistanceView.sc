@@ -10,7 +10,7 @@ ProjectPersistanceView(bounds:400@50).front()
 */
 
 ProjectPersistanceView : View {
-	var <eventLoadProject, <>actionChanged, <>actionClearAll, <>actionNewItem, <eventSaveProject, fileMenu, utilitiesMenu, buttonShowUtilitiesMenu, buttonShowSessionMenu, sessionMenu, <buttonShowFileMenu, <buttonSave, <buttonSaveAs, <labelProjectfile, <mainLayout, <>data, <>projectfile, <>contextID;
+	var <eventLoadProject, <>actionChanged, <>actionClearAll, <>actionNewItem, <>actionCloseAllViews, <eventSaveProject, fileMenu, utilitiesMenu, buttonShowUtilitiesMenu, buttonShowSessionMenu, sessionMenu, <buttonShowFileMenu, <buttonSave, <buttonSaveAs, <labelProjectfile, <mainLayout, <>data, <>projectfile, <>contextID;
 
 	*new { |contextID, parent, bounds|
 		^super.new(parent, bounds).initialize(contextID);
@@ -59,6 +59,8 @@ ProjectPersistanceView : View {
 			.action_({ if (actionNewItem.notNil, { actionNewItem.value(this); }); }),
 			MenuAction("Clear all")
 			.action_({  if (actionClearAll.notNil, { actionClearAll.value(this); });}),
+			MenuAction("Hide all views")
+			.action_({  if (actionCloseAllViews.notNil, { actionCloseAllViews.value(this); });}),
 		);
 
 		utilitiesMenu = Menu(

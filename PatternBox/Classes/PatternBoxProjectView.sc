@@ -41,6 +41,7 @@ PatternBoxProjectView : View {
 		projectSaveAndLoadView.actionChanged = { |sender| this.name = "PatternBox Project: " ++ PathName(sender.projectfile).fileName; };
 		projectSaveAndLoadView.actionClearAll = { this.clearAll(); };
 		projectSaveAndLoadView.actionNewItem = { this.invokeEvent(this.eventAddPatternBox); };
+		projectSaveAndLoadView.actionCloseAllViews = { this.closeViews(); };
 
 		projectSaveAndLoadView.addView(Button().string_("Bufferpool").action_({ bufferpool.front; }));
 
@@ -156,6 +157,10 @@ PatternBoxProjectView : View {
 
 	clearAll {
 		patternBoxProjectItemViews.copy do: { | patternBox| patternBox.dispose(); };
+	}
+
+	closeViews {
+		patternBoxProjectItemViews do: { |view| view.closeView(); };
 	}
 
 	getState {
