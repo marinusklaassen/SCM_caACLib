@@ -94,26 +94,35 @@ ProjectPersistanceView : View {
 
 	saveAs {
 		Dialog.savePanel({ |filepath|
-			var stateFile = this.stateFile();
-			var state = Dictionary();
 			var pathName = PathName(filepath.value);
-			this.invokeEvent(this.eventSaveProject);
-			this.data.writeArchive(pathName.fullPath);
-			this.setProjectfile(pathName.fullPath);
-			state[\projectFilepath] = pathName.fullPath;
-			state.writeArchive(stateFile);
+			this.saveData(pathName.fullPath);
 			"project saved".postln;
 		},{ "cancelled".postln; });
 	}
 
 	save {
 		if (File.exists(this.projectfile), {
-			this.data.writeArchive(this.projectfile + ".archive");
-			this.invokeEvent(this.eventSaveProject);
-			this.data.writeArchive(this.projectfile);
+			this.saveData(this.projectfile);
 		},{
 			this.saveAs();
 		});
+	}
+
+	saveData { |path|
+		var stateFile = this.stateFile();
+	    var state = Dictionary[\projectFilepath -> path];
+		if (File.exists(this.projectfile) && (path == this.projectfile), {
+			var archive = this.projectfile ++ ".archive";
+			this.data.writeArchive(archive);
+			postln(this.projectfile + "is archived to " + archive);
+		});
+    	this.invokeEvent(this.eventSaveProject);
+		this.data.writeArchive(path);
+		this.setProjectfile(path);
+		postln("Projectdata is written to" + path);
+		state.writeArchive(stateFile);
+		postln(stateFile + "is updated");
+		this.setProjectfile(path);
 	}
 
 	load {
