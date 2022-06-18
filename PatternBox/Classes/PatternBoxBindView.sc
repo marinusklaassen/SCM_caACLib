@@ -433,5 +433,9 @@ PatternBoxBindView : View {
 		paramViews do: { |paramView| paramView.dispose(); };
 		this.remove();
 	}
+
+	showControls {
+		paramViews do: { |view| view.showControl(); };
+	}
 }
 

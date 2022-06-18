@@ -205,5 +205,6 @@ PatternBoxProjectItemView : View {
 		CmdPeriod.remove(onCommandPeriodFunc);
 		if (actionRemove.notNil, { actionRemove.value(); });
 		midiViewPlayButton.dispose();
+		patternBoxView.stop();
 	}
 }

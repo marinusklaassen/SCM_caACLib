@@ -210,7 +210,7 @@ BufferSelectorView : SCMViewBase {
 BufferPoolView : SCMViewBase {
 	var <buffers, <selectorViews;
 	var mainLayout, layoutBufferPoolItemViews, scrollViewBufferPoolItemViews, <bufferPoolItemViews, buttonAdd, layoutFooter;
-	var <>actionBuffersChanged;
+	var <>actionBuffersChanged, <>canUpdateDependants;
 
 	*new { |parent, bounds|
 		^super.new(parent, bounds).initialize().initializeView().initialized();
@@ -218,6 +218,7 @@ BufferPoolView : SCMViewBase {
 
 	initialize {
 		needsControlSpec = false;
+		canUpdateDependants = true;
 		bufferPoolItemViews = List();
 		selectorViews = Set();
 	}
@@ -304,7 +305,9 @@ BufferPoolView : SCMViewBase {
 		};
 		bufferPoolItemViews.add(newItem);
 		layoutBufferPoolItemViews.insert(newItem, newPosition);
-		this.updateDependantViews();
+		if (canUpdateDependants, {
+			this.updateDependantViews();
+		});
 		^newItem;
 	}
 
@@ -315,9 +318,11 @@ BufferPoolView : SCMViewBase {
 	}
 
 	loadState { |state|
+		canUpdateDependants = false;
 		bufferPoolItemViews.copy do: { |item| bufferPoolItemViews.remove(item).dispose(); };
 		state[\bufferPoolItemStates] do: { |itemState|
 			this.addBufferPoolItem(itemState[\filepath]);
 		};
+		canUpdateDependants = true;
 	}
 }

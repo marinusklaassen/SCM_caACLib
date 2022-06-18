@@ -103,6 +103,7 @@ PatternBoxProjectView : View {
 			this.addPatternBox();
 		});
 		projectSaveAndLoadView.eventLoadProject.addDependant({  | event, sender /* projectSaveAndLoadView */ |
+			this.clearAll();
 			this.loadState(sender.data);
 		});
 		projectSaveAndLoadView.eventSaveProject.addDependant({  | event, sender /* projectSaveAndLoadView */ |
