@@ -14,7 +14,7 @@ a.value = 0;
 
 SliderView : SCMViewBase {
 	var <spec, <labelText, <value = 0, <valueMapped, valueProxy, valueMappedProxy;
-	var <mainLayoutView, <sliderView, <labelView, <numberBoxView, unitView, controlSpecView;
+	var <mainLayoutView, <sliderView, <labelView, <numberBoxView, unitView, controlSpecView, <>actionTextChanged;
 
 	*new { | parent, bounds |
 		^super.new(parent, bounds).init();
@@ -53,8 +53,10 @@ SliderView : SCMViewBase {
 		this.layout = mainLayoutView;
 
 		// Configure views
-		labelView = StaticTextFactory.createInstance(this)
-		.string_(this.labelText);
+		labelView = TextFieldFactory.createInstance(this)
+		.background_(Color.clear.alpha_(0))
+		.string_(this.labelText)
+		.action_({ |sender| if (this.actionTextChanged.notNil, { this.actionTextChanged.value(sender); }) });
 
 		numberBoxView = NumberBoxFactory.createInstance(this)
 		.action_({ |v|
@@ -70,7 +72,7 @@ SliderView : SCMViewBase {
 		});
 		unitView = StaticText();
 
-		mainLayoutView.add(labelView, row: 0, column: 0, align: \left);
+		mainLayoutView.addSpanning(labelView, row: 0, column: 0, columnSpan: 2);
 		mainLayoutView.add(numberBoxView, row: 0, column: 2);
 		mainLayoutView.add(unitView, row: 0, column: 3, align: \right);
 		mainLayoutView.addSpanning(sliderView, row: 1, column: 0, rowSpan: 1, columnSpan: 4);

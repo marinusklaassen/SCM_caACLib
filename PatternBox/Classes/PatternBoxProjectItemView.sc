@@ -84,7 +84,12 @@ PatternBoxProjectItemView : View {
 		.value_(volume)
 		.labelText_(patternBoxView.patternBoxName)
 		.action_({ |sender |
-			this.onSliderVolumeChanged(sender); });
+			this.onSliderVolumeChanged(sender); })
+		.actionTextChanged_({ |sender|
+			patternBoxView.setName(sender.string);
+			patternBoxName = sender.string;
+		});
+
 		mainLayout.addSpanning(sliderVolume, 0, 2, rowSpan: 2);
 		mainLayout.setColumnStretch(1, 1);
 
