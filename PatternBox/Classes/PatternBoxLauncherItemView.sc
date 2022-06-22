@@ -1,16 +1,16 @@
 /*
-FILENAME: PatternBoxProjectItemView
+FILENAME: PatternBoxLauncherItemView
 
-DESCRIPTION: THe PatternBoxProjectItemView the project item view which references to the projectview.
+DESCRIPTION: THe PatternBoxLauncherItemView the project item view which references to the projectview.
 
 AUTHOR: Marinus Klaassen (2012, 2021Q4)
 
 EXAMPLE:
 s.boot;
-PatternBoxProjectItemView().front;
+PatternBoxLauncherItemView().front;
 
 s.boot;
-m = PatternBoxProjectItemView().front();
+m = PatternBoxLauncherItemView().front();
 a = m.getState()
 m.loadState(a);
 m.model[\envirText]
@@ -18,7 +18,7 @@ a.keys do: { |key| a[key.postln].postln }
 */
 
 
-PatternBoxProjectItemView : View {
+PatternBoxLauncherItemView : View {
 
 	var <>bufferpool, mainLayout, <patternBoxView, togglePlay, dragBothPanel, sliderVolume, buttonShowPatternBox, buttonRemove, buttonMoveUp, buttonMoveDown;
 	var onCommandPeriodFunc, <>actionRemove, <>actionInsertPatternBox, <>actionMovePatternBox;
@@ -118,7 +118,7 @@ PatternBoxProjectItemView : View {
 		};
 
 		prCanReceiveDragHandler = {  |view, x, y|
-			View.currentDrag.isKindOf(PatternBoxProjectItemView);
+			View.currentDrag.isKindOf(PatternBoxLauncherItemView);
 		};
 
 		prReceiveDragHandler = { |view, x, y|
@@ -186,7 +186,7 @@ PatternBoxProjectItemView : View {
 
 	getState {
 		var state = Dictionary();
-		state[\type] = "PatternBoxProjectItemView";
+		state[\type] = "PatternBoxLauncherItemView";
 		state[\patternBoxState] = patternBoxView.getState();
 		state[\patternBoxName] = patternBoxName;
 		state[\volume] = volume;

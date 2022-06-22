@@ -152,7 +152,6 @@ ProjectPersistanceView : View {
 			var state = Object.readArchive(stateFile);
 			if (state[\projectFilepath].notNil && File.exists(state[\projectFilepath]), {
 				data = Object.readArchive(state[\projectFilepath]);
-				data.postln;
 				this.loadData(data);
 				this.setProjectfile(state[\projectFilepath]);
 			});

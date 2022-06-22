@@ -1,17 +1,17 @@
 /*
-FILENAME: PatternBoxProjectView
+FILENAME: PatternBoxLauncherView
 
-DESCRIPTION: Maintains a project of PatternBox instances.
+DESCRIPTION: Maintain and launcher of PatternBox instances.
 
 AUTHOR: Marinus Klaassen (2012, 2021Q3)
 
 EXAMPLE:
 s.boot;
-PatternBoxProjectView(bounds:400@700).front();
+PatternBoxLauncherView(bounds:400@700).front();
 */
 
-PatternBoxProjectView : View {
-	var patternBoxProjectItemViews, <eventAddPatternBox;
+PatternBoxLauncherView : View {
+	var patternBoxLauncherItemViews, <eventAddPatternBox;
 	var mainLayout, footerLayout, <>bufferpool, toggleMIDIedit, projectSaveAndLoadView, menuFile, layoutPatternBoxItems, scrollViewPatternBoxItems, buttonAddPatternBox, layoutHeader, serverControlView, tempoClockView;
 
 	*new { |parent, bounds|
@@ -21,7 +21,7 @@ PatternBoxProjectView : View {
 	initialize {
 		MIDIClient.init;
 		MIDIIn.connectAll;
-		patternBoxProjectItemViews = List();
+		patternBoxLauncherItemViews = List();
 		this.initializeEvents();
 		this.initializeView();
 		this.registerEventHandlers();
@@ -29,7 +29,7 @@ PatternBoxProjectView : View {
 	}
 
 	initializeView {
-		this.name = "PatternBox Project";
+		this.name = "PatternBox Launcher";
 		this.deleteOnClose = false;
 
 		mainLayout = VLayout();
@@ -37,8 +37,8 @@ PatternBoxProjectView : View {
 
 		bufferpool = BufferPoolView(bounds: 700@700);
 
-		projectSaveAndLoadView = ProjectPersistanceViewFactory.createInstance(this, contextID: "PatternBoxProjectView");
-		projectSaveAndLoadView.actionChanged = { |sender| this.name = "PatternBox Project: " ++ PathName(sender.projectfile).fileName; };
+		projectSaveAndLoadView = ProjectPersistanceViewFactory.createInstance(this, contextID: "PatternBoxLauncherView");
+		projectSaveAndLoadView.actionChanged = { |sender| this.name = "PatternBox Launcher - " ++ PathName(sender.projectfile).fileName; };
 		projectSaveAndLoadView.actionClearAll = { this.clearAll(); };
 		projectSaveAndLoadView.actionNewItem = { this.invokeEvent(this.eventAddPatternBox); };
 		projectSaveAndLoadView.actionCloseAllViews = { this.closeViews(); };
@@ -62,9 +62,9 @@ PatternBoxProjectView : View {
 		};
 
 		scrollViewPatternBoxItems.canvas.receiveDragHandler = { |view, x, y|
-			var targetPosition = patternBoxProjectItemViews.size - 1;
-			patternBoxProjectItemViews.remove(View.currentDrag);
-			patternBoxProjectItemViews.insert(targetPosition, View.currentDrag);
+			var targetPosition = patternBoxLauncherItemViews.size - 1;
+			patternBoxLauncherItemViews.remove(View.currentDrag);
+			patternBoxLauncherItemViews.insert(targetPosition, View.currentDrag);
 			layoutPatternBoxItems.insert(View.currentDrag, targetPosition);
 		};
 
@@ -79,7 +79,7 @@ PatternBoxProjectView : View {
 		toggleMIDIedit= ButtonFactory.createInstance(this);
 		toggleMIDIedit.states = [["Show MIDI editors", nil, Color.white.alpha_(0)], ["Hide MIDI editors", nil, Color.white.alpha_(0)]];
 		toggleMIDIedit.toolTip = "Show/hide MIDI editors";
-		toggleMIDIedit.action = { |sender| patternBoxProjectItemViews do: { |view| view.editMIDI(sender.value == 1); }};
+		toggleMIDIedit.action = { |sender| patternBoxLauncherItemViews do: { |view| view.editMIDI(sender.value == 1); }};
 		footerLayout.add(toggleMIDIedit,  align: \left);
 
 		buttonAddPatternBox = ButtonFactory.createInstance(this, "btn-add");
@@ -112,19 +112,19 @@ PatternBoxProjectView : View {
 	}
 
 	addPatternBox { |positionInLayout, sourcePatterBoxItemView, duplicate|
-		var patternBoxProjectItemView = PatternBoxProjectItemView(bufferpool: bufferpool);
+		var patternBoxLauncherItemView = PatternBoxLauncherItemView(bufferpool: bufferpool);
 		if(duplicate == true, {
 			var state = sourcePatterBoxItemView.getState();
 			state[\patternBoxName] = state[\patternBoxName] + " - COPY";
-			patternBoxProjectItemView.loadState(state);
+			patternBoxLauncherItemView.loadState(state);
 		});
 
-		patternBoxProjectItemView.actionRemove = { | sender |
-			patternBoxProjectItemViews.remove(patternBoxProjectItemView);
+		patternBoxLauncherItemView.actionRemove = { | sender |
+			patternBoxLauncherItemViews.remove(patternBoxLauncherItemView);
 		};
 
-		patternBoxProjectItemView.actionInsertPatternBox = { |sender, insertType|
-			var positionInLayout = patternBoxProjectItemViews.indexOf(sender);
+		patternBoxLauncherItemView.actionInsertPatternBox = { |sender, insertType|
+			var positionInLayout = patternBoxLauncherItemViews.indexOf(sender);
 			var duplicate = false;
 			if (insertType == "INSERT_AFTER", {
 				positionInLayout = positionInLayout + 1;
@@ -136,62 +136,62 @@ PatternBoxProjectView : View {
 			this.addPatternBox(positionInLayout, sender, duplicate);
 		};
 
-		patternBoxProjectItemView.actionMovePatternBox = { |dragDestinationObject, dragObject|
+		patternBoxLauncherItemView.actionMovePatternBox = { |dragDestinationObject, dragObject|
 			var targetPosition;
 			if (dragDestinationObject !==  dragObject, {
-				targetPosition = patternBoxProjectItemViews.indexOf(dragDestinationObject);
-				patternBoxProjectItemViews.remove(dragObject);
-				patternBoxProjectItemViews.insert(targetPosition, dragObject);
+				targetPosition = patternBoxLauncherItemViews.indexOf(dragDestinationObject);
+				patternBoxLauncherItemViews.remove(dragObject);
+				patternBoxLauncherItemViews.insert(targetPosition, dragObject);
 				layoutPatternBoxItems.insert(dragObject, targetPosition);
 			});
 		};
 
 		if (positionInLayout.notNil, {
-			layoutPatternBoxItems.insert(patternBoxProjectItemView, positionInLayout);
-			patternBoxProjectItemViews.insert(positionInLayout, patternBoxProjectItemView);
+			layoutPatternBoxItems.insert(patternBoxLauncherItemView, positionInLayout);
+			patternBoxLauncherItemViews.insert(positionInLayout, patternBoxLauncherItemView);
 		},{
-			layoutPatternBoxItems.insert(patternBoxProjectItemView, patternBoxProjectItemViews.size); // workaround. insert before stretchable space.
-			patternBoxProjectItemViews.add(patternBoxProjectItemView);
+			layoutPatternBoxItems.insert(patternBoxLauncherItemView, patternBoxLauncherItemViews.size); // workaround. insert before stretchable space.
+			patternBoxLauncherItemViews.add(patternBoxLauncherItemView);
 		});
-		^patternBoxProjectItemView;
+		^patternBoxLauncherItemView;
 	}
 
 	clearAll {
-		patternBoxProjectItemViews.copy do: { | patternBox| patternBox.dispose(); };
+		patternBoxLauncherItemViews.copy do: { | patternBox| patternBox.dispose(); };
 	}
 
 	closeViews {
-		patternBoxProjectItemViews do: { |view| view.closeView(); };
+		patternBoxLauncherItemViews do: { |view| view.closeView(); };
 	}
 
 	getState {
 		var state = Dictionary();
-		state[\type] = "PatternBoxProjectView";
-		state[\patternBoxProjectItemViewsStates] = patternBoxProjectItemViews.collect({ |patternBoxProjectItemView| patternBoxProjectItemView.getState(); });
+		state[\type] = "PatternBoxLauncherView";
+		state[\patternBoxLauncherItemViewsStates] = patternBoxLauncherItemViews.collect({ |patternBoxLauncherItemView| patternBoxLauncherItemView.getState(); });
 		state[\patternBoxBufferpool] = bufferpool.getState();
 		^state;
 	}
 
 	loadState{ |state|
-		var patternBoxProjectItemView;
-		if (state.isKindOf(Dictionary) && state[\type] == "PatternBoxProjectView",
+		var patternBoxLauncherItemView;
+		if (state.isKindOf(Dictionary),
 			{
 				if (state[\patternBoxBufferpool].notNil, { bufferpool.loadState(state[\patternBoxBufferpool]); });
 				// Remove the patternBoxViews that are to many.
-				if (state[\patternBoxProjectItemViewsStates].size < patternBoxProjectItemViews.size, {
-					var amountToMany = patternBoxProjectItemViews.size - state[\patternBoxProjectItemViewsStates].size;
+				if (state[\patternBoxLauncherItemViewsStates].size < patternBoxLauncherItemViews.size, {
+					var amountToMany = patternBoxLauncherItemViews.size - state[\patternBoxLauncherItemViewsStates].size;
 					amountToMany do: {
-						patternBoxProjectItemViews.pop().dispose();
+						patternBoxLauncherItemViews.pop().dispose();
 					};
 				});
 				// Reuse existing patternBoxViews or add a new PatternBox.
-				state[\patternBoxProjectItemViewsStates] do: { |state, position|
-					if (patternBoxProjectItemViews[position].isNil, {
-						patternBoxProjectItemView = this.addPatternBox();
+				state[\patternBoxLauncherItemViewsStates] do: { |state, position|
+					if (patternBoxLauncherItemViews[position].isNil, {
+						patternBoxLauncherItemView = this.addPatternBox();
 					}, {
-						patternBoxProjectItemView = patternBoxProjectItemViews[position];
+						patternBoxLauncherItemView = patternBoxLauncherItemViews[position];
 					});
-					patternBoxProjectItemView.loadState(state);
+					patternBoxLauncherItemView.loadState(state);
 				};
 		});
 	}
