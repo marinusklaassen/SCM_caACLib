@@ -1,4 +1,4 @@
-## Welcome to GitHub Pages
+## SCM_caACLib documentation
 
 You can use the [editor on GitHub](https://github.com/marinusklaassen/SCM_caACLib/edit/gh-pages/index.md) to maintain and preview the content for your website in Markdown files.
 
