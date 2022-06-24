@@ -77,7 +77,7 @@ SCMServerControlView : View {
 	}
 
 	onButtonAction_RefreshMIDI {
-		MIDIOutSelectorView.refresh();
+		SCMMIDIOutSelectorView.refresh();
 		MIDIIn.connectAll();
     }
 
