@@ -59,7 +59,7 @@ PatternBoxParamControlItemView : View {
         buttonRemove = ButtonFactory.createInstance(this, class: "btn-delete");
         buttonRemove.action = { if (actionRemove.notNil, { actionRemove.value(this); }); };
         mainLayout.add(buttonRemove, 0, 1, align: \right);
-	    controlSpecView = ControlSpecView();
+	    controlSpecView = SCMControlSpecView();
 		controlSpecView.toolTip = "Sets the mapping using a ControlSpec.";
 		controlSpecView.action = { |sender| this.onSpecChanged_ControlSpecView(sender); };
 	 	mainLayout.addSpanning(controlSpecView, 2, columnSpan: 2);
@@ -129,13 +129,13 @@ PatternBoxParamControlItemView : View {
 		if (controlView.notNil, { controlView.dispose.remove; });
 		selectedControlType = type;
         case
-		{ type == "slider" } { controlView = SliderView(); }
-		{ type == "range" } { controlView = RangeSliderView(); }
-		{ type == "steps" } {controlView = MultiStepView(); }
-		{ type == "multislider" } { controlView = SliderSequencerView(); }
-		{ type == "multiknob" } { controlView = KnobSequencerView(); }
+		{ type == "slider" } { controlView = SCMSliderView(); }
+		{ type == "range" } { controlView = SCMRangeSliderView(); }
+		{ type == "steps" } {controlView = SCMMultiStepView(); }
+		{ type == "multislider" } { controlView = SCMSliderSequencerView(); }
+		{ type == "multiknob" } { controlView = SCMKnobSequencerView(); }
 		{ type == "buffer selector" } { controlView = bufferpool.createBufferSelectorView(); }
-		{ type == "midiout selector" } { controlView = MIDIOutSelectorView(); };
+		{ type == "midiout selector" } { controlView = SCMMIDIOutSelectorView(); };
 
 		controlView.name = this.controlName;
 		controlView.spec = spec;

@@ -171,7 +171,7 @@ PatternBoxView : View {
 		layoutHeader.add(buttonPlay);
 		layoutHeader.add(buttonRandomize);
 
-		presetView = PresetViewFactory.createInstance(this);
+		presetView = SCMPresetView(contextId: "PatternBoxView");
 		presetView.actionFetchPreset = {
 			this.getState(skipProjectStuf: true);
 		};
@@ -200,7 +200,7 @@ PatternBoxView : View {
 
 		layoutMain.add(textEnvirFieldView);
 
-		errorLabelEnvirFieldView = MessageLabelViewFactory.createInstance(this, class: "message-error");
+		errorLabelEnvirFieldView = SCMMessageLabelViewFactory.createInstance(this, class: "message-error");
 		layoutMain.add(errorLabelEnvirFieldView, align: \right);
 
 		layoutControlHeaderLabels = HLayout();

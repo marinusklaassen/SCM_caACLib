@@ -1,34 +1,42 @@
-**SCM_caACLib - Computer Aided Algorithmic Composition Library (SuperCollider)**
----
+# SCM_caACLib  SCM Computer Aided Algorithmic Composition Library (SuperCollider)
 
-**About**
----
+## About
 
-SCM_caACLib is a library with various classes perform to algorithmic composition and digital sound synthesis, according to concepts and approaches towards flexible models and user interfaces. The most important aspect is the development of a flexible UI frontends progammed in sclang, to program and compose with patterns easy linking to external controllers, such as the Lemur app or MIDI. I have added project and/or preset management support for the PatternBox & SynthBox. In addition to SC and DAW integration I added a new tool that is called the ServerControlView to make it easier to switch between audio interfaces.
+This library allows to perform algorithmic composition and digital sound synthesis, using flexible models and user interfaces. The most important aspect is the development of a flexible UI frontends entirely build with SuperCollider, to program and compose with the standard SuperColider Patterns library while being able to easily link view components to pattern input and external controllers using MIDI. I have added project and/or preset management support for the PatternBox & SynthBox. In addition to SC and DAW integration I added a new small tool that is called the ServerControlView, to make it easier to switch between audio interfaces.
 
-In the .sc class source I added some examples. In the near future I am going to provide better examples, help documentation and tutorials. Meanwhile feel free to contact me via LinkedIn or GitHub if you need help or have any questions about this library.
+In the class (.sc) source headers small examples are added.
 
-**Contents**
----
- 
-- PatternBox 
+This library is developed with **SuperCollider 3.12.1** and requires no extra external dependencies. 
+
+## Links 
+
+* [Documentation](https://docs.github.com/en/pages/setting-up-a-github-pages-site-with-jekyll/testing-your-github-pages-site-locally-with-jekyll)
+* [Kanban boards](https://github.com/marinusklaassen/SCM_caACLib/projects?type=classic)
+
+## Content Listing
+
+- PatternBoxLauncher & PatternBox 
 - SynthBox
-- ServerControlView
-- Common patterns
-- Common views
-- Class extensions
+- Patterns
+- Widgets (views) 
+  - SCMServerControlView
+  - SCMPresetView
+  - SCMProjectPersistanceView
+  - PatternBox control widgets
+- Custom drawn widgets 
+- SC standard view factories
+- Extensions (classes)
+- Default presets
+- Audio
+- Image sprites
 
-**Dependencies**
----
-  - SCLemurLib (optional) - Lemur autogui support will be added again during the next development phase.
+## Action Screenshots
 
-**PatternBox & SynthBox in action**
----
+<img src="Images/Screenshots/PatternBox.png" alt="SCM_caACLIb PatternBox">
+<img src="Images/Screenshots/SynthBox.png" alt="SCM_caACLIb SynthBox">
 
-<img src="Images/PatternBox.png" alt="SCM_caACLIb PatternBox">
-<img src="Images/SynthBox.png" alt="SCM_caACLIb SynthBox">
+## Status 
 
-**Status**
----
+This is my main composition tool and is under active development. 
 
-This library is under active development (again).
+If you encounter any problems please feel free to file an issue.

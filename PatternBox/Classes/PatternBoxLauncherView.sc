@@ -35,9 +35,10 @@ PatternBoxLauncherView : View {
 		mainLayout = VLayout();
 		this.layout = mainLayout;
 
-		bufferpool = BufferPoolView(bounds: 700@700);
+		bufferpool = SCMBufferPoolView(bounds: 700@700);
 
-		projectSaveAndLoadView = ProjectPersistanceViewFactory.createInstance(this, contextID: "PatternBoxLauncherView");
+		projectSaveAndLoadView = SCMProjectPersistanceView(contextID: "PatternBoxLauncherView");
+		projectSaveAndLoadView.layout.margins = 0!4;
 		projectSaveAndLoadView.actionChanged = { |sender| this.name = "PatternBox Launcher - " ++ PathName(sender.projectfile).fileName; };
 		projectSaveAndLoadView.actionClearAll = { this.clearAll(); };
 		projectSaveAndLoadView.actionNewItem = { this.invokeEvent(this.eventAddPatternBox); };
@@ -47,7 +48,8 @@ PatternBoxLauncherView : View {
 
 		mainLayout.add(projectSaveAndLoadView);
 
-		serverControlView = ServerControlViewFactory.createInstance(this);
+		serverControlView = SCMServerControlView(this);
+		serverControlView.layout.margins = 0!4;
 		mainLayout.add(serverControlView);
 
 		layoutPatternBoxItems = VLayout([nil, stretch:1, align: \bottom]); // workaround. insert before stretchable space.
@@ -73,7 +75,7 @@ PatternBoxLauncherView : View {
 		footerLayout = HLayout();
 		footerLayout.margins = 0!4;
 
-		tempoClockView = TempoClockViewFactory.createInstance(this);
+		tempoClockView = SCMTempoClockView(this);
 		footerLayout.add(tempoClockView,  align: \left);
 
 		toggleMIDIedit= ButtonFactory.createInstance(this);

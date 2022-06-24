@@ -10,7 +10,7 @@ EXAMPLE:
 w = View(bounds:500@700).front;
 l = VLayout([nil, stretch:1, align: \bottom]);
 w.layout = l;
-10 do: { | position| l.insert(ScoreParamView().actionButtonDelete_({ | sender | "delete".postln; }).actionNameChanged_({ | sender | sender.keyName.postln; }).actionPatternScriptChanged_({ |sender| sender.string.postln; }), position) };
+10 do: { | position| l.insert(PatternBoxParamView().actionButtonDelete_({ | sender | "delete".postln; }).actionNameChanged_({ | sender | sender.keyName.postln; }).actionPatternScriptChanged_({ |sender| sender.string.postln; }), position) };
 )
 TODO:
 Slider en range value hernoemen naar gewoon value & range (KISS).
@@ -87,7 +87,7 @@ PatternBoxParamView : View {
 
         mainLayout.add(layoutScriptControllerSection, align: \top, stretch: 1.0);
 
-        scriptFieldView = ScriptFieldViewFactory.createInstance(this, "script-patternboxparamview");
+        scriptFieldView = SCMScriptFieldView();
         scriptFieldView.toolTip = "Set a fixed value, a pattern or controls (via pattern proxies) here.";
         scriptFieldView.action = { | sender |
             this.regenerateAndInterpretedParamScript();

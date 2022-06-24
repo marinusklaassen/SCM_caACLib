@@ -17,7 +17,6 @@ m.model[\envirText]
 a.keys do: { |key| a[key.postln].postln }
 */
 
-
 PatternBoxLauncherItemView : View {
 
 	var <>bufferpool, mainLayout, <patternBoxView, togglePlay, dragBothPanel, sliderVolume, buttonShowPatternBox, buttonRemove, buttonMoveUp, buttonMoveDown;
@@ -79,7 +78,7 @@ PatternBoxLauncherItemView : View {
 		togglePlay.action = {|sender| this.onTogglePlay(sender); };
 		mainLayout.addSpanning(togglePlay, 0, 1, rowSpan: 2);
 
-		sliderVolume = SliderViewFactory.createInstance(this)
+		sliderVolume = SCMSliderView()
 		.spec_(\db.asSpec)
 		.value_(volume)
 		.labelText_(patternBoxView.patternBoxName)
@@ -89,6 +88,8 @@ PatternBoxLauncherItemView : View {
 			patternBoxView.setName(sender.string);
 			patternBoxName = sender.string;
 		});
+
+		sliderVolume.numberBoxView.fixedWidth_(45);
 
 		mainLayout.addSpanning(sliderVolume, 0, 2, rowSpan: 2);
 		mainLayout.setColumnStretch(1, 1);
@@ -102,7 +103,7 @@ PatternBoxLauncherItemView : View {
 		buttonRemove.action = { |sender| this.onButtonRemove(sender); };
 		layout.add(buttonRemove, 0, 4, align: \top);
 
-		midiViewPlayButton = MIDIFuncNoteView();
+		midiViewPlayButton = SCMMIDIFuncNoteView();
 		midiViewPlayButton.visible = false;
 		midiViewPlayButton.actionNoteOff = {
 			patternBoxView.stop();

@@ -7,7 +7,7 @@ AUTHOR: Marinus Klaassen (2012, 2021Q3)
 
 EXAMPLE:
 
-SynthBoxView(\PmGrain1, bounds: 700@400).front
+SynthBoxView(\MonoSamplePlayer, bounds: 700@400).front
 */
 
 SynthBoxView : View {
@@ -26,7 +26,7 @@ SynthBoxView : View {
 		mainLayout = VLayout();
 		this.layout = mainLayout;
 		this.name = "SYNTHBOX:" + synthDefName;
-		presetView = PresetView(contextId: (\SynthBoxView ++ argSynthDefName));
+		presetView = SCMPresetView(contextId: (\SynthBoxView ++ argSynthDefName));
 		presetView.actionLoadPreset = { |state| this.loadState(state); };
 		presetView.actionFetchPreset = { this.getState(); };
 
