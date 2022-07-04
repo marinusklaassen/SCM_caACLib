@@ -323,9 +323,9 @@ PatternBoxBindView : View {
 	}
 
 	rebuildPatterns {
-		var keyValuePairPatterns = Dictionary();
+		var keyValuePairs = List();
 		var pbindPairsList = List();
-		var newPbind;
+
 		paramViews do: { |paramView|
 			if (paramView.isPbind == true, {
 				if (paramView.pbind.patternpairs.notEmpty(),
@@ -334,30 +334,34 @@ PatternBoxBindView : View {
 				});
 			},{
 				if (paramView.keyName.notEmpty && paramView.scriptFieldView.string.stripWhiteSpace().notEmpty, {
-					keyValuePairPatterns[paramView.keyName.asSymbol] = paramView.paramProxy;
+					keyValuePairs.add(paramView.keyName.asSymbol);
+					keyValuePairs.add(paramView.paramProxy);
 				});
 			});
 		};
-		if (keyValuePairPatterns.size == 0, {
+
+		if (keyValuePairs.size == 0, {
 			switch (patternMode,
 				\Pbind, { currentPattern = Pbind(); },
 				\Pmono, { currentPattern = Pmono(\default); });
 		},
-		{
-			switch (patternMode,
-				\Pbind, { currentPattern = Pbind(*keyValuePairPatterns.asKeyValuePairs().asArray()); },
-				\Pmono, {
-					var arrayKeyValues, instrumentName = \default;
-					if (keyValuePairPatterns[\instrument].notNil, {
-						instrumentName = keyValuePairPatterns[\instrument].asStream.next;
-						keyValuePairPatterns[\instrument] = nil;
-					});
-					arrayKeyValues = keyValuePairPatterns.asKeyValuePairs().insert(0, instrumentName);
-					currentPattern = Pmono(*arrayKeyValues);
-			});
-		});
+        {
+            switch (patternMode,
+                \Pbind, { currentPattern = Pbind(*keyValuePairs.asArray); },
+                \Pmono, {
+                    var instrumentName = \default;
+                    var instrumentIndex = keyValuePairs.indexOf(\instrument);
+                    if(instrumentIndex.notNil, {
+                        instrumentName = keyValuePairs[instrumentIndex + 1].asStream.next;
+                        keyValuePairs.removeAt(instrumentIndex);
+                        keyValuePairs.removeAt(instrumentIndex);
+                    });
+                    keyValuePairs.insert(0, instrumentName);
+                    currentPattern = Pmono(*keyValuePairs.asArray);
+            });
+        });
 		pbindPairsList do: { |patternpairs|
-			currentPattern = Pbindf(*asArray([currentPattern] ++ patternpairs));
+			currentPattern = Pbindf(*asArray([currentPattern] ++ keyValuePairs.asArray));
 		};
 		if (parallelLayers > 1, {
 			currentPattern = Ppar({currentPattern}!parallelLayers);
