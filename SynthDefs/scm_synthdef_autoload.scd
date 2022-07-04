@@ -7,12 +7,32 @@ AUTHOR: Marinus Klaassen (2022)
 */
 
 (
+SynthDef(\SCM_Sine_Perc_TG,{| freq = 1000, gate=1, t_trig=1, boost=0, amp=0.1, pan=0, out=0 | // in pbind t_trig is just trig
+	var env = Decay2.kr(t_trig;, 0.01, 0.1);
+	var sig = SinOsc.ar(freq, 0, env);
+	sig = tanh(sig * (1 + boost)) * amp;
+	sig = sig * Linen.kr(gate, 0.01, 0.1, 0.1, doneAction: 2);
+	OffsetOut.ar(0, Pan2.ar(sig, pan));
+}).store();
+);
+
+(
 SynthDef(\SCM_PlayBuf_Perc, {
-	| bufnum=0, decay=1, rate=1, pos=0, boost=0, amp=1, pan=0, out=0, dur=1 |
-	var sig = PlayBuf.ar(1, bufnum, BufRateScale.kr(bufnum) * rate, loop: 0, startPos: pos * BufFrames.kr(bufnum));
+	| bufnum=0, decay=1, rate=1, pos=0, boost=0, amp=1, pan=0, out=0 |
+	var sig = PlayBuf.ar(1, bufnum, BufRateScale.kr(bufnum) * rate, startPos: pos * BufFrames.kr(bufnum));
 	var env = EnvGen.kr(Env.perc(0.003, decay, curve: -3), doneAction: 2);
 	sig = sig * env;
-	dur.poll;
+	sig = tanh(sig * (1 + boost));
+	OffsetOut.ar(out, Pan2.ar(sig, pan, amp));
+}).store();
+);
+
+(
+SynthDef(\SCM_PlayStretch, { |bufnum=0, pos=0, rate=1, time=1, stretch=1, boost=01 atk=0.01, rel=0.05, amp=1, pan=0, out=0|
+	var sig = PlayBuf.ar(1, bufnum, rate: rate * stretch.reciprocal, startPos: pos * BufFrames.kr(bufnum), doneAction:2);
+	var env = EnvGen.kr(Env.linen(atk, time, rel), doneAction: 2);
+	sig = PitchShift.ar(sig, pitchRatio: stretch);
+	sig = sig * env;
 	sig = tanh(sig * (1 + boost));
 	OffsetOut.ar(out, Pan2.ar(sig, pan, amp));
 }).store();
@@ -63,8 +83,10 @@ SynthDef(\SCM_DrumSynth_BD, {
 
 (
 SynthDef(\SCM_DrumSynth_SN, {
-	| rise=0.003, decay=0.2, curve=(-7), boost=0, pan=0, amp=0.5, out=0 |
-	var sig = PinkNoise.ar(EnvGen.ar(Env.perc(rise, decay, curve: curve), doneAction: 2));
+	| rise=0.003, decay=0.2, freq=2000, rq=3, curve=(-7), boost=0, pan=0, amp=0.5, out=0 |
+	var sig = PinkNoise.ar();
+	var env = EnvGen.ar(Env.perc(rise, decay, curve: curve), doneAction: 2);
+	sig = BPF.ar(sig, freq, rq, env);
 	sig = tanh((boost + 1) * sig);
 	sig = Pan2.ar(sig, pan, amp);
 	OffsetOut.ar(out, sig);
