@@ -141,9 +141,10 @@ PatternBoxParamControlItemView : View {
 		controlView.spec = spec;
 		controlView.uiMode(\brief);
 		controlView.editMode = this.editMode;
-        mainLayout.addSpanning(controlView, 3, 0, columnSpan: 2);
-		if (actionControlItemChanged.notNil, { this.actionControlItemChanged.value(this); });
 		controlSpecView.visible = controlView.needsControlSpec;
+		mainLayout.addSpanning(controlView, 3, 0, columnSpan: 2);
+		if (actionControlItemChanged.notNil, { this.actionControlItemChanged.value(this); });
+
 	}
 
     randomize {

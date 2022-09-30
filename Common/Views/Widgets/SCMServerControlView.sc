@@ -11,7 +11,7 @@ SCMServerControlView(bounds:400@50).front();
 
 SCMServerControlView : View {
 	classvar cockpitStatePersistanceFile, cockpitStatePersistanceDir, currentDevice, instances;
-	var <mainLayout, <>selectAudioDevices, buttonReboot, buttonShowServerNodeGraph, buttonShowMeter, buttonPanic, buttonRefreshMIDI;
+	var <mainLayout, <>selectAudioDevices, buttonReboot, buttonShowServerNodeGraph, buttonShowScope, buttonShowMeter, buttonPanic, buttonRefreshMIDI;
 
 	*new { |parent, bounds|
 		^super.new(parent, bounds).initialize();
@@ -46,14 +46,14 @@ SCMServerControlView : View {
 		buttonPanic = ButtonFactory.createInstance(this, class: "btn-warning", buttonString1: "panic");
 		buttonPanic.action = { this.onButtonAction_Panic(); };
 
-		mainLayout.addSpanning(buttonPanic, 0, 0, columnSpan: 4);
+		mainLayout.addSpanning(buttonPanic, 0, 0, columnSpan: 5);
 
 		selectAudioDevices = PopUpMenuFactory.createInstance(this);
 		selectAudioDevices.items = ServerOptions.devices;
 		selectAudioDevices.action = { |sender| this.onPopupAction_DeviceSelection(sender); };
 		ServerOptions.devices do: { |device, index| if (device == currentDevice, { selectAudioDevices.value = index; }); };
 
-		mainLayout.addSpanning(selectAudioDevices, 1, columnSpan: 4);
+		mainLayout.addSpanning(selectAudioDevices, 1, columnSpan: 5);
 
 		buttonReboot = ButtonFactory.createInstance(this, class: "btn-primary", buttonString1: "(re)boot)");
 		buttonReboot.action = { this.onDeviceReboot(); };
@@ -70,10 +70,16 @@ SCMServerControlView : View {
 
 		mainLayout.add(buttonShowMeter, 2, 2);
 
+		buttonShowScope = ButtonFactory.createInstance(this, class: "btn-normal", buttonString1: "scope");
+		buttonShowScope.action = { this.onButtonAction_ShowScope(); };
+
+		mainLayout.add(buttonShowScope, 2, 3);
+
+
 		buttonRefreshMIDI = ButtonFactory.createInstance(this, class: "btn-normal", buttonString1: "MIDI refresh");
 		buttonRefreshMIDI.action = { this.onButtonAction_RefreshMIDI(); };
 
-		mainLayout.add(buttonRefreshMIDI, 2, 3);
+		mainLayout.add(buttonRefreshMIDI, 2, 4);
 	}
 
 	onButtonAction_RefreshMIDI {
@@ -88,6 +94,10 @@ SCMServerControlView : View {
 
 	onButtonAction_ShowMeter {
 		Server.local.meter();
+	}
+
+	onButtonAction_ShowScope {
+		Server.local.scope();
 	}
 
 	onButtonAction_ShowServerNodeGraph {

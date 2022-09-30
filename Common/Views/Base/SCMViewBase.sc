@@ -11,22 +11,15 @@ SCMViewBase().front;
 */
 
 SCMViewBase : View {
-	var <needsControlSpec = true;
+	var <>needsControlSpec = true;
 
-	dispose {
-	}
+	dispose { }
 
 	randomize { }
 
-	spec_ { |spec|
+	spec_ { |spec| }
 
-	}
+	uiMode { |mode| }
 
-	uiMode { |mode|
-
-	}
-
-	editMode_ { |mode|
-
-	}
+	editMode_ { |mode| }
 }

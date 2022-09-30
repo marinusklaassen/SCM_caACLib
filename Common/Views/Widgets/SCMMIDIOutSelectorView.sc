@@ -35,8 +35,8 @@ SCMMIDIOutSelectorView : SCMViewBase {
 	}
 
 	initialize {
+		this.needsControlSpec = false;
 		proxy = PatternProxy();
-		needsControlSpec = false;
 		dependants.add(this);
 		selectedMIDIOutName = midiOuts.keys.asArray.sort.first;
 		proxy.source = midiOuts[selectedMIDIOutName];

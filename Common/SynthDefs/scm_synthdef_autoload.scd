@@ -16,6 +16,7 @@ SynthDef(\SCM_Sine_Perc_TG,{| freq = 1000, gate=1, t_trig=1, boost=0, amp=0.1, p
 }).store();
 );
 
+
 (
 SynthDef(\SCM_PlayBuf_Perc, {
 	| bufnum=0, decay=1, rate=1, pos=0, boost=0, amp=1, pan=0, out=0 |
