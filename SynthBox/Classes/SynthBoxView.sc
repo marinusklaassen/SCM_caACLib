@@ -7,7 +7,7 @@ AUTHOR: Marinus Klaassen (2012, 2021Q3)
 
 EXAMPLE:
 
-SynthBoxView(\PmGrain1, bounds: 700@400).front
+SynthBoxView(\MonoSamplePlayer, bounds: 700@400).front
 */
 
 SynthBoxView : View {
@@ -26,7 +26,7 @@ SynthBoxView : View {
 		mainLayout = VLayout();
 		this.layout = mainLayout;
 		this.name = "SYNTHBOX:" + synthDefName;
-		presetView = PresetView(contextId: (\SynthBoxView ++ argSynthDefName));
+		presetView = SCMPresetView(contextId: (\SynthBoxView ++ argSynthDefName));
 		presetView.actionLoadPreset = { |state| this.loadState(state); };
 		presetView.actionFetchPreset = { this.getState(); };
 
@@ -36,7 +36,7 @@ SynthBoxView : View {
 		controlPanel.mainLayout.margins = 0!4;
 		controlPanel.randomAction = {
 			controlViews do: { |element|
-				if (element.isKindOf(SynthBoxSliderView)) { element.value_(1.0.rand) }
+				if (element.isKindOf(SynthBoxSliderView)) { element.randomize() }
 			}
 		};
 
@@ -48,7 +48,7 @@ SynthBoxView : View {
 	    controlViews = Dictionary();
 		tempNames = synthDesc.controlNames;
 
-		synthDesc.metadata[\hideUI] do: { |key| tempNames.removeAt(tempNames.indexOfEqual(key)) };
+		synthDesc.metadata[\hidden] do: { |key| tempNames.removeAt(tempNames.indexOfEqual(key)) };
 
 		// Collects controls
 		layoutControls = GridLayout();
@@ -67,7 +67,7 @@ SynthBoxView : View {
 			});
 			if (spec.isKindOf(ControlSpec), {
 				newView = SynthBoxSliderView(key, spec);
-				newView.action = { |sender|   if(tempToggleSynth.notNil, { tempToggleSynth.set(sender.name.asSymbol, sender.mappedValue); }); };
+				newView.action = { |sender|   if(tempToggleSynth.notNil, { tempToggleSynth.set(sender.name.asSymbol, sender.valueMapped); }); };
 			}, {
 				newView = SynthBoxNumberView(key);
 				 newView.action = { |sender|  if(tempToggleSynth.notNil, { tempToggleSynth.set(sender.name.asSymbol, sender.value); }); };
@@ -87,7 +87,7 @@ SynthBoxView : View {
 		var paramValuesArray = List(), paramValue;
 		controlViews do: { |controlView|
 			if(controlView.isKindOf(SynthBoxSliderView)) {
-				paramValue = controlView.mappedValue;
+				paramValue = controlView.valueMapped;
 				} {
 				paramValue = controlView.value;
 			};
