@@ -41,8 +41,15 @@ PatternBoxLauncherView : View {
 		projectSaveAndLoadView.layout.margins = 0!4;
 		projectSaveAndLoadView.actionChanged = { |sender| this.name = "PatternBox Launcher - " ++ PathName(sender.projectfile).fileName; };
 		projectSaveAndLoadView.actionClearAll = { this.clearAll(); };
-		projectSaveAndLoadView.actionNewItem = { this.invokeEvent(this.eventAddPatternBox); };
+		projectSaveAndLoadView.actionNewItem = {
+			this.invokeEvent(this.eventAddPatternBox);
+		};
+
 		projectSaveAndLoadView.actionCloseAllViews = { this.closeViews(); };
+
+		projectSaveAndLoadView.actionMidiEditingStateChanged = { |sender|
+			patternBoxLauncherItemViews do: { |view| view.editMIDI(sender.value); }
+		};
 
 		projectSaveAndLoadView.addView(Button().string_("Bufferpool").action_({ bufferpool.front; }));
 
@@ -77,12 +84,6 @@ PatternBoxLauncherView : View {
 
 		tempoClockView = SCMTempoClockView(this);
 		footerLayout.add(tempoClockView,  align: \left);
-
-		toggleMIDIedit= ButtonFactory.createInstance(this);
-		toggleMIDIedit.states = [["Show MIDI editors", nil, Color.white.alpha_(0)], ["Hide MIDI editors", nil, Color.white.alpha_(0)]];
-		toggleMIDIedit.toolTip = "Show/hide MIDI editors";
-		toggleMIDIedit.action = { |sender| patternBoxLauncherItemViews do: { |view| view.editMIDI(sender.value == 1); }};
-		footerLayout.add(toggleMIDIedit,  align: \left);
 
 		buttonAddPatternBox = ButtonFactory.createInstance(this, "btn-add");
 		buttonAddPatternBox.toolTip = "Add a new PatternBox.";

@@ -21,15 +21,17 @@ PatternBoxBindView : View {
 	var <>bufferpool, <paramViews, mainLayout, bodyLayout, bodyContainer, headerLayout, headerView, buttonCollapsable, buttonRandomize, dragBothPanel, textFieldTitle, numberBoxParallelLayers, buttonAddParamView, buttonDelete;
 	var <title, <bindSource, <context, <muteState, <parallelLayers, collapsableState;
 	var <>actionOnBindChanged, <>actionRestartPatterns, <>actionInsertBindView, <>actionButtonDelete, currentPattern, toggleMute, toggleSolo, <soloState, <>actionInsertPatternBoxBindView, <>actionMoveBindView;
-	var availablePatternModes, prBeginDragAction, patternMode, popupMenuPatternMode, prCanReceiveDragHandler, prReceiveDragHandler, <>actionOnSoloStateChanged; // workaround drag and drop
+	var availablePatternModes, prBeginDragAction, paramVisibility, patternMode, popupMenuPatternMode, prCanReceiveDragHandler, prReceiveDragHandler, <>actionOnSoloStateChanged; // workaround drag and drop
 
 	*new { |context, bufferpool, parent, bounds|
 		^super.new(parent, bounds).initialize(context, bufferpool).initializeView().initialized();
 	}
 
-	title_ { |argTitle|
+	setTitle { |argTitle, argUpdateTextBox=true|
 		title = argTitle;
-		textFieldTitle.string = title;
+		if (argUpdateTextBox, {
+			textFieldTitle.string = title;
+		});
 		this.toolTip = title;
 	}
 
@@ -107,6 +109,7 @@ PatternBoxBindView : View {
 	initializeView {
 
 		this.setContextMenuActions(
+			MenuAction.separator.string_("Items"),
 			MenuAction("Insert new binding item above", {
 				if (actionInsertBindView.notNil, { actionInsertBindView.value(this, "INSERT_BEFORE"); });
 			}),
@@ -118,6 +121,19 @@ PatternBoxBindView : View {
 			}),
 			MenuAction("Remove this binding item", {
 				if (actionButtonDelete.notNil, { actionButtonDelete.value(this) });
+			}),
+			MenuAction.separator.string_("View"),
+			MenuAction("Narrow parameters -  Show only parameters with a control view", {
+				this.setParamVisibility(\narrow);
+			}),
+			MenuAction("Show all parameters ", {
+				this.setParamVisibility(\all);
+			}),
+			MenuAction("Set edit mode", {
+				this.editMode_(true);
+			}),
+			MenuAction("Set performance mode", {
+				this.editMode_(false);
 			})
 		);
 
@@ -140,7 +156,7 @@ PatternBoxBindView : View {
 		headerLayout.add(dragBothPanel);
 
 		textFieldTitle = TextFieldFactory.createInstance(this, class: "patternbox-bindview-name");
-		textFieldTitle.action = { |sender| this.title = sender.string; };
+		textFieldTitle.action = { |sender| this.setTitle(sender.string, false); };
 		textFieldTitle.keyUpAction = textFieldTitle.action;
 		headerLayout.add(textFieldTitle);
 
@@ -381,6 +397,41 @@ PatternBoxBindView : View {
 		}
 	}
 
+	setParamVisibility { |mode|
+		paramVisibility = mode;
+		paramViews do: { |paramView|
+			paramView.visible = (mode == \all) || this.hasImportantControls(paramView);
+		}
+	}
+
+	hasImportantControls { |paramView| // speed programming -> move this to param view.
+		var result = false;
+		if (paramView.patternBoxParamControlSectionView.controlItems.size > 0,
+		{
+			result = true;
+			if (paramView.patternBoxParamControlSectionView.controlItems.size == 1, {
+					result = paramView.patternBoxParamControlSectionView.controlItems[0].controlView.isKindOf(SCMMIDIOutSelectorView).not;
+			});
+		});
+		^result;
+	}
+
+	setMainSequencerMode { |mode|
+		paramViews do: { |paramView|
+			paramView.patternBoxParamControlSectionView.controlItems do: { |item|
+				item.setMainSequencerMode(mode);
+			}
+		}
+	}
+
+	setMainSequencerPosition { |position|
+		paramViews do: { |paramView|
+			paramView.patternBoxParamControlSectionView.controlItems do: { |item|
+				item.setMainSequencerPosition(position);
+			}
+		}
+	}
+
 	getState { |skipProjectStuf|
 		var state = Dictionary();
 		state[\type] = "PatternBoxBindView";
@@ -393,11 +444,12 @@ PatternBoxBindView : View {
 		state[\soloState] = soloState;
 		state[\patternMode] = patternMode;
 		state[\collapsableState] = collapsableState;
+		state[\paramVisibility] = paramVisibility;
 		^state;
 	}
 
 	loadState { |state|
-		this.title = state[\title];
+		this.setTitle(state[\title]);
 		this.parallelLayers = if (state[\parallelLayers].isNil, 1, state[\parallelLayers]);
 		// Remove the scores that are to many.
 		this.setPatternMode(if(state[\patternMode].isNil, \Pbind, state[\patternMode]));
@@ -430,6 +482,9 @@ PatternBoxBindView : View {
 			this.setBodyIsVisible(state[\collapsableState]);
 		},{
 			this.setBodyIsVisible(true);
+		});
+		if (state[\paramVisibility].notNil, {
+			this.setParamVisibility(state[\paramVisibility]);
 		});
 	}
 

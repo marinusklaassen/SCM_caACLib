@@ -22,4 +22,8 @@ SCMViewBase : View {
 	uiMode { |mode| }
 
 	editMode_ { |mode| }
+
+	setMainSequencerPosition { |position| }
+
+	setMainSequencerMode { |mode| }
 }

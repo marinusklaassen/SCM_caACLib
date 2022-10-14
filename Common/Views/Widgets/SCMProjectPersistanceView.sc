@@ -10,7 +10,7 @@ SCMProjectPersistanceView(bounds:400@50).front()
 */
 
 SCMProjectPersistanceView : View {
-	var <eventLoadProject, <>actionChanged, <>actionClearAll, <>actionNewItem, <>actionCloseAllViews, <eventSaveProject, fileMenu, utilitiesMenu, buttonShowUtilitiesMenu, buttonShowSessionMenu, sessionMenu, <buttonShowFileMenu, <buttonSave, <buttonSaveAs, <labelProjectfile, <mainLayout, <>data, <>projectfile, <>contextID;
+	var <eventLoadProject, <>actionChanged, <>actionClearAll, <>actionNewItem, <>actionCloseAllViews, <>actionMidiEditingStateChanged, <eventSaveProject, fileMenu, utilitiesMenu, buttonShowUtilitiesMenu, buttonShowSessionMenu, sessionMenu, <buttonShowFileMenu, <buttonSave, <buttonSaveAs, <labelProjectfile, <mainLayout, <>data, <>projectfile, <>contextID;
 
 	*new { |contextID, parent, bounds|
 		^super.new(parent, bounds).initialize(contextID);
@@ -55,19 +55,29 @@ SCMProjectPersistanceView : View {
 		);
 
 		sessionMenu = Menu(
+			MenuAction.separator.string_("Items"),
 			MenuAction("New item")
 			.action_({ if (actionNewItem.notNil, { actionNewItem.value(this); }); }),
 			MenuAction("Clear all")
 			.action_({  if (actionClearAll.notNil, { actionClearAll.value(this); });}),
 			MenuAction("Hide all views")
 			.action_({  if (actionCloseAllViews.notNil, { actionCloseAllViews.value(this); });}),
+			MenuAction.separator.string_("MIDI"),
+			MenuAction("Show MIDI editing")
+			.action_({  if (actionMidiEditingStateChanged.notNil, { actionMidiEditingStateChanged.value(true); });}),
+			MenuAction("Hide MIDI editing")
+			.action_({  if (actionMidiEditingStateChanged.notNil, { actionMidiEditingStateChanged.value(false); });}),
 		);
 
 		utilitiesMenu = Menu(
+			MenuAction.separator.string_("Tools"),
 			MenuAction("SynthDef browser")
 			.action_({ SynthDescLib.global.browse; }),
-			MenuAction("Print control specs")
+			MenuAction.separator.string_("Post window"),
+			MenuAction("Print specs")
 			.action_({ Spec.specs keysValuesDo: { |spec| postln(spec); }; }),
+			MenuAction("Print scale names")
+			.action_({ Scale.names keysValuesDo: { |name| postln(name); }; }),
 		);
 
 		labelProjectfile = TextFieldFactory.createInstance(this);

@@ -11,7 +11,7 @@ a.bounds
 
 PatternBoxParamControlItemView : View {
 
-    var <>bufferpool, <>spec, <>keyName, popupSelectControl, labelControlName, controlSpecView, controlView, textFieldControlName, mainLayout, buttonRemove, <editMode, <patternProxy, <value;
+    var <>bufferpool, <>spec, <>keyName, popupSelectControl, labelControlName, controlSpecView, <controlView, textFieldControlName, mainLayout, buttonRemove, <editMode, <patternProxy, <value;
     var <>actionRemove, <>actionMoveDown, <>actionMoveUp, <>actionControlItemChanged, <>actionControlNameChanged, <controlName, <>selectedControlType;
     var editMode = false;
 	var prCanReceiveDragHandler, prReceiveDragHandler, prBeginDragAction, <>actionMoveControlItem, <>actionInsertControlItem;
@@ -69,7 +69,11 @@ PatternBoxParamControlItemView : View {
 		};
 
 		prCanReceiveDragHandler = {  |view, x, y|
-			View.currentDrag.isKindOf(PatternBoxParamControlItemView) && (View.currentDrag.parent === this.parent);
+			var result = false;
+			if (View.currentDrag.isKindOf(PatternBoxParamControlItemView), {
+				result = View.currentDrag.parent === this.parent;
+			});
+			result;
 		};
 
 		prReceiveDragHandler = { |view, x, y|
@@ -146,6 +150,14 @@ PatternBoxParamControlItemView : View {
 		if (actionControlItemChanged.notNil, { this.actionControlItemChanged.value(this); });
 
 	}
+
+	setMainSequencerPosition { |position|
+        if (controlView.notNil, { controlView.setMainSequencerPosition(position); });
+    }
+
+	setMainSequencerMode{ |mode|
+        if (controlView.notNil, { controlView.setMainSequencerMode(mode); });
+    }
 
     randomize {
         if (controlView.notNil, { controlView.randomize(); });
