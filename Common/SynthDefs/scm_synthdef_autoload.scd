@@ -49,6 +49,8 @@ SynthDef(\SCM_Saw_Perc, { |freq=50, cutoff=5000, decay=1, rise=0.005, combDecay=
 }).store();
 );
 
+
+
 (
 SynthDef(\SCM_DrumSynth_BD, {
 	| freqBase=56, freqClick=500, freqRise=0.005, freqDecay=0.05, freqCurve=(-7), rise=0.005, decay=0.5, curve=(-4), boost=0, pan=0, amp=0.5, out=0 |
@@ -104,6 +106,48 @@ SynthDef(\SCM_DrumSynth_HH, {
 		boost: ControlSpec(1, 50, 'exp')
 ))).store();
 );
+
+// https://www.soundonsound.com/synthesizers/synth-secrets?f%5B0%5D=node%253Afield_section%3A6971
+// https://www.soundonsound.com/techniques/synthesizing-bells
+(
+SynthDef(\SCM_DrumSynth_HH2, {
+	| freq=40, width=0.5, rise=0.00001, decay=0.2, curve=(-50), bpff=10000, bpfrq=0.2, hpff=7000, boost=1, amp=0.2, pan=0, out=0|
+
+	var env = EnvGen.ar(Env.perc(rise, decay, curve), doneAction: 2);
+    var sig = Mix.ar(
+		[1, 2, 3, 4.16, 5.43, 6.79, 8.21] collect: { |ratio|
+			Pulse.ar(freq * ratio, width, 1/7);
+	});
+	sig = env * sig;
+	sig = BPF.ar(sig, bpff, bpfrq);
+	sig = HPF.ar(sig, hpff);
+	sig = tanh((boost + 1) * sig);
+	sig = Pan2.ar(sig, pan, amp);
+
+	OffsetOut.ar(out, sig);
+}).store;
+);
+
+(
+SynthDef(\SCM_DrumSynth_Cymbal, {
+	| freq=40, width=0.5, rise=0.00001, decay=0.2, dur=0.5, bpff=10000, bpfrq=0.2, hpff=7000, boost=1, amp=0.2, pan=0, out=0|
+
+	var env = EnvGen.ar(Env.new([0.001, 1, 1, 0.001], [0.01, dur, 0.01], curve: \exp), doneAction: 2);
+    var sig = Mix.ar(
+		[1, 2, 3, 4.16, 5.43, 6.79, 8.21] collect: { |ratio|
+			Pulse.ar(freq * ratio, width, 1/3);
+	});
+	sig = env * sig;
+	sig = BPF.ar(sig, bpff, bpfrq);
+	sig = HPF.ar(sig, hpff);
+	sig = tanh((boost + 1) * sig);
+	sig = Pan2.ar(sig, pan, amp);
+
+	OffsetOut.ar(out, sig);
+}).store;
+);
+
+
 
 (
 SynthDef(\SCM_Pulse_ASR,
@@ -182,7 +226,7 @@ SynthDef(\SCM_303 , {
 );
 
 (
-SynthDef(\SCM_404 , {  | freq=440, lag=0, waveform=0, ffreq=100, ffreqRange=1000, filterAmount=0, resonance=0.5, boost=1,
+SynthDef(\SCM_404 , {  | freq=440, lag=0, waveform=0, ffreq=100, ffreqRange=1000, resonance=0.5, boost=1,
 	pulseWidth=0.5, hold=0, decay=1, delay=0.1, mix=0.2, reverbAmount=0.2, feedback=0.5, out=0, pan=0, gate=1, amp=0.1, t_trig=1 |
 	// TODO maak zonder grain amp.
 	var  envAmp, envGrainAmp, envGrainFilter, sig, sigFeedback;
@@ -192,11 +236,7 @@ SynthDef(\SCM_404 , {  | freq=440, lag=0, waveform=0, ffreq=100, ffreqRange=1000
 	envGrainFilter  = EnvGen .ar(Env.new([10e-10, 1, 10e-10], [0.01, decay],  'exp' ), t_trig);
 	ffreq = Lag.kr(freq, lag);
     // Synthesis
-	sig = LFNoise0.ar(freq, 0.2 * envGrainAmp);
-	sig = Mix.fill([
-		sig * (1 - filterAmount),
-		filterAmount * BPF.ar(sig, ffreq + (ffreqRange * envGrainFilter), resonance)
-	]);
+	sig = BPF.ar(LFNoise0.ar(freq, 0.2 * envGrainAmp), ffreq + (ffreqRange * envGrainFilter), resonance);
 	// Boost
 	sig = tanh(sig * (1 + boost)) * amp;
 
@@ -204,7 +244,7 @@ SynthDef(\SCM_404 , {  | freq=440, lag=0, waveform=0, ffreq=100, ffreqRange=1000
 	sigFeedback = LocalIn.ar(1);
 	sigFeedback = DelayL.ar(sigFeedback, 0.2, Lag.kr(delay, lag + 0.02));
 	sig = sig + (mix * sigFeedback);
-	sig = (Lag.kr(reverbAmount, lag) * RLPF.ar(JPverb.ar(sig, size: 20),  ffreq + (ffreqRange * envGrainFilter)));
+	sig = (Lag.kr(reverbAmount, lag) * RLPF.ar(JPverb.ar(sig, size: 20),  ffreq+ envGrainFilter));
 	LocalOut.ar(sig * feedback);
 	// End feedback delay
 	Out.ar(out, Pan2.ar(sig, Lag.kr(pan, lag)));
