@@ -363,7 +363,11 @@ PatternBoxBindView : View {
 		},
         {
             switch (patternMode,
-                \Pbind, { currentPattern = Pbind(*keyValuePairs.asArray); },
+                \Pbind, { currentPattern = Pbind(*keyValuePairs.asArray);
+					pbindPairsList do: { |patternpairs|
+						currentPattern = Pbindf(*asArray([currentPattern] ++ keyValuePairs.asArray));
+					};
+				},
                 \Pmono, {
                     var instrumentName = \default;
                     var instrumentIndex = keyValuePairs.indexOf(\instrument);
@@ -376,9 +380,7 @@ PatternBoxBindView : View {
                     currentPattern = Pmono(*keyValuePairs.asArray);
             });
         });
-		pbindPairsList do: { |patternpairs|
-			currentPattern = Pbindf(*asArray([currentPattern] ++ keyValuePairs.asArray));
-		};
+
 		if (parallelLayers > 1, {
 			currentPattern = Ppar({currentPattern}!parallelLayers);
 		});
@@ -450,9 +452,7 @@ PatternBoxBindView : View {
 
 	loadState { |state|
 		this.setTitle(state[\title]);
-		this.parallelLayers = if (state[\parallelLayers].isNil, 1, state[\parallelLayers]);
 		// Remove the scores that are to many.
-		this.setPatternMode(if(state[\patternMode].isNil, \Pbind, state[\patternMode]));
 		if (state[\muteState].notNil, {
 			this.setMuteState(state[\muteState], skipAction: true);
 		},{
@@ -486,6 +486,8 @@ PatternBoxBindView : View {
 		if (state[\paramVisibility].notNil, {
 			this.setParamVisibility(state[\paramVisibility]);
 		});
+		this.setPatternMode(if(state[\patternMode].isNil, \Pbind, state[\patternMode]));
+	    this.parallelLayers = if (state[\parallelLayers].isNil, 1, state[\parallelLayers]);
 	}
 
 	dispose {

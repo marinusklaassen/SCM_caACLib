@@ -147,8 +147,6 @@ SynthDef(\SCM_DrumSynth_Cymbal, {
 }).store;
 );
 
-
-
 (
 SynthDef(\SCM_Pulse_ASR,
 	{ | freq=440, pulseWidth=0.5, rise=0.1, rel=0.5, filterFreq=8000, filterReson=20, curve=(-7), boost=1, pan=0, amp=0.5, out=0, gate=1 |
@@ -199,7 +197,7 @@ SynthDef(\SCM_Sine_PERC_TG,{ | freq = 1000, gate=1, t_trig=1, boost=0, amp=0.1, 
 
 (
 SynthDef(\SCM_303 , {
-	| freq=440, lag=0, waveform=0, ffreq=100, ffreqRange=1000, resonance=0.2, boost=1,
+	| freq=440, freqLag=0, waveform=0, ffreq=100, ffreqRange=1000, resonance=0.2, boost=1,
 	  pulseWidth=0.5, hold=0, decay=1, delay=0.1, delayAmount=0.2, feedback=0.5, out=0, pan=0, gate=1, amp=0.1, t_trig=1 |
 
 	var  envAmp, envGrainAmp, envGrainFilter, sig, sigFeedback;
@@ -207,7 +205,7 @@ SynthDef(\SCM_303 , {
     envAmp = EnvGen.kr(Env.asr(0.01, 1, 0.01), gate, doneAction: 2);
 	envGrainAmp = EnvGen .ar(Env.new([10e-10, 1, 1, 10e-10], [0.01, hold, decay],  'exp' ), t_trig);
 	envGrainFilter  = EnvGen .ar(Env.new([10e-10, 1, 10e-10], [0.01, decay],  'exp' ), t_trig);
-	freq = Lag.kr(freq, lag);
+	freq = Lag.ar(K2A.ar(freq), freqLag);
     // Synthesis
 	sig = Select.ar(waveform, [Saw.ar(freq), Pulse.ar(freq, pulseWidth), LFTri.ar(freq)]) * envGrainAmp * envAmp;
 	sig = RLPF.ar(sig, ffreq + (ffreqRange * envGrainFilter), resonance);
@@ -215,7 +213,7 @@ SynthDef(\SCM_303 , {
 	sig = tanh(sig * (1 + boost));
 	// Feedback delay (a bit non-standard, but sounds good)
 	sigFeedback = LocalIn.ar(1);
-	sigFeedback = DelayL.ar(sigFeedback, 0.2, Lag.kr(delay, lag + 0.02));
+	sigFeedback = DelayL.ar(sigFeedback, 0.2, Lag.ar(K2A.ar(delay), freqLag + 0.02));
 	sig = sig + (delayAmount * sigFeedback);
 	LocalOut.ar(sig * feedback);
 	// End feedback delay
@@ -232,15 +230,14 @@ SynthDef(\SCM_404 , {  | freq=440, lag=0, waveform=0, ffreq=100, ffreqRange=1000
 	var  envAmp, envGrainAmp, envGrainFilter, sig, sigFeedback;
 	// Control stuf
     envAmp = EnvGen.kr(Env.asr(0.01, 1, 0.01), gate, doneAction: 2);
-    envGrainAmp = EnvGen .ar(Env.new([10e-10, 1, 1, 10e-10], [0.01, hold, decay],  'exp' ), t_trig);
+    envGrainAmp = EnvGen.ar(Env.new([10e-10, 1, 1, 10e-10], [0.01, hold, decay],  'exp' ), t_trig);
 	envGrainFilter  = EnvGen .ar(Env.new([10e-10, 1, 10e-10], [0.01, decay],  'exp' ), t_trig);
 	ffreq = Lag.kr(freq, lag);
     // Synthesis
 	sig = BPF.ar(LFNoise0.ar(freq, 0.2 * envGrainAmp), ffreq + (ffreqRange * envGrainFilter), resonance);
 	// Boost
 	sig = tanh(sig * (1 + boost)) * amp;
-
-	// Feedback delay (a bit non-standard, but sounds good)
+    // Feedback delay (a bit non-standard, but sounds good)
 	sigFeedback = LocalIn.ar(1);
 	sigFeedback = DelayL.ar(sigFeedback, 0.2, Lag.kr(delay, lag + 0.02));
 	sig = sig + (mix * sigFeedback);
