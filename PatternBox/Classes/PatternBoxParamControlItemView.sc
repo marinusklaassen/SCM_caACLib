@@ -11,7 +11,7 @@ a.bounds
 
 PatternBoxParamControlItemView : View {
 
-    var <>bufferpool, <>spec, <>keyName, popupSelectControl, labelControlName, controlSpecView, <controlView, textFieldControlName, mainLayout, buttonRemove, <editMode, <patternProxy, <value;
+    var <>bufferpool, <>spec, <>keyName, buttonRandomize, popupSelectControl, labelControlName, controlSpecView, <controlView, textFieldControlName, mainLayout, buttonRemove, <editMode, <patternProxy, <value;
     var <>actionRemove, <>actionMoveDown, <>actionMoveUp, <>actionControlItemChanged, <>actionControlNameChanged, <controlName, <>selectedControlType;
     var editMode = false;
 	var prCanReceiveDragHandler, prReceiveDragHandler, prBeginDragAction, <>actionMoveControlItem, <>actionInsertControlItem;
@@ -42,6 +42,9 @@ PatternBoxParamControlItemView : View {
 			}),
 			MenuAction("Insert control param row after", {
 				if (actionInsertControlItem.notNil, { actionInsertControlItem.value(this, "INSERT_AFTER"); });
+			}),
+			MenuAction("Randomize (sneaky)", {
+				this.randomize();
 			})
 		);
 
@@ -56,10 +59,14 @@ PatternBoxParamControlItemView : View {
 		textFieldControlName.toolTip = "Sets the parameter name of the control.";
         textFieldControlName.action = { |sender| this.onControlNameChanged_TextField(sender.string.stripWhiteSpace) };
         mainLayout.add(textFieldControlName, 1, 1);
+
+
+
         buttonRemove = ButtonFactory.createInstance(this, class: "btn-delete");
         buttonRemove.action = { if (actionRemove.notNil, { actionRemove.value(this); }); };
         mainLayout.add(buttonRemove, 0, 1, align: \right);
-	    controlSpecView = SCMControlSpecView();
+
+		controlSpecView = SCMControlSpecView();
 		controlSpecView.toolTip = "Sets the mapping using a ControlSpec.";
 		controlSpecView.action = { |sender| this.onSpecChanged_ControlSpecView(sender); };
 	 	mainLayout.addSpanning(controlSpecView, 2, columnSpan: 2);
@@ -93,6 +100,7 @@ PatternBoxParamControlItemView : View {
 		object.canReceiveDragHandler = prCanReceiveDragHandler;
 		object.receiveDragHandler = prReceiveDragHandler;
 	}
+
 
 	editMode_ { |mode|
         buttonRemove.visible  = mode;
