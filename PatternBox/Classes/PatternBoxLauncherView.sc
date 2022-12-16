@@ -11,7 +11,7 @@ PatternBoxLauncherView(bounds:400@700).front();
 */
 
 PatternBoxLauncherView : View {
-	var patternBoxLauncherItemViews, <eventAddPatternBox;
+	var <patternBoxLauncherItemViews, <eventAddPatternBox;
 	var mainLayout, footerLayout, <>bufferpool, toggleMIDIedit, projectSaveAndLoadView, menuFile, layoutPatternBoxItems, scrollViewPatternBoxItems, buttonAddPatternBox, layoutHeader, serverControlView, tempoClockView;
 
 	*new { |parent, bounds|
@@ -66,16 +66,6 @@ PatternBoxLauncherView : View {
 		scrollViewPatternBoxItems = ScrollViewFactory.createInstance(this);
 		scrollViewPatternBoxItems.canvas.layout = layoutPatternBoxItems;
 		scrollViewPatternBoxItems.background = Color.black.alpha_(0.1);
-		scrollViewPatternBoxItems.canvas.canReceiveDragHandler = {  |view, x, y|
-			View.currentDrag.isKindOf(PatternBoxProjectItemView);
-		};
-
-		scrollViewPatternBoxItems.canvas.receiveDragHandler = { |view, x, y|
-			var targetPosition = patternBoxLauncherItemViews.size - 1;
-			patternBoxLauncherItemViews.remove(View.currentDrag);
-			patternBoxLauncherItemViews.insert(targetPosition, View.currentDrag);
-			layoutPatternBoxItems.insert(View.currentDrag, targetPosition);
-		};
 
 		mainLayout.add(scrollViewPatternBoxItems);
 
