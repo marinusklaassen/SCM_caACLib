@@ -270,7 +270,8 @@ PatternBoxParamView : View {
     }
 
     loadState { |state|
-        canInterpret = false;
+        try {
+		canInterpret = false;
         this.keyName = state[\paramName];
         actionNameChanged.value(this);
         patternBoxParamControlSectionView.loadState(state[\patternBoxParamControlSectionView]);
@@ -278,6 +279,12 @@ PatternBoxParamView : View {
         canInterpret = true;
         this.regenerateAndInterpretedParamScript();
 		this.editMode = if (state[\editMode].isNil, { false; }, { state[\editMode]; });
+		} { |error|
+			context.title.postln;
+			context.context.model.postln;
+			state[\paramName].postln;
+			error.errorString.postln;
+		}
     }
 
     dispose {
