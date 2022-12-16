@@ -110,10 +110,10 @@ PatternBoxView : View {
 
 		dependants[\buttonPlay] =  {|theChanger, what, value|
 			if (what == \buttonPlay) {
+				playingStream.stop;
 				if (value > 0) {
-					playingStream = eventStream.play(quant: 1);
-
-				} { playingStream.stop };
+					playingStream = eventStream.play(quant: 0); // TODO Make this configurable?
+				};
 				playState = value;
 				this.actionPlayStateChanged.value(this);
 			};
@@ -130,12 +130,16 @@ PatternBoxView : View {
 		this.initializeView();
 	}
 
+	fixVisibility {
+		//"fix it".postln;  TODO proberly not needed anymore
+	}
+
 	initializeView {
 
 		layoutMain = VLayout();
 		this.layout = layoutMain;
 		this.deleteOnClose = false;
-
+		this.toFrontAction = { this.fixVisibility(); };
 		textpatternBoxName = TextFieldFactory.createInstance(this);
 		textpatternBoxName.string = model[\patternBoxName];
 		textpatternBoxName.action = { |val| setValueFunction[\patternBoxName].value(val.string); };
