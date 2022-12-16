@@ -58,10 +58,11 @@ SCMProjectPersistanceView : View {
 			MenuAction.separator.string_("Items"),
 			MenuAction("New item")
 			.action_({ if (actionNewItem.notNil, { actionNewItem.value(this); }); }),
-			MenuAction("Clear all")
-			.action_({  if (actionClearAll.notNil, { actionClearAll.value(this); });}),
 			MenuAction("Hide all views")
 			.action_({  if (actionCloseAllViews.notNil, { actionCloseAllViews.value(this); });}),
+			MenuAction("").enabled_(false),
+			MenuAction("Clear all")
+			.action_({  if (actionClearAll.notNil, { actionClearAll.value(this); });}),
 			MenuAction.separator.string_("MIDI"),
 			MenuAction("Show MIDI editing")
 			.action_({  if (actionMidiEditingStateChanged.notNil, { actionMidiEditingStateChanged.value(true); });}),
