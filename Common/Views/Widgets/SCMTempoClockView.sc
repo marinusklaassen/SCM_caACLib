@@ -11,7 +11,7 @@ SCMTempoClockView(bounds:100@50).front();
 
 SCMTempoClockView : View {
 	classvar persistanceFile, persistanceDir, <tempoInBeatsPerSeconds;
-	var <mainLayout, labelTempoClock, numberboxTempoClock, buttonSetToDefault;
+	var <mainLayout, labelTempoClock, <quant=0, <>actionQuant, numberboxTempoClock, buttonSetToDefault, labelQuant, numberboxQuant;
 
 	*new { |parent, bounds|
 		^super.new(parent, bounds).initialize();
@@ -51,6 +51,23 @@ SCMTempoClockView : View {
 		numberboxTempoClock.action = { |sender| this.onClickAction_NumberBoxTempoClock(sender); };
 
 		this.layout.add(numberboxTempoClock);
+
+		labelQuant = StaticTextFactory.createInstance(this);
+		labelQuant.string = "Quant:";
+
+		this.layout.add(labelQuant, align: \left);
+
+		numberboxQuant = NumberBoxFactory.createInstance(this, class: "numberbox-secondary");
+		numberboxQuant.value = quant;
+		numberboxQuant.maxWidth = 50;
+		numberboxQuant.decimals = 2;
+		numberboxQuant.action = { |sender|
+			quant=sender.value;
+			if(actionQuant.notNil, {  actionQuant.value(this); });
+			if (this.parent.notNil, { this.persistState(); });
+		};
+		this.layout.add(numberboxQuant);
+
 	}
 
     onClickAction_ButtonSetToDefault { |sender|
@@ -74,6 +91,7 @@ SCMTempoClockView : View {
 		var state = Dictionary();
 		state[\type] = "CockpitView";
 		state[\windowBounds] = this.bounds;
+		state[\quant] = numberboxQuant.value;
 		^state[\tempoInBeatsPerSeconds] = tempoInBeatsPerSeconds;
 	}
 
@@ -86,8 +104,12 @@ SCMTempoClockView : View {
 			var state = Object.readArchive(persistanceFile);
 			this.bounds = state[\windowBounds];
 			tempoInBeatsPerSeconds = state[\tempoInBeatsPerSeconds];
+			quant = if(state[\quant].isNil, { 0; }, { state[\quant]; });
+			if(actionQuant.notNil, {  actionQuant.value(this); });
 		});
 		if (tempoInBeatsPerSeconds.isNil, { tempoInBeatsPerSeconds = 60;});
 		this.setDefaultTempoClock(tempoInBeatsPerSeconds);
+
+
 	}
 }

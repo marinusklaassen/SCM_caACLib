@@ -12,7 +12,7 @@ PatternBoxLauncherView(bounds:400@700).front();
 
 PatternBoxLauncherView : View {
 	var <patternBoxLauncherItemViews, <eventAddPatternBox;
-	var mainLayout, footerLayout, <>bufferpool, toggleMIDIedit, projectSaveAndLoadView, menuFile, layoutPatternBoxItems, scrollViewPatternBoxItems, buttonAddPatternBox, layoutHeader, serverControlView, tempoClockView, midiNotePatternBoxLauncherView;
+	var mainLayout, footerLayout, <>bufferpool, toggleMIDIedit, projectSaveAndLoadView, menuFile, layoutPatternBoxItems, scrollViewPatternBoxItems, buttonAddPatternBox, layoutHeader, serverControlView, tempoClockView, midiNotePatternBoxLauncherView, <>quant=0;
 
 	*new { |parent, bounds|
 		^super.new(parent, bounds).initialize();
@@ -94,7 +94,7 @@ PatternBoxLauncherView : View {
 
 		tempoClockView = SCMTempoClockView(this);
 		footerLayout.add(tempoClockView,  align: \left);
-
+		tempoClockView.actionQuant = { |sender| this.quant = sender.quant; };
 		buttonAddPatternBox = ButtonFactory.createInstance(this, "btn-add");
 		buttonAddPatternBox.toolTip = "Add a new PatternBox.";
 		buttonAddPatternBox.action = { this.invokeEvent(this.eventAddPatternBox); };
@@ -125,7 +125,7 @@ PatternBoxLauncherView : View {
 	}
 
 	addPatternBox { |positionInLayout, sourcePatterBoxItemView, duplicate|
-		var patternBoxLauncherItemView = PatternBoxLauncherItemView(bufferpool: bufferpool);
+		var patternBoxLauncherItemView = PatternBoxLauncherItemView(bufferpool: bufferpool, context: this);
 		if(duplicate == true, {
 			var state = sourcePatterBoxItemView.getState();
 			state[\patternBoxName] = state[\patternBoxName] + " - COPY";

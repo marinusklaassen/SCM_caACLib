@@ -23,20 +23,21 @@ PatternBoxView : View {
 	var layoutMain, layoutHeader, envirChangeRequiresRecompilation, layoutFooter, buttonExpandAll, buttonCollapseAll, scrollViewBodyBindViews, layoutControlHeaderLabels,layoutBindViews,textpatternBoxName, buttonPlay, buttonRandomize, presetView, textEnvirFieldView;
 	var layoutControlHeaderLabels,labelParamNameControlHeader, errorLabelEnvirFieldView, buttonAllEditModeOn, buttonAllEditModeOff, buttonCollapseExpandEnvir, labelParamTargetpatternTargetIDControlHeader, labelParamControlScriptOrControllerHeader, labelParamControlSelectorsHeader, buttonAddBindView;
 	var <>index, <playState, >closeAction,<>removeAction, buttonNarrowParams, buttonShowAllParams, <patternBoxName, envirHeader, commandPeriodHandler, <>actionPlayStateChanged, <>actionNameChanged, <>actionVolumeChanged, <volume;
-	var popupMenuMainSequencerPosition, buttonSeqAllSeq, buttonSeqAllMan;
+	var popupMenuMainSequencerPosition, buttonSeqAllSeq, buttonSeqAllMan, <>context;
 
 	classvar instanceCounter=0;
 
-	*new { |parent, bounds, bufferpool|
-		^super.new(parent, bounds).initialize(bufferpool);
+	*new { |parent, bounds, bufferpool, context|
+		^super.new(parent, bounds).initialize(bufferpool, context);
 	}
 
 	setName { |name|
 		setValueFunction[\patternBoxName].value(name);
 	}
 
-	initialize { |bufferpool|
+	initialize { |bufferpool, context|
 		this.bufferpool = bufferpool;
+		this.context = context;
 		playState =  0;
 		mixerAmpProxy = PatternProxy();
 		mixerAmpProxy.source = 1;
@@ -112,7 +113,7 @@ PatternBoxView : View {
 			if (what == \buttonPlay) {
 				playingStream.stop;
 				if (value > 0) {
-					playingStream = eventStream.play(quant: 0); // TODO Make this configurable?
+					playingStream = eventStream.play(quant: context.quant);
 				};
 				playState = value;
 				this.actionPlayStateChanged.value(this);
