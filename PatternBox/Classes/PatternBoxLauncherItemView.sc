@@ -52,6 +52,7 @@ PatternBoxLauncherItemView : View {
 		this.background = Color(0.45490196078431, 0.55686274509804, 0.87843137254902);
 
 		this.setContextMenuActions(
+			MenuAction.separator.string_("Item"),
 			MenuAction("Insert new item above", {
 				if (actionInsertPatternBox.notNil, { actionInsertPatternBox.value(this, "INSERT_BEFORE"); });
 			}),
@@ -63,7 +64,12 @@ PatternBoxLauncherItemView : View {
 			}),
 			MenuAction("Remove this item", {
 				this.dispose();
-			})
+			}),
+			MenuAction.separator.string_("MIDI - Launcher Item"),
+			MenuAction("Show MIDI editing")
+			.action_({  midiViewPlayButton.visible = true; }),
+			MenuAction("Hide MIDI editing")
+			.action_({  midiViewPlayButton.visible = false ; }),
 		);
 
 		dragBothPanel = DragBoth();
