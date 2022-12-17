@@ -29,7 +29,10 @@ SCMServerControlView : View {
 		this.loadState();
 		this.initializeView();
 		if (Server.default.serverRunning.not, {
-			Server.default.boot;
+			if (ServerOptions.devices.indexOfEqual(currentDevice) > 0, {
+				Server.local.options.device = currentDevice;
+			});
+		    Server.default.boot;
 		});
 		this.onMove = { if(this.parent.isNil, { this.persistState(); })};
 		instances.add(this);
