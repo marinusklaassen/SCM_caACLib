@@ -12,7 +12,7 @@ PatternBoxLauncherView(bounds:400@700).front();
 
 PatternBoxLauncherView : View {
 	var <patternBoxLauncherItemViews, <eventAddPatternBox;
-	var mainLayout, footerLayout, <>bufferpool, toggleMIDIedit, projectSaveAndLoadView, menuFile, layoutPatternBoxItems, scrollViewPatternBoxItems, buttonAddPatternBox, layoutHeader, serverControlView, tempoClockView;
+	var mainLayout, footerLayout, <>bufferpool, toggleMIDIedit, projectSaveAndLoadView, menuFile, layoutPatternBoxItems, scrollViewPatternBoxItems, buttonAddPatternBox, layoutHeader, serverControlView, tempoClockView, midiNotePatternBoxLauncherView;
 
 	*new { |parent, bounds|
 		^super.new(parent, bounds).initialize();
@@ -58,6 +58,26 @@ PatternBoxLauncherView : View {
 		serverControlView = SCMServerControlView(this);
 		serverControlView.layout.margins = 0!4;
 		mainLayout.add(serverControlView);
+
+		midiNotePatternBoxLauncherView = SCMIDIInNoteRangeView(
+			noteOnAction: { |val, note|
+				var patternBoxLauncherItem;
+				note = note - midiNotePatternBoxLauncherView.clipLo;
+				patternBoxLauncherItem = patternBoxLauncherItemViews[note];
+				if (patternBoxLauncherItem.notNil, {
+					patternBoxLauncherItem.patternBoxView.play();
+				});
+			},
+			noteOffAction: { |val, note|
+				var patternBoxLauncherItem;
+				note = note - midiNotePatternBoxLauncherView.clipLo;
+				patternBoxLauncherItem = patternBoxLauncherItemViews[note];
+				if (patternBoxLauncherItem.notNil, {
+					patternBoxLauncherItem.patternBoxView.stop();
+				});
+		});
+
+		mainLayout.add(midiNotePatternBoxLauncherView);
 
 		layoutPatternBoxItems = VLayout([nil, stretch:1, align: \bottom]); // workaround. insert before stretchable space.
 		layoutPatternBoxItems.margins = 0!4;
@@ -162,6 +182,7 @@ PatternBoxLauncherView : View {
 		state[\type] = "PatternBoxLauncherView";
 		state[\patternBoxLauncherItemViewsStates] = patternBoxLauncherItemViews.collect({ |patternBoxLauncherItemView| patternBoxLauncherItemView.getState(); });
 		state[\patternBoxBufferpool] = bufferpool.getState();
+		state[\midiNotePatternBoxLauncherView] = midiNotePatternBoxLauncherView.getState();
 		^state;
 	}
 
@@ -186,6 +207,10 @@ PatternBoxLauncherView : View {
 					});
 					patternBoxLauncherItemView.loadState(state);
 				};
+				if (state[\midiNotePatternBoxLauncherView].notNil, {
+					 midiNotePatternBoxLauncherView.loadState(state[\midiNotePatternBoxLauncherView]);
+				});
 		});
 	}
 }
+
