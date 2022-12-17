@@ -73,6 +73,8 @@ SCMProjectPersistanceView : View {
 			MenuAction.separator.string_("Tools"),
 			MenuAction("SynthDef browser")
 			.action_({ SynthDescLib.global.browse; }),
+			MenuAction("Kill all servers")
+			.action_({ Server.killAll; }),
 			MenuAction.separator.string_("Post window"),
 			MenuAction("Print specs")
 			.action_({ Spec.specs keysValuesDo: { |spec| postln(spec); }; }),
