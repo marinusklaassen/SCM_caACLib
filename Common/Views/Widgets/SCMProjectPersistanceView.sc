@@ -78,7 +78,7 @@ SCMProjectPersistanceView : View {
 			MenuAction.separator.string_("Post window"),
 			MenuAction("Print specs")
 			.action_({ Spec.specs keysValuesDo: { |spec| postln(spec); }; }),
-			MenuAction("Print scale names")
+			MenuAction("Print available scales")
 			.action_({ Scale.names keysValuesDo: { |name| postln(name); }; }),
 		);
 
