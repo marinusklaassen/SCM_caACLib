@@ -63,10 +63,11 @@ SCMMIDIInSelectorView : SCMViewBase {
 		mainLayout = VLayout();
 		mainLayout.margins = 0!4;
 		this.layout = mainLayout;
-
 		popupMenuMIDIIns = PopUpMenu();
+		popupMenuMIDIIns.allowsReselection = true;
 		popupMenuMIDIIns.items = midiIns.keys.asArray.sort;
 		popupMenuMIDIIns.action = { |sender|
+			this.setErrorMessage(nil);
 			selectedMIDIInName = sender.item;
 			proxy.source = midiIns[selectedMIDIInName];
 			midiIn = midiIns[selectedMIDIInName];

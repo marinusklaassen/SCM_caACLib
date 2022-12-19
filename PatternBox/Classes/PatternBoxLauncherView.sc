@@ -59,7 +59,7 @@ PatternBoxLauncherView : View {
 		serverControlView.layout.margins = 0!4;
 		mainLayout.add(serverControlView);
 
-		midiNotePatternBoxLauncherView = SCMIDIInNoteRangeView(
+		midiNotePatternBoxLauncherView = SCMMIDIInNoteRangeView(
 			noteOnAction: { |val, note|
 				var patternBoxLauncherItem;
 				note = note - midiNotePatternBoxLauncherView.clipLo;

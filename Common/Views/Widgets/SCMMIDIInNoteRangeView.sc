@@ -12,7 +12,7 @@ m.loadState(a);
 m.dispose
 */
 
-SCMIDIInNoteRangeView : SCMViewBase {
+SCMMIDIInNoteRangeView : SCMViewBase {
 	var <proxy, midiInSelectorView, mainLayout, numberBoxMIDIChannel, numberBoxClipLo, numberBoxClipHi, <midiIn, <clipLo=0, <clipHi=127, <midiNoteFuncOn, chan=nil, <midiNoteFuncOff, <>name, <>noteOnAction, <>noteOffAction, noteOnActionIntermediate, noteOffActionIntermediate;
 
 	*new { |parent, bounds, noteOnAction, noteOffAction|
@@ -72,9 +72,9 @@ SCMIDIInNoteRangeView : SCMViewBase {
 		};
 		mainLayout.add(numberBoxMIDIChannel);
 
-	    numberBoxClipLo = NumberBox();
+		numberBoxClipLo = NumberBox();
 		numberBoxClipLo.background = Color.black.alpha_(0);
-	    numberBoxClipLo.value = clipLo;
+		numberBoxClipLo.value = clipLo;
 		numberBoxClipLo.clipLo = -1;
 		numberBoxClipLo.clipHi =  127;
 		numberBoxClipLo.decimals = 0;
@@ -84,9 +84,9 @@ SCMIDIInNoteRangeView : SCMViewBase {
 		numberBoxClipLo.step = 1;
 		numberBoxClipLo.action = { |sender| clipLo = sender.value.asInteger(); };
 
-	    mainLayout.add(numberBoxClipLo);
+		mainLayout.add(numberBoxClipLo);
 
-	    numberBoxClipHi = NumberBox();
+		numberBoxClipHi = NumberBox();
 		numberBoxClipHi.background = Color.black.alpha_(0);
 		numberBoxClipHi.value = clipHi;
 		numberBoxClipHi.clipLo = -1;
@@ -101,10 +101,14 @@ SCMIDIInNoteRangeView : SCMViewBase {
 	}
 
 	update {
-		if (midiNoteFuncOn.notNil, { midiNoteFuncOn.free; });
-		if (midiNoteFuncOff.notNil, { midiNoteFuncOff.free; });
-		midiNoteFuncOn = MIDIFunc.noteOn(noteOnActionIntermediate, srcID: midiIn.uid, chan: chan);
-		midiNoteFuncOff = MIDIFunc.noteOff(noteOffActionIntermediate, srcID: midiIn.uid, chan: chan);
+		try {
+			if (midiNoteFuncOn.notNil, { midiNoteFuncOn.free; });
+			if (midiNoteFuncOff.notNil, { midiNoteFuncOff.free; });
+			midiNoteFuncOn = MIDIFunc.noteOn(noteOnActionIntermediate, srcID: midiIn.uid, chan: chan);
+			midiNoteFuncOff = MIDIFunc.noteOff(noteOffActionIntermediate, srcID: midiIn.uid, chan: chan);
+		} { |error|
+			"Error while updating/loading an SCMMIDIInNoteRangeView. Are all required MIDI devices connected? Connect the required devices and refresh MIDI to try it again.".postln;ß
+		}
 	}
 
 	dispose {

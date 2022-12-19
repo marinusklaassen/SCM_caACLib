@@ -67,8 +67,10 @@ SCMMIDIOutSelectorView : SCMViewBase {
 		this.layout = mainLayout;
 
 		popupMenuMIDIOuts = PopUpMenu();
+		popupMenuMIDIOuts.allowsReselection = true;
 		popupMenuMIDIOuts.items = midiOuts.keys.asArray.sort;
 		popupMenuMIDIOuts.action = { |sender|
+			this.setErrorMessage(nil);
 			selectedMIDIOutName = sender.item;
 			proxy.source = midiOuts[selectedMIDIOutName]
 		};
