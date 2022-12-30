@@ -100,6 +100,11 @@ SynthBoxSliderView : View {
 		midiResp.remove; midiResp = nil; midiFlag = 0;
 	}
 
+	valueMapped_ {|argValue|
+		var unmappedValue = spec.unmap(argValue);
+		model[\setValueFunction].value(unmappedValue);
+	}
+
 	value_ {|argValue|
 		model[\setValueFunction].value(argValue)
 	}
