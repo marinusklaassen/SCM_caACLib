@@ -91,6 +91,14 @@ SCMMultiStepView : SCMViewBase {
 		buttonSteps do: { |buttonStep| buttonStep.valueAction = 2.rand; };
 	}
 
+	toLow {
+		buttonSteps do: { |buttonStep| buttonStep.valueAction = 0; };
+	}
+
+	toHigh {
+		buttonSteps do: { |buttonStep| buttonStep.valueAction = 1; };
+	}
+
 	init {
 		valueOff = 0;
 		valueOn = 1;

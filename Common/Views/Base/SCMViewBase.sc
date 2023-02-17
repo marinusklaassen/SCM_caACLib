@@ -17,6 +17,12 @@ SCMViewBase : View {
 
 	randomize { }
 
+	toLow { }
+
+	toHigh { }
+
+	toCenter { }
+
 	spec_ { |spec| }
 
 	uiMode { |mode| }

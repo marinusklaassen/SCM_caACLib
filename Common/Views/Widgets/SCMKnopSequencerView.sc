@@ -153,6 +153,55 @@ SCMKnobSequencerView : SCMViewBase {
 		};
 	}
 
+
+	toLow {
+		sliders.size do: { |i|
+			sliders[i].value = 0;
+
+			if (sequencerMode == "sequencer", {
+				proxySteps[i] = sliders[i].value;
+				proxyStepsMapped[i] = spec.map(sliders[i].value);
+			},{
+				if (sequencerMode == "manual" && i == currentSelectedIndex, {
+					proxySteps[0] = sliders[i].value;
+					proxyStepsMapped[0] = spec.map(sliders[i].value);
+				});
+			});
+		};
+	}
+
+	toHigh {
+		sliders.size do: { |i|
+			sliders[i].value = 1;
+
+			if (sequencerMode == "sequencer", {
+				proxySteps[i] = sliders[i].value;
+				proxyStepsMapped[i] = spec.map(sliders[i].value);
+			},{
+				if (sequencerMode == "manual" && i == currentSelectedIndex, {
+					proxySteps[0] = sliders[i].value;
+					proxyStepsMapped[0] = spec.map(sliders[i].value);
+				});
+			});
+		};
+	}
+
+	toCenter {
+		sliders.size do: { |i|
+			sliders[i].value = 0.5;
+
+			if (sequencerMode == "sequencer", {
+				proxySteps[i] = sliders[i].value;
+				proxyStepsMapped[i] = spec.map(sliders[i].value);
+			},{
+				if (sequencerMode == "manual" && i == currentSelectedIndex, {
+					proxySteps[0] = sliders[i].value;
+					proxyStepsMapped[0] = spec.map(sliders[i].value);
+				});
+			});
+		};
+	}
+
 	setMainSequencerPosition { |position|
 		if ((sequencerMode == "manual") && (position < sliders.size), {
 			this.selectStep(selectors[position], sliders[position], position);

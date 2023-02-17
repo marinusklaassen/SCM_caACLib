@@ -29,6 +29,21 @@ SCMRangeSliderView : SCMViewBase {
 		this.hi = 1.0.rand;
     }
 
+	toLow {
+		this.lo = 0;
+		this.hi = 0;
+	}
+
+	toHigh {
+		this.lo = 1;
+		this.hi = 1;
+	}
+
+	toCenter {
+		this.lo = 0.5;
+		this.hi = 0.5;
+	}
+
     spec_ { |argSpec|
 		spec = argSpec;
 		this.lo = lo;

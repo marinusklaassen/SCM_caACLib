@@ -37,14 +37,30 @@ PatternBoxParamControlItemView : View {
         this.layout = mainLayout;
 
 		this.setContextMenuActions(
-			MenuAction("Insert control row before", {
+			MenuAction.separator.string_("Item"),
+			MenuAction("Insert control before", {
 				if (actionInsertControlItem.notNil, { actionInsertControlItem.value(this, "INSERT_BEFORE"); });
 			}),
-			MenuAction("Insert control param row after", {
+			MenuAction("Insert control after", {
 				if (actionInsertControlItem.notNil, { actionInsertControlItem.value(this, "INSERT_AFTER"); });
 			}),
-			MenuAction("Randomize (sneaky)", {
+			MenuAction("Duplicate control", {
+				if (actionInsertControlItem.notNil, { actionInsertControlItem.value(this, "DUPLICATE"); });
+			}),
+		    MenuAction("Remove control", {
+				if (actionRemove.notNil, { actionRemove.value(this); }); }),
+			MenuAction.separator.string_("Control"),
+			MenuAction("Randomize", {
 				this.randomize();
+			}),
+			MenuAction("Low", {
+				this.toLow();
+			}),
+			MenuAction("High", {
+				this.toHigh();
+			}),
+			MenuAction("Center", {
+				this.toCenter();
 			})
 		);
 
@@ -169,6 +185,18 @@ PatternBoxParamControlItemView : View {
 
     randomize {
         if (controlView.notNil, { controlView.randomize(); });
+    }
+
+	toLow {
+        if (controlView.notNil, { controlView.toLow(); });
+    }
+
+	toHigh {
+        if (controlView.notNil, { controlView.toHigh(); });
+    }
+
+	toCenter {
+        if (controlView.notNil, { controlView.toCenter(); });
     }
 
 	getProxies {

@@ -34,6 +34,18 @@ SCMSliderView : SCMViewBase {
 		this.value = 1.0.rand;
 	}
 
+	toLow {
+		this.value = 0;
+	}
+
+	toHigh {
+		this.value = 1;
+	}
+
+	toCenter {
+		this.value = 0.5;
+	}
+
 	spec_ { |argSpec|
 		spec = argSpec;
 		numberBoxView.clipLo_(this.spec.minval);
