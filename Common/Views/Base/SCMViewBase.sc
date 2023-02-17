@@ -17,9 +17,19 @@ SCMViewBase : View {
 
 	randomize { }
 
+	toLow { }
+
+	toHigh { }
+
+	toCenter { }
+
 	spec_ { |spec| }
 
 	uiMode { |mode| }
 
 	editMode_ { |mode| }
+
+	setMainSequencerPosition { |position| }
+
+	setMainSequencerMode { |mode| }
 }

@@ -48,8 +48,9 @@ SynthBoxView : View {
 	    controlViews = Dictionary();
 		tempNames = synthDesc.controlNames;
 
-		synthDesc.metadata[\hidden] do: { |key| tempNames.removeAt(tempNames.indexOfEqual(key)) };
-
+		try {
+			synthDesc.metadata[\hidden] do: { |key| tempNames.removeAt(tempNames.indexOfEqual(key)) };
+		};
 		// Collects controls
 		layoutControls = GridLayout();
 		layoutControls.spacing = 2;
@@ -58,7 +59,9 @@ SynthBoxView : View {
 
 		tempNames do: { | key, row |
 			var newView, spec, specOverride;
-			specOverride = synthDesc.metadata[\specs][key];
+			try {
+			  specOverride = synthDesc.metadata[\specs][key];
+			};
 			// Check for an controlspec override. Else try a default.
 			if (specOverride.notNil, {
 				spec = specOverride.asSpec; // When the ControlSpec is defined as an array.
@@ -67,6 +70,7 @@ SynthBoxView : View {
 			});
 			if (spec.isKindOf(ControlSpec), {
 				newView = SynthBoxSliderView(key, spec);
+				newView.valueMapped = synthDesc.controlDict[key].defaultValue;
 				newView.action = { |sender|   if(tempToggleSynth.notNil, { tempToggleSynth.set(sender.name.asSymbol, sender.valueMapped); }); };
 			}, {
 				newView = SynthBoxNumberView(key);

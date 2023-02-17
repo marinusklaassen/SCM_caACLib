@@ -11,7 +11,7 @@ a.bounds
 
 PatternBoxParamControlItemView : View {
 
-    var <>bufferpool, <>spec, <>keyName, popupSelectControl, labelControlName, controlSpecView, controlView, textFieldControlName, mainLayout, buttonRemove, <editMode, <patternProxy, <value;
+    var <>bufferpool, <>spec, <>keyName, buttonRandomize, popupSelectControl, labelControlName, controlSpecView, <controlView, textFieldControlName, mainLayout, buttonRemove, <editMode, <patternProxy, <value;
     var <>actionRemove, <>actionMoveDown, <>actionMoveUp, <>actionControlItemChanged, <>actionControlNameChanged, <controlName, <>selectedControlType;
     var editMode = false;
 	var prCanReceiveDragHandler, prReceiveDragHandler, prBeginDragAction, <>actionMoveControlItem, <>actionInsertControlItem;
@@ -37,11 +37,30 @@ PatternBoxParamControlItemView : View {
         this.layout = mainLayout;
 
 		this.setContextMenuActions(
-			MenuAction("Insert control row before", {
+			MenuAction.separator.string_("Item"),
+			MenuAction("Insert control before", {
 				if (actionInsertControlItem.notNil, { actionInsertControlItem.value(this, "INSERT_BEFORE"); });
 			}),
-			MenuAction("Insert control param row after", {
+			MenuAction("Insert control after", {
 				if (actionInsertControlItem.notNil, { actionInsertControlItem.value(this, "INSERT_AFTER"); });
+			}),
+			MenuAction("Duplicate control", {
+				if (actionInsertControlItem.notNil, { actionInsertControlItem.value(this, "DUPLICATE"); });
+			}),
+		    MenuAction("Remove control", {
+				if (actionRemove.notNil, { actionRemove.value(this); }); }),
+			MenuAction.separator.string_("Control"),
+			MenuAction("Randomize", {
+				this.randomize();
+			}),
+			MenuAction("Low", {
+				this.toLow();
+			}),
+			MenuAction("High", {
+				this.toHigh();
+			}),
+			MenuAction("Center", {
+				this.toCenter();
 			})
 		);
 
@@ -56,10 +75,14 @@ PatternBoxParamControlItemView : View {
 		textFieldControlName.toolTip = "Sets the parameter name of the control.";
         textFieldControlName.action = { |sender| this.onControlNameChanged_TextField(sender.string.stripWhiteSpace) };
         mainLayout.add(textFieldControlName, 1, 1);
+
+
+
         buttonRemove = ButtonFactory.createInstance(this, class: "btn-delete");
         buttonRemove.action = { if (actionRemove.notNil, { actionRemove.value(this); }); };
         mainLayout.add(buttonRemove, 0, 1, align: \right);
-	    controlSpecView = SCMControlSpecView();
+
+		controlSpecView = SCMControlSpecView();
 		controlSpecView.toolTip = "Sets the mapping using a ControlSpec.";
 		controlSpecView.action = { |sender| this.onSpecChanged_ControlSpecView(sender); };
 	 	mainLayout.addSpanning(controlSpecView, 2, columnSpan: 2);
@@ -69,7 +92,11 @@ PatternBoxParamControlItemView : View {
 		};
 
 		prCanReceiveDragHandler = {  |view, x, y|
-			View.currentDrag.isKindOf(PatternBoxParamControlItemView) && (View.currentDrag.parent === this.parent);
+			var result = false;
+			if (View.currentDrag.isKindOf(PatternBoxParamControlItemView), {
+				result = View.currentDrag.parent === this.parent;
+			});
+			result;
 		};
 
 		prReceiveDragHandler = { |view, x, y|
@@ -89,6 +116,7 @@ PatternBoxParamControlItemView : View {
 		object.canReceiveDragHandler = prCanReceiveDragHandler;
 		object.receiveDragHandler = prReceiveDragHandler;
 	}
+
 
 	editMode_ { |mode|
         buttonRemove.visible  = mode;
@@ -147,8 +175,28 @@ PatternBoxParamControlItemView : View {
 
 	}
 
+	setMainSequencerPosition { |position|
+        if (controlView.notNil, { controlView.setMainSequencerPosition(position); });
+    }
+
+	setMainSequencerMode{ |mode|
+        if (controlView.notNil, { controlView.setMainSequencerMode(mode); });
+    }
+
     randomize {
         if (controlView.notNil, { controlView.randomize(); });
+    }
+
+	toLow {
+        if (controlView.notNil, { controlView.toLow(); });
+    }
+
+	toHigh {
+        if (controlView.notNil, { controlView.toHigh(); });
+    }
+
+	toCenter {
+        if (controlView.notNil, { controlView.toCenter(); });
     }
 
 	getProxies {

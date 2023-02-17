@@ -22,7 +22,7 @@ PatternBoxParamView : View {
     var <>bufferpool, <>context, buttonDelete, <scriptFieldView, dragBothPanel, setValueFunction, dependants, <paramController, <name, <>currentLayerIndex, <>currentWidgetType, <>currentWidgetIndex, previousLayer;
     var <>actionNameChanged, <>removeAction, <>index, <>paramProxy, <>controllerProxies, <>scriptFunc, <>actionButtonDelete, <>rangeSliderAction, <>sliderAction, <>actionPatternScriptChanged, <>actionPatternTargetIDChanged;
     var layoutStackControlSection, controlNoControl, controlSlider, controlRangeSlider, <keyName, mainLayout, textpatternTargetID, textPatternKeyname, layoutScriptControllerSection, scorePatternScriptEditorView;
-    var canInterpret = false, patternBoxParamControlSectionView, buttonSelectScriptView, buttonSelectScriptOrSpecOpControlStack, buttonSwitchEditingMode, buttonRandomizeControls;
+    var canInterpret = false, <>patternBoxParamControlSectionView, buttonSelectScriptView, buttonSelectScriptOrSpecOpControlStack, buttonSwitchEditingMode, buttonRandomizeControls;
     var <>actionMoveParamView, <isPbind, <pbind, prBeginDragAction, prCanReceiveDragHandler, prReceiveDragHandler, <>actionInsertPatternBox;
 
     *new { | context, bufferpool, parent, bounds |
@@ -265,17 +265,26 @@ PatternBoxParamView : View {
         state[\paramName] = keyName;
         state[\patternBoxParamControlSectionView] = patternBoxParamControlSectionView.getState();
         state[\scriptView] = scriptFieldView.getState();
+		state[\editMode] = patternBoxParamControlSectionView.editMode;
         ^state;
     }
 
     loadState { |state|
-        canInterpret = false;
+        try {
+		canInterpret = false;
         this.keyName = state[\paramName];
         actionNameChanged.value(this);
         patternBoxParamControlSectionView.loadState(state[\patternBoxParamControlSectionView]);
         scriptFieldView.loadState(state[\scriptView]);
         canInterpret = true;
         this.regenerateAndInterpretedParamScript();
+		this.editMode = if (state[\editMode].isNil, { false; }, { state[\editMode]; });
+		} { |error|
+			context.title.postln;
+			context.context.model.postln;
+			state[\paramName].postln;
+			error.errorString.postln;
+		}
     }
 
     dispose {

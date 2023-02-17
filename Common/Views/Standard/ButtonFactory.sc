@@ -102,12 +102,9 @@ ButtonFactory {
 			newInstance.background = Color.black.alpha_(0.1);
 			newInstance.minWidth_(50).maxWidth_(45).minHeight_(50);
 		});
-
-		if (class.contains("btn-collapse-expand"), {
-     		newInstance.states = [["show/hide editor", Color.black, Color.black.alpha_(0)], ["toggle editor", Color.black, Color.black.alpha_(0)]];
-		});
 		if (class.contains("btn-patternbox-footer"), {
-     		 newInstance.states = [[buttonString1, Color.black, Color.black.alpha_(0)]];
+			 newInstance.minWidth = 20;
+     		 newInstance.states = [[buttonString1, Color.black, Color.black.alpha_(0.1)]];
 		});
 		if(class.contains("btn-mute-randomizer"), {
 			newInstance.maxWidth = 18;

@@ -66,11 +66,18 @@ PatternBoxParamControlGroupView : View {
 		};
 		controlItem.actionInsertControlItem = { |sender, insertType|
 			var positionInLayout = controlItems.indexOf(sender);
+			var stateToDuplicate = nil;
 			if (insertType == "INSERT_AFTER", {
 				positionInLayout = positionInLayout + 1;
 			});
-			this.onButtonClick_AddPatternBoxParamControlItemView(positionInLayout: positionInLayout);
+			if (insertType == "DUPLICATE", {
+				positionInLayout = positionInLayout + 1;
+				stateToDuplicate = sender.getState();
+				stateToDuplicate[\textFieldControlName] = stateToDuplicate[\textFieldControlName] ++ "Copy";
+			});
+			this.onButtonClick_AddPatternBoxParamControlItemView(stateToDuplicate, positionInLayout);
 		};
+
 		if (state.notNil, { controlItem.loadState(state) });
 		controlItem.editMode = editMode;
 		if (positionInLayout.notNil, {

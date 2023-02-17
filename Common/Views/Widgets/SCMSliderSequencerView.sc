@@ -75,6 +75,31 @@ SCMSliderSequencerView : SCMViewBase {
 		};
 	}
 
+
+	toLow {
+		sliders.size do: { |i|
+			sliders[i].value = 0;
+			proxySteps[i] = sliders[i].value;
+			proxyStepsMapped[i] = spec.map(proxySteps[i]);
+		};
+	}
+
+	toHigh {
+		sliders.size do: { |i|
+			sliders[i].value = 1;
+			proxySteps[i] = sliders[i].value;
+			proxyStepsMapped[i] = spec.map(proxySteps[i]);
+		};
+	}
+
+	toCenter {
+		sliders.size do: { |i|
+			sliders[i].value = 0.5;
+			proxySteps[i] = sliders[i].value;
+			proxyStepsMapped[i] = spec.map(proxySteps[i]);
+		};
+	}
+
     spec_ { |argSpec|
 		spec = argSpec;
 		sliders.size do: { |i|

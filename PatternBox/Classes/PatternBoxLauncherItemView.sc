@@ -20,21 +20,22 @@ a.keys do: { |key| a[key.postln].postln }
 PatternBoxLauncherItemView : View {
 
 	var <>bufferpool, mainLayout, <patternBoxView, togglePlay, dragBothPanel, sliderVolume, buttonShowPatternBox, buttonRemove, buttonMoveUp, buttonMoveDown;
-	var onCommandPeriodFunc, <>actionRemove, <>actionInsertPatternBox, <>actionMovePatternBox;
+	var onCommandPeriodFunc, <>actionRemove, <>actionInsertPatternBox, <>actionMovePatternBox, <>context;
 	var volume = 1, <patternBoxName, playState = 0, lemurClient;
 	var prCanReceiveDragHandler, prReceiveDragHandler, prBeginDragAction, midiViewPlayButton;
 
-	*new { |parent, bounds, bufferpool|
-		^super.new(parent, bounds).initialize(bufferpool);
+	*new { |parent, bounds, bufferpool, context|
+		^super.new(parent, bounds).initialize(bufferpool, context);
 	}
 
 	editMIDI { |editMode|
 		midiViewPlayButton.visible = editMode;
 	}
 
-	initialize { |bufferpool|
+	initialize { |bufferpool, context|
 		this.bufferpool = bufferpool;
-		patternBoxView = PatternBoxView(bufferpool: bufferpool, bounds: Rect(100, 100, 700, 800));
+		this.context = context;
+		patternBoxView = PatternBoxView(bufferpool: bufferpool, context: context, bounds: Rect(100, 100, 700, 800));
 		patternBoxView.actionNameChanged = { |sender| this.onPatternBoxNameChanged(sender); };
 		patternBoxView.actionPlayStateChanged = { |sender| this.onPatternBoxPlayStateChanged(sender); };
 		patternBoxName = patternBoxView.patternBoxName;
@@ -52,6 +53,7 @@ PatternBoxLauncherItemView : View {
 		this.background = Color(0.45490196078431, 0.55686274509804, 0.87843137254902);
 
 		this.setContextMenuActions(
+			MenuAction.separator.string_("Item"),
 			MenuAction("Insert new item above", {
 				if (actionInsertPatternBox.notNil, { actionInsertPatternBox.value(this, "INSERT_BEFORE"); });
 			}),
@@ -63,7 +65,12 @@ PatternBoxLauncherItemView : View {
 			}),
 			MenuAction("Remove this item", {
 				this.dispose();
-			})
+			}),
+			MenuAction.separator.string_("MIDI - Launcher Item"),
+			MenuAction("Show MIDI editing")
+			.action_({  midiViewPlayButton.visible = true; }),
+			MenuAction("Hide MIDI editing")
+			.action_({  midiViewPlayButton.visible = false ; }),
 		);
 
 		dragBothPanel = DragBoth();

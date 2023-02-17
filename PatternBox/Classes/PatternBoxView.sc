@@ -1,5 +1,5 @@
 /*
-keyFILENAME: PatternBoxView
+FILENAME: PatternBoxView
 
 DESCRIPTION: THe PatternBoxView is a dedicated reponsive editor to build patterns and assign controls to parameters.
 
@@ -22,20 +22,22 @@ PatternBoxView : View {
 	var mixerAmpProxy, eventStreamProxy, <eventStream, eventParProxy, setValueFunction, <model, dependants, parentView;
 	var layoutMain, layoutHeader, envirChangeRequiresRecompilation, layoutFooter, buttonExpandAll, buttonCollapseAll, scrollViewBodyBindViews, layoutControlHeaderLabels,layoutBindViews,textpatternBoxName, buttonPlay, buttonRandomize, presetView, textEnvirFieldView;
 	var layoutControlHeaderLabels,labelParamNameControlHeader, errorLabelEnvirFieldView, buttonAllEditModeOn, buttonAllEditModeOff, buttonCollapseExpandEnvir, labelParamTargetpatternTargetIDControlHeader, labelParamControlScriptOrControllerHeader, labelParamControlSelectorsHeader, buttonAddBindView;
-	var <>index, <playState, >closeAction,<>removeAction, <patternBoxName, envirHeader, commandPeriodHandler, <>actionPlayStateChanged, <>actionNameChanged, <>actionVolumeChanged, <volume;
+	var <>index, <playState, >closeAction,<>removeAction, buttonNarrowParams, buttonShowAllParams, <patternBoxName, envirHeader, commandPeriodHandler, <>actionPlayStateChanged, <>actionNameChanged, <>actionVolumeChanged, <volume;
+	var popupMenuMainSequencerPosition, buttonSeqAllSeq, buttonSeqAllMan, <>context;
 
 	classvar instanceCounter=0;
 
-	*new { |parent, bounds, bufferpool|
-		^super.new(parent, bounds).initialize(bufferpool);
+	*new { |parent, bounds, bufferpool, context|
+		^super.new(parent, bounds).initialize(bufferpool, context);
 	}
 
 	setName { |name|
 		setValueFunction[\patternBoxName].value(name);
 	}
 
-	initialize { |bufferpool|
+	initialize { |bufferpool, context|
 		this.bufferpool = bufferpool;
+		this.context = context;
 		playState =  0;
 		mixerAmpProxy = PatternProxy();
 		mixerAmpProxy.source = 1;
@@ -109,10 +111,10 @@ PatternBoxView : View {
 
 		dependants[\buttonPlay] =  {|theChanger, what, value|
 			if (what == \buttonPlay) {
+				playingStream.stop;
 				if (value > 0) {
-					playingStream = eventStream.play(quant: 1);
-
-				} { playingStream.stop };
+					playingStream = eventStream.play(quant: context.quant);
+				};
 				playState = value;
 				this.actionPlayStateChanged.value(this);
 			};
@@ -129,15 +131,20 @@ PatternBoxView : View {
 		this.initializeView();
 	}
 
+	fixVisibility {
+		//"fix it".postln;  TODO proberly not needed anymore
+	}
+
 	initializeView {
 
 		layoutMain = VLayout();
 		this.layout = layoutMain;
 		this.deleteOnClose = false;
-
+		this.toFrontAction = { this.fixVisibility(); };
 		textpatternBoxName = TextFieldFactory.createInstance(this);
 		textpatternBoxName.string = model[\patternBoxName];
 		textpatternBoxName.action = { |val| setValueFunction[\patternBoxName].value(val.string); };
+
 		dependants[\textpatternBoxName] = {|theChanger, what, argpatternBoxName|
 			if (what == \patternBoxName) {
 				textpatternBoxName.string = argpatternBoxName;
@@ -241,19 +248,42 @@ PatternBoxView : View {
 
 		layoutMain.add(layoutFooter);
 
-		buttonCollapseExpandEnvir = ButtonFactory.createInstance(this, class: "btn-collapse-expand");
+		popupMenuMainSequencerPosition = NumberBoxFactory.createInstance(this, class: "numberbox-patternbox-layers");
+		popupMenuMainSequencerPosition.clipLo = 0;
+	    popupMenuMainSequencerPosition.clipHi = 127;
+		popupMenuMainSequencerPosition.minWidth = 28;
+		popupMenuMainSequencerPosition.toolTip = "Step position";
+		popupMenuMainSequencerPosition.action = { | sender | this.bindViews do: { |bindView| bindView.setMainSequencerPosition(sender.value); }; };
+		layoutFooter.add(popupMenuMainSequencerPosition);
+
+		buttonSeqAllSeq = ButtonFactory.createInstance(this, class: "btn-patternbox-footer", buttonString1: "seq");
+		buttonSeqAllSeq.maxWidth = 35;
+		buttonSeqAllSeq.action_({ |sender|
+			this.bindViews do: { |bindView| bindView.setMainSequencerMode("sequencer"); };
+		});
+		layoutFooter.add(buttonSeqAllSeq);
+
+		buttonSeqAllMan = ButtonFactory.createInstance(this, class: "btn-patternbox-footer", buttonString1: "man");
+		buttonSeqAllMan.maxWidth = 35;
+		buttonSeqAllMan.action_({ |sender|
+			this.bindViews do: { |bindView| bindView.setMainSequencerMode("manual"); };
+		});
+		layoutFooter.add(buttonSeqAllMan);
+
+		buttonCollapseExpandEnvir = ButtonFactory.createInstance(this, class: "btn-patternbox-footer", buttonString1: "toggle editor");
 		buttonCollapseExpandEnvir.action_({ |sender|
 			textEnvirFieldView.visible = sender.value == 1;
 		});
 		layoutFooter.add(buttonCollapseExpandEnvir, align: \left);
 
-		buttonAllEditModeOn = ButtonFactory.createInstance(this, class: "btn-patternbox-footer", buttonString1: "show edit all");
+		buttonAllEditModeOn = ButtonFactory.createInstance(this, class: "btn-patternbox-footer", buttonString1: "edit");
+		buttonSeqAllMan.maxWidth = 40;
 		buttonAllEditModeOn.action_({ |sender|
 			bindViews do: { | bindView| bindView.editMode = true; };
 		});
 		layoutFooter.add(buttonAllEditModeOn);
 
-		buttonAllEditModeOff = ButtonFactory.createInstance(this, class: "btn-patternbox-footer", buttonString1: "hide edit all");
+		buttonAllEditModeOff = ButtonFactory.createInstance(this, class: "btn-patternbox-footer", buttonString1: "performance");
 		buttonAllEditModeOff.action_({ |sender|
 			bindViews do: { | bindView| bindView.editMode = false; };
 		});
@@ -273,7 +303,22 @@ PatternBoxView : View {
 			bindViews do: { | bindView| bindView.setBodyIsVisible(false); };
 		});
 
-		layoutFooter.add(buttonCollapseAll);
+	    layoutFooter.add(buttonCollapseAll);
+
+
+		buttonNarrowParams = ButtonFactory.createInstance(this, class: "btn-patternbox-footer", buttonString1: "narrow pars");
+		buttonNarrowParams.action_({ |sender|
+			bindViews do: { | bindView| bindView.setParamVisibility(\narrow); };
+		});
+
+		layoutFooter.add(buttonNarrowParams);
+
+		buttonShowAllParams = ButtonFactory.createInstance(this, class: "btn-patternbox-footer", buttonString1: "show all pars");
+		buttonShowAllParams.action_({ |sender|
+			bindViews do: { | bindView| bindView.setParamVisibility(\all); };
+		});
+
+		layoutFooter.add(buttonShowAllParams);
 
 		layoutFooter.add(nil);
 

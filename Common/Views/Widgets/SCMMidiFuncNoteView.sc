@@ -65,7 +65,7 @@ SCMMIDIFuncNoteView : SCMViewBase {
         mainLayout.add(numberBoxSrcID);
 
         buttonLearn = Button();
-        buttonLearn.string = "learn";
+		buttonLearn.states = [["learn", Color.black, Color.white.alpha_(0.25) ]];
         buttonLearn.toolTip = "Note message mapping";
         buttonLearn.action = { this.learn(); };
         mainLayout.add(buttonLearn);

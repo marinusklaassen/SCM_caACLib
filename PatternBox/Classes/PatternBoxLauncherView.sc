@@ -11,8 +11,8 @@ PatternBoxLauncherView(bounds:400@700).front();
 */
 
 PatternBoxLauncherView : View {
-	var patternBoxLauncherItemViews, <eventAddPatternBox;
-	var mainLayout, footerLayout, <>bufferpool, toggleMIDIedit, projectSaveAndLoadView, menuFile, layoutPatternBoxItems, scrollViewPatternBoxItems, buttonAddPatternBox, layoutHeader, serverControlView, tempoClockView;
+	var <patternBoxLauncherItemViews, <eventAddPatternBox;
+	var mainLayout, footerLayout, <>bufferpool, toggleMIDIedit, projectSaveAndLoadView, menuFile, layoutPatternBoxItems, scrollViewPatternBoxItems, buttonAddPatternBox, layoutHeader, serverControlView, tempoClockView, midiNotePatternBoxLauncherView, <>quant=0;
 
 	*new { |parent, bounds|
 		^super.new(parent, bounds).initialize();
@@ -41,8 +41,15 @@ PatternBoxLauncherView : View {
 		projectSaveAndLoadView.layout.margins = 0!4;
 		projectSaveAndLoadView.actionChanged = { |sender| this.name = "PatternBox Launcher - " ++ PathName(sender.projectfile).fileName; };
 		projectSaveAndLoadView.actionClearAll = { this.clearAll(); };
-		projectSaveAndLoadView.actionNewItem = { this.invokeEvent(this.eventAddPatternBox); };
+		projectSaveAndLoadView.actionNewItem = {
+			this.invokeEvent(this.eventAddPatternBox);
+		};
+
 		projectSaveAndLoadView.actionCloseAllViews = { this.closeViews(); };
+
+		projectSaveAndLoadView.actionMidiEditingStateChanged = { |sender|
+			patternBoxLauncherItemViews do: { |view| view.editMIDI(sender.value); }
+		};
 
 		projectSaveAndLoadView.addView(Button().string_("Bufferpool").action_({ bufferpool.front; }));
 
@@ -52,6 +59,26 @@ PatternBoxLauncherView : View {
 		serverControlView.layout.margins = 0!4;
 		mainLayout.add(serverControlView);
 
+		midiNotePatternBoxLauncherView = SCMMIDIInNoteRangeView(
+			noteOnAction: { |val, note|
+				var patternBoxLauncherItem;
+				note = note - midiNotePatternBoxLauncherView.clipLo;
+				patternBoxLauncherItem = patternBoxLauncherItemViews[note];
+				if (patternBoxLauncherItem.notNil, {
+					patternBoxLauncherItem.patternBoxView.play();
+				});
+			},
+			noteOffAction: { |val, note|
+				var patternBoxLauncherItem;
+				note = note - midiNotePatternBoxLauncherView.clipLo;
+				patternBoxLauncherItem = patternBoxLauncherItemViews[note];
+				if (patternBoxLauncherItem.notNil, {
+					patternBoxLauncherItem.patternBoxView.stop();
+				});
+		});
+
+		mainLayout.add(midiNotePatternBoxLauncherView);
+
 		layoutPatternBoxItems = VLayout([nil, stretch:1, align: \bottom]); // workaround. insert before stretchable space.
 		layoutPatternBoxItems.margins = 0!4;
 		layoutPatternBoxItems.spacing = 5;
@@ -59,16 +86,6 @@ PatternBoxLauncherView : View {
 		scrollViewPatternBoxItems = ScrollViewFactory.createInstance(this);
 		scrollViewPatternBoxItems.canvas.layout = layoutPatternBoxItems;
 		scrollViewPatternBoxItems.background = Color.black.alpha_(0.1);
-		scrollViewPatternBoxItems.canvas.canReceiveDragHandler = {  |view, x, y|
-			View.currentDrag.isKindOf(PatternBoxProjectItemView);
-		};
-
-		scrollViewPatternBoxItems.canvas.receiveDragHandler = { |view, x, y|
-			var targetPosition = patternBoxLauncherItemViews.size - 1;
-			patternBoxLauncherItemViews.remove(View.currentDrag);
-			patternBoxLauncherItemViews.insert(targetPosition, View.currentDrag);
-			layoutPatternBoxItems.insert(View.currentDrag, targetPosition);
-		};
 
 		mainLayout.add(scrollViewPatternBoxItems);
 
@@ -77,13 +94,7 @@ PatternBoxLauncherView : View {
 
 		tempoClockView = SCMTempoClockView(this);
 		footerLayout.add(tempoClockView,  align: \left);
-
-		toggleMIDIedit= ButtonFactory.createInstance(this);
-		toggleMIDIedit.states = [["Show MIDI editors", nil, Color.white.alpha_(0)], ["Hide MIDI editors", nil, Color.white.alpha_(0)]];
-		toggleMIDIedit.toolTip = "Show/hide MIDI editors";
-		toggleMIDIedit.action = { |sender| patternBoxLauncherItemViews do: { |view| view.editMIDI(sender.value == 1); }};
-		footerLayout.add(toggleMIDIedit,  align: \left);
-
+		tempoClockView.actionQuant = { |sender| this.quant = sender.quant; };
 		buttonAddPatternBox = ButtonFactory.createInstance(this, "btn-add");
 		buttonAddPatternBox.toolTip = "Add a new PatternBox.";
 		buttonAddPatternBox.action = { this.invokeEvent(this.eventAddPatternBox); };
@@ -114,7 +125,7 @@ PatternBoxLauncherView : View {
 	}
 
 	addPatternBox { |positionInLayout, sourcePatterBoxItemView, duplicate|
-		var patternBoxLauncherItemView = PatternBoxLauncherItemView(bufferpool: bufferpool);
+		var patternBoxLauncherItemView = PatternBoxLauncherItemView(bufferpool: bufferpool, context: this);
 		if(duplicate == true, {
 			var state = sourcePatterBoxItemView.getState();
 			state[\patternBoxName] = state[\patternBoxName] + " - COPY";
@@ -171,6 +182,7 @@ PatternBoxLauncherView : View {
 		state[\type] = "PatternBoxLauncherView";
 		state[\patternBoxLauncherItemViewsStates] = patternBoxLauncherItemViews.collect({ |patternBoxLauncherItemView| patternBoxLauncherItemView.getState(); });
 		state[\patternBoxBufferpool] = bufferpool.getState();
+		state[\midiNotePatternBoxLauncherView] = midiNotePatternBoxLauncherView.getState();
 		^state;
 	}
 
@@ -195,6 +207,10 @@ PatternBoxLauncherView : View {
 					});
 					patternBoxLauncherItemView.loadState(state);
 				};
+				if (state[\midiNotePatternBoxLauncherView].notNil, {
+					 midiNotePatternBoxLauncherView.loadState(state[\midiNotePatternBoxLauncherView]);
+				});
 		});
 	}
 }
+
