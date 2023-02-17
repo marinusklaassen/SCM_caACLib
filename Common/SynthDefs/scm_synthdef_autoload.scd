@@ -38,7 +38,6 @@ SynthDef(\SCM_FM_Perc, {
 	OffsetOut.ar(out, Pan2.ar(sig, pan, amp));
 }).store();
 );
-Scale.choose
 
 (
 SynthDef(\SCM_Saw_Perc, { |freq=50, cutoff=5000, decay=1, rise=0.005, combDecay=1, curve=2, amp=0.1, out=0, pan=0|
@@ -72,6 +71,67 @@ SynthDef(\SCM_DrumSynth_BD, {
 		freqDecay: ControlSpec(0.001, 1, 'exp')
 ))).store();
 );
+
+(
+SynthDef(\SCM_DrumSynth_BD2, {
+	| freqBase=56, freqClick=5000, freqRise=0.001, freqDecay=0.01, ratioString=1, decayString=0.5, freqCurve=(-4), rise=0.005, decay=1, curve=(-4), boost=1, pan=0, amp=0.5, out=0 |
+	var ampEnv = EnvGen.ar(Env.perc(rise, decay, curve: curve));
+	// linexp freq results on a nice steep slope. Perc curve with a large minus value didn't do the job.
+	var freqEnv = EnvGen.ar(Env.perc(freqRise, freqDecay, curve: freqCurve), doneAction: 0).linexp(0, 1.0, freqBase, freqClick);
+	var sig = SinOsc.ar(freqEnv, pi/2, ampEnv); // TODO select LFPulse.ar
+	sig = CombL.ar(sig, 0.1, (freqBase * ratioString).reciprocal, decayString);
+	DetectSilence.ar(sig, doneAction: 2);
+	sig = Limiter.ar(sig, 0.5);
+	sig = tanh((boost + 1) * sig);
+
+	sig = Pan2.ar(sig, pan, amp);
+	OffsetOut.ar(out, sig);
+}, metadata: (
+	specs: (
+		freqBase: ControlSpec(20, 500, 'exp'),
+		freqClick: \freq.asSpec,
+		rise: ControlSpec(0.001, 0.1, 'exp'),
+		decay: ControlSpec(0.001, 5.0, 'exp'),
+		freqRise: ControlSpec(0.001, 0.1, 'exp'),
+		freqDecay: ControlSpec(0.001, 1, 'exp')
+))).store();
+);
+
+(
+SynthDef(\SCM_DrumSynth_BD3, {
+	| freqBase=56, freqClick=130000, freqRise=0.001, freqDecay=0.03, freqBody=112, decayBody=1, freqCurve=(-4), rise=0.005, decay=1, curve=(-4), boost=0, pan=0, amp=0.05, out=0 |
+	var ampEnv = EnvGen.ar(Env.perc(rise, decay, curve: curve));
+	// linexp freq results on a nice steep slope. Perc curve with a large minus value didn't do the job.
+	var freqEnv = EnvGen.ar(Env.perc(freqRise, freqDecay, curve: freqCurve), doneAction: 0).linexp(0, 1.0, freqBase, freqClick);
+	var sig = SinOsc.ar(freqEnv, pi/2, ampEnv); // TODO select LFPulse.ar
+
+	sig = Limiter.ar(sig, 0.5);
+	sig = tanh((boost + 1) * sig);
+
+		sig = sig + Klank.ar(
+		`[
+			[1, 2, 2.803, 3.871, 5.074, 7.81, 10.948, 14.421],   // freqs
+			[1, 0.044, 0.891, 0.0891, 0.794, 0.1, 0.281, 0.079], // amplitudes
+			[1, 0.205, 1, 0.196, 0.339, 0.047, 0.058, 0.047]     // ring times
+		],
+		sig,
+		freqscale: freqBody,
+		decayscale: decayBody) * 0.5;
+	DetectSilence.ar(sig, doneAction: 2);
+	sig = Pan2.ar(sig, pan, amp);
+	OffsetOut.ar(out, sig);
+}, metadata: (
+	specs: (
+		freqBase: ControlSpec(20, 500, 'exp'),
+		freqClick: \freq.asSpec,
+		rise: ControlSpec(0.001, 0.1, 'exp'),
+		decay: ControlSpec(0.001, 5.0, 'exp'),
+		freqRise: ControlSpec(0.001, 0.1, 'exp'),
+		freqDecay: ControlSpec(0.001, 1, 'exp')
+))).store();
+);
+
+
 
 (
 SynthDef(\SCM_DrumSynth_SN, {
@@ -273,8 +333,6 @@ SynthDef(\SCM_404 , {  | freq=440, lag=0, waveform=0, ffreq=100, ffreqRange=1000
 
 // https://www.soundonsound.com/techniques/practical-snare-drum-synthesis#para2
 
-
-
 (
 SynthDef(\SCM_Karplus, { |freq=110, burstDecay=0.05, delayTime=2, boost=0,  amp=0.1, pan=0, out|
     var burst, env, sig;
@@ -286,5 +344,61 @@ SynthDef(\SCM_Karplus, { |freq=110, burstDecay=0.05, delayTime=2, boost=0,  amp=
 	OffsetOut.ar(out, Pan2.ar(sig, pan, amp));
 }).store();
 );
+
+(
+SynthDef(\SCM_Bell, {
+	|freq=50, decay=1, exciterDecay=0.03, amp=0.25, ringfreq=100, ringmix=0, boost=1, pan=0, out=0|
+	var exciter = WhiteNoise.ar() * EnvGen.ar(Env.perc(0.001, exciterDecay)) * 0.25;
+	var sig = Klank.ar(
+		`[
+			[1, 2, 2.803, 3.871, 5.074, 7.81, 10.948, 14.421],   // freqs
+			[1, 0.044, 0.891, 0.0891, 0.794, 0.1, 0.281, 0.079], // amplitudes
+			[1, 0.205, 1, 0.196, 0.339, 0.047, 0.058, 0.047]     // ring times
+		],
+		exciter,
+		freqscale: freq,
+		decayscale: decay
+	);
+    sig = SinOsc.ar(ringfreq, mul: sig * ringmix) + (sig * (1 - ringmix));
+
+	sig = tanh((boost + 1) * sig);
+	DetectSilence.ar(sig, 0.001, 0.5, doneAction:2);
+	OffsetOut.ar(out, Pan2.ar(sig * amp, pan));
+}).store();
+);
+
+/*
+// glokenspiel
+(
+Pbind(
+	\instrument, \bell,
+	\fs, Pseq( (60..20), inf).midicps,
+	\t60, Pwhite(1, 100),
+
+	\dur, 1
+).play;
+)
+
+// xilophone
+(
+Pbind(
+	\instrument, \bell,
+	\fs, Pseq( (80..92), 1).midicps,
+	\t60, 1,
+	\pitchy, 1,
+	\dur, 0.25
+).play;
+)
+
+// marimba
+(
+Pbind(
+	\instrument, \SCM_Bell,
+	\freq, Pseq((60..72), inf).midicps,
+	\decay, 0.1,
+	\dur, 1/4
+).play;
+)
+*/
 
 /* EOF */
