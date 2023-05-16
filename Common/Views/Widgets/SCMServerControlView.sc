@@ -26,13 +26,13 @@ SCMServerControlView : View {
 	}
 
 	initialize {
-		this.loadState();s
+		this.loadState();
 		this.initializeView();
 		if (Server.local.serverRunning.not || Server.local.options.device != currentDevice, {
-				if (ServerOptions.devices.indexOfEqual(currentDevice) > 0, {
+			if (ServerOptions.devices.indexOfEqual(currentDevice) > 0, {
 				Server.local.options.device = currentDevice;
 			});
-		    Server.local.reboot;
+		Server.local.reboot;
 		});
 		this.onMove = { if(this.parent.isNil, { this.persistState(); })};
 		instances.add(this);
@@ -88,12 +88,12 @@ SCMServerControlView : View {
 	onButtonAction_RefreshMIDI {
 		SCMMIDIOutSelectorView.refresh();
 		SCMMIDIInSelectorView.refresh();
-    }
+	}
 
-    onButtonAction_Panic {
+	onButtonAction_Panic {
 		CmdPeriod.run();
-        Server.freeAll(evenRemote: false);
-    }
+		Server.freeAll(evenRemote: false);
+	}
 
 	onButtonAction_ShowMeter {
 		Server.local.meter();
