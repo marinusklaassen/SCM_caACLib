@@ -179,6 +179,12 @@ PatternBoxLauncherItemView : View {
 		if (sender.value == 1, { patternBoxView.play(); }, { patternBoxView.stop(); });
 	}
 
+	stop {
+	    playState = 0;
+		togglePlay.value = 0;
+		patternBoxView.stop();
+	}
+
 	onSliderVolumeChanged { |sender|
 		patternBoxView.volume = dbamp(sender.valueMapped);
 		volume = sender.value;

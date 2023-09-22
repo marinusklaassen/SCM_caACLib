@@ -12,7 +12,7 @@ PatternBoxLauncherView(bounds:400@700).front();
 
 PatternBoxLauncherView : View {
 	var <patternBoxLauncherItemViews, <eventAddPatternBox;
-	var mainLayout, footerLayout, <>bufferpool, toggleMIDIedit, projectSaveAndLoadView, menuFile, layoutPatternBoxItems, scrollViewPatternBoxItems, buttonAddPatternBox, layoutHeader, serverControlView, tempoClockView, midiNotePatternBoxLauncherView, <>quant=0;
+	var mainLayout, footerLayout, <>bufferpool, toggleMIDIedit, projectSaveAndLoadView, menuFile, layoutPatternBoxItems, scrollViewPatternBoxItems, buttonAddPatternBox, layoutHeader, serverControlView, tempoClockView, buttonStopPatternBoxes, midiNotePatternBoxLauncherView, <>quant=0;
 
 	*new { |parent, bounds|
 		^super.new(parent, bounds).initialize();
@@ -95,12 +95,24 @@ PatternBoxLauncherView : View {
 		tempoClockView = SCMTempoClockView(this);
 		footerLayout.add(tempoClockView,  align: \left);
 		tempoClockView.actionQuant = { |sender| this.quant = sender.quant; };
+
+		buttonStopPatternBoxes = ButtonFactory.createInstance(this);
+		buttonStopPatternBoxes.string = "stop playing";
+		buttonStopPatternBoxes.maxWidth = 100;
+		buttonStopPatternBoxes.toolTip = "Stop all PatternBoxes";
+		buttonStopPatternBoxes.action = { this.stopPatternBoxes(); };
+		footerLayout.add(buttonStopPatternBoxes);
+
 		buttonAddPatternBox = ButtonFactory.createInstance(this, "btn-add");
 		buttonAddPatternBox.toolTip = "Add a new PatternBox.";
 		buttonAddPatternBox.action = { this.invokeEvent(this.eventAddPatternBox); };
 		footerLayout.add(buttonAddPatternBox,  align: \right);
 
 		mainLayout.add(footerLayout);
+	}
+
+	stopPatternBoxes {
+		patternBoxLauncherItemViews do: _.stop();
 	}
 
 	invokeEvent { |event|
