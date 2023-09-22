@@ -97,7 +97,6 @@ PatternBoxParamView : View {
 
         patternBoxParamControlSectionView = PatternBoxParamControlGroupView(bufferpool: bufferpool);
         patternBoxParamControlSectionView.layout.margins = 0!4;
-        patternBoxParamControlSectionView.visible = false;
         patternBoxParamControlSectionView.editMode = false;
         patternBoxParamControlSectionView.actionControlCRUD = { |sender|
             this.regenerateAndInterpretedParamScript();
@@ -119,10 +118,11 @@ PatternBoxParamView : View {
         buttonSelectScriptOrSpecOpControlStack.maxWidth = 24;
         buttonSelectScriptOrSpecOpControlStack.states = [[""] ++ Color.blue.dup(2)];
         buttonSelectScriptOrSpecOpControlStack.action = {
-            if (patternBoxParamControlSectionView.visible, {
-                patternBoxParamControlSectionView.visible = false;
+
+			if (patternBoxParamControlSectionView.isControlsVisible, {
+				patternBoxParamControlSectionView.setVisibility(false);
             },{
-                patternBoxParamControlSectionView.visible = true;
+				patternBoxParamControlSectionView.setVisibility(true);
                 if (patternBoxParamControlSectionView.controlItems.size == 0, {
                     patternBoxParamControlSectionView.editMode = true;
                 });
@@ -240,24 +240,35 @@ PatternBoxParamView : View {
     editMode_ { |mode|
         if (mode, {
             patternBoxParamControlSectionView.editMode = true;
-            patternBoxParamControlSectionView.visible = true;
+			patternBoxParamControlSectionView.setVisibility(true);
         }, {
             patternBoxParamControlSectionView.editMode =  false;
             if (patternBoxParamControlSectionView.controlItems.size == 0, {
-                patternBoxParamControlSectionView.visible = false;
+				patternBoxParamControlSectionView.setVisibility(false);
             });
         });
     }
 
     showControl {
         if (patternBoxParamControlSectionView.controlItems.size > 0, {
-            patternBoxParamControlSectionView.visible = true;
+            patternBoxParamControlSectionView.setVisibility(true);
         });
     }
+
+	setPerformanceMode {
+        if (patternBoxParamControlSectionView.controlItems.size > 0, {
+            patternBoxParamControlSectionView.setVisibility(true);
+        });
+    }
+
 
     randomize {
         patternBoxParamControlSectionView.randomize();
     }
+
+	refreshScreenState {
+		patternBoxParamControlSectionView.refreshScreenState();
+	}
 
     getState {
         var state = Dictionary();
@@ -265,7 +276,6 @@ PatternBoxParamView : View {
         state[\paramName] = keyName;
         state[\patternBoxParamControlSectionView] = patternBoxParamControlSectionView.getState();
         state[\scriptView] = scriptFieldView.getState();
-		state[\editMode] = patternBoxParamControlSectionView.editMode;
         ^state;
     }
 
@@ -273,12 +283,11 @@ PatternBoxParamView : View {
         try {
 		canInterpret = false;
         this.keyName = state[\paramName];
-        actionNameChanged.value(this);
         patternBoxParamControlSectionView.loadState(state[\patternBoxParamControlSectionView]);
+        actionNameChanged.value(this);
         scriptFieldView.loadState(state[\scriptView]);
         canInterpret = true;
         this.regenerateAndInterpretedParamScript();
-		this.editMode = if (state[\editMode].isNil, { false; }, { state[\editMode]; });
 		} { |error|
 			context.title.postln;
 			context.context.model.postln;

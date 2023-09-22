@@ -70,6 +70,7 @@ PatternBoxBindView : View {
 		bodyContainer.visible = visible;
 		collapsableState = visible;
 		buttonCollapsable.value = if(visible, 1, 0);
+		this.refreshScreenState();
 	}
 
 	mute {
@@ -83,6 +84,11 @@ PatternBoxBindView : View {
 	editMode_ { |mode|
 		paramViews do: { |paramView| paramView.editMode = mode; };
 	}
+
+	setPerformanceMode {
+	    this.editMode = false;
+		paramViews do: _.setPerformanceMode();
+    }
 
 	parallelLayers_ { |layers|
 		parallelLayers = layers;
@@ -432,6 +438,12 @@ PatternBoxBindView : View {
 				item.setMainSequencerPosition(position);
 			}
 		}
+	}
+
+	refreshScreenState {
+		paramViews do: { |paramView|
+			paramView.refreshScreenState();
+		};
 	}
 
 	getState { |skipProjectStuf|

@@ -26,7 +26,7 @@ SCMServerControlView : View {
 	}
 
 	initialize {
-		this.loadState();s
+		this.loadState();
 		this.initializeView();
 		if (Server.local.serverRunning.not || Server.local.options.device != currentDevice, {
 				if (ServerOptions.devices.indexOfEqual(currentDevice) > 0, {

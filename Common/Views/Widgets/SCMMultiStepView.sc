@@ -66,7 +66,7 @@ SCMMultiStepView : SCMViewBase {
 		var index = proxySteps.size;
 		var newButtonStep = Button()
 		.states_([["_", nil, Color.black.alpha_(0.5)], ["_", nil, Color.red.alpha_(0.5)]])
-		  .minWidth_(30)
+		  .minWidth_(28)
 		.action_({ |sender| proxySteps[index] = if (sender.value == 0, valueOff, valueOn); proxySteps;  } );
 		buttonSteps.add(newButtonStep);
 		proxySteps.add(initVal);
