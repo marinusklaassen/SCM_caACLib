@@ -131,16 +131,11 @@ PatternBoxView : View {
 		this.initializeView();
 	}
 
-	fixVisibility {
-		//"fix it".postln;  TODO proberly not needed anymore
-	}
-
 	initializeView {
 
 		layoutMain = VLayout();
 		this.layout = layoutMain;
 		this.deleteOnClose = false;
-		this.toFrontAction = { this.fixVisibility(); };
 		textpatternBoxName = TextFieldFactory.createInstance(this);
 		textpatternBoxName.string = model[\patternBoxName];
 		textpatternBoxName.action = { |val| setValueFunction[\patternBoxName].value(val.string); };
@@ -272,7 +267,7 @@ PatternBoxView : View {
 
 		buttonCollapseExpandEnvir = ButtonFactory.createInstance(this, class: "btn-patternbox-footer", buttonString1: "toggle editor");
 		buttonCollapseExpandEnvir.action_({ |sender|
-			textEnvirFieldView.visible = sender.value == 1;
+			textEnvirFieldView.visible = textEnvirFieldView.visible.not;
 		});
 		layoutFooter.add(buttonCollapseExpandEnvir, align: \left);
 
@@ -285,7 +280,7 @@ PatternBoxView : View {
 
 		buttonAllEditModeOff = ButtonFactory.createInstance(this, class: "btn-patternbox-footer", buttonString1: "performance");
 		buttonAllEditModeOff.action_({ |sender|
-			bindViews do: { | bindView| bindView.editMode = false; };
+		    bindViews do: _.setPerformanceMode();
 		});
 
 		layoutFooter.add(buttonAllEditModeOff);
@@ -441,6 +436,12 @@ PatternBoxView : View {
 
 	stop {
 		setValueFunction[\buttonPlay].value(0);
+	}
+
+	refreshScreenState {
+		bindViews do: { | bindView |
+			bindView.refreshScreenState();
+		};
 	}
 
 	getState { |skipProjectStuf|

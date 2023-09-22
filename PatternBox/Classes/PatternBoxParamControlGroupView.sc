@@ -11,7 +11,7 @@ a.bounds
 
 PatternBoxParamControlGroupView : View {
 
-	var <>bufferpool, mainLayout, buttonAdd, <controlItems, <editMode, <>controlNameDefault, <>actionControlCRUD;
+	var <>bufferpool, mainLayout, buttonAdd, <controlItems, <editMode, <>controlNameDefault, <>actionControlCRUD, <isControlsVisible=false;
 
 	*new { |bufferpool, parent, bounds|
 		^super.new(parent, bounds).initialize(bufferpool);
@@ -22,6 +22,11 @@ PatternBoxParamControlGroupView : View {
 		controlNameDefault = "default";
 		controlItems = List();
 		this.initializeView();
+	}
+
+	setVisibility {  |isVisible|
+		 this.visible = isVisible;
+		 isControlsVisible = isVisible;
 	}
 
 	initializeView {
@@ -100,12 +105,15 @@ PatternBoxParamControlGroupView : View {
 		^result;
 	}
 
+	refreshScreenState {
+		this.setVisibility(isControlsVisible);
+	}
+
 	getState {
 		var state = Dictionary();
-		state[\visible] = this.visible;
-		state[\editMode] = editMode;
+		state[\visible] = isControlsVisible;
+		state[\editMode] = this.editMode;
 		state[\controlItems] = controlItems collect: { |item| item.getState(); };
-			state[\controlItems];
 		^state;
 	}
 
@@ -113,8 +121,8 @@ PatternBoxParamControlGroupView : View {
 		controlItems do: { |item| item.remove; };
 		controlItems.clear;
 		if (state.notNil, {
-		if(state[\editMode].notNil, { this.editMode = state[\editMode]; });
-		if(state[\visible].notNil, { this.visible = state[\visible]; });
+			if(state[\editMode].notNil, { this.editMode = state[\editMode]; });
+			if(state[\visible].notNil, { this.setVisibility(state[\visible]);});
 		state[\controlItems] do: { |itemState|
 			this.onButtonClick_AddPatternBoxParamControlItemView(itemState);
 		};

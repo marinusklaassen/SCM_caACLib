@@ -93,12 +93,14 @@ SCMKnobSequencerView : SCMViewBase {
 		var selector = Button()
 		.states_([[nil, Color.white.alpha_(0.5), Color.white.alpha_(0.5)]])
 		.action_({ |sender| this.selectStep(sender, sliders[index], index); })
-		.maxHeight_(15)
-		.minHeight_(15)
+		.maxHeight_(12)
+		.minHeight_(28)
 		.visible_(sequencerMode == "manual");
 
 		var knop = Knob()
 		.value_(initVal)
+		.minWidth_(24)
+	    .minHeight_(24)
 		.background_(Color.black.alpha_(0.2))
 		.action_({ |sender|
 			if (sequencerMode == "sequencer", {
