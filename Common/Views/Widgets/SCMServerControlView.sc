@@ -29,9 +29,12 @@ SCMServerControlView : View {
 		this.loadState();
 		this.initializeView();
 		if (Server.local.serverRunning.not || Server.local.options.device != currentDevice, {
+
+			if (ServerOptions.devices.indexOfEqual(currentDevice).notNil, {
 			if (ServerOptions.devices.indexOfEqual(currentDevice) > 0, {
 				Server.local.options.device = currentDevice;
 			});
+		});
 		Server.local.reboot;
 		});
 		this.onMove = { if(this.parent.isNil, { this.persistState(); })};
